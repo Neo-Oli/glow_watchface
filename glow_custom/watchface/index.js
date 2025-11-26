@@ -122,10 +122,10 @@
 
             normal_city_name_text = hmUI.createWidget(hmUI.widget.TEXT, {
               x: 13,
-              y: 258,
+              y: 262,
               w: 283,
               h: 48,
-              text_size: 20,
+              text_size: 24,
               char_space: 0,
               line_space: 0,
               color: 0xFFC0C4C1,

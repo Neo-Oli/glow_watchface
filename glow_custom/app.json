@@ -2,8 +2,8 @@
   "configVersion": "v2",
   "app": {
     "appIdType": 0,
-    "appId": 9871263,
-    "appName": "Digital Glow Special",
+    "appId": 170170170,
+    "appName": "glow custom",
     "appType": "watchface",
     "version": {
       "code": 2,
@@ -33,7 +33,7 @@
   "i18n": {
     "enUS": {
       "icon": "Preview.png",
-      "appName": "Digital Glow Special"
+      "appName": "glow custom"
     }
   },
   "defaultLanguage": "en-US",
