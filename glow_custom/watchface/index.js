@@ -59,11 +59,13 @@ try {
             ' ', // 28 Clear night
         ]
 
+        const disconnectIcon = '󰂲 '
+
         const iconSize = 50
         const dayNames = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
         let normal_background_bg = ''
         let normal_system_dnd_img = ''
-        let normal_system_disconnect_img = ''
+        let normal_system_disconnect = ''
         let normal_sun_high_text_font = ''
         let normal_sun_low_text_font = ''
         let normal_humidity_current_text_font = ''
@@ -75,7 +77,6 @@ try {
         let normal_battery_circle_scale = ''
         let normal_battery_current_text_font = ''
         let normal_city_name_text = ''
-        const normal_weather_image_progress_img_level = ''
         let normal_weather_text = ''
         let normal_temperature_current_text_font = ''
         let normal_time_hour_min_sec_text_font = ''
@@ -105,6 +106,7 @@ try {
         const cacheText = [
             "$|^0123456789 _-.,:;`'% ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz°\\/",
             weather_icons.join(''),
+            disconnectIcon,
         ].join('')
 
         //dynamic modify end
@@ -308,20 +310,32 @@ try {
                         {
                             x: 185,
                             y: 10,
-                            src: '04.png',
+                            src: 'empty.png',
                             type: hmUI.system_status.DISTURB,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
                     )
 
-                    del(normal_system_disconnect_img)
-                    normal_system_disconnect_img = hmUI.createWidget(
-                        hmUI.widget.IMG_STATUS,
+                    del(normal_system_disconnect)
+                    normal_system_disconnect = hmUI.createWidget(
+                        hmUI.widget.TEXT,
                         {
                             x: 220,
                             y: 10,
-                            src: '02.png',
+                            text: hmBle.connectStatus() ? '' : disconnectIcon,
                             type: hmUI.system_status.DISCONNECT,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                            w: 200,
+                            h: 50,
+                            text_size: iconSize,
+                            char_space: 0,
+                            font: 'fonts/3270NerdFontMono-Regular.ttf',
+                            color: fgColor,
+                            line_space: 0,
+                            align_v: hmUI.align.CENTER_V,
+                            align_h: hmUI.align.LEFT,
+                            text_style: hmUI.text_style.NONE,
+                            unit_type: 0,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
                     )
@@ -531,51 +545,6 @@ try {
                         },
                     )
 
-                    /*
-                     * del(normal_weather_image_progress_img_level)
-                     * normal_weather_image_progress_img_level = hmUI.createWidget(
-                     * hmUI.widget.IMG_LEVEL,
-                     * {
-                     * x: 170,
-                     * y: 100,
-                     * image_array: [
-                     * '01.png',
-                     * '02.png',
-                     * '03.png',
-                     * '04.png',
-                     * '05.png',
-                     * '06.png',
-                     * '07.png',
-                     * '08.png',
-                     * '09.png',
-                     * '10.png',
-                     * '11.png',
-                     * '12.png',
-                     * '13.png',
-                     * '14.png',
-                     * '15.png',
-                     * '16.png',
-                     * '17.png',
-                     * '18.png',
-                     * '19.png',
-                     * '20.png',
-                     * '21.png',
-                     * '22.png',
-                     * '23.png',
-                     * '24.png',
-                     * '25.png',
-                     * '26.png',
-                     * '27.png',
-                     * '28.png',
-                     * '29.png',
-                     * ],
-                     * image_length: 29,
-                     * type: hmUI.data_type.WEATHER_CURRENT,
-                     * show_level: hmUI.show_level.ONLY_NORMAL,
-                     * },
-                     * )
-                     */
-
                     del(normal_weather_text)
                     normal_weather_text = hmUI.createWidget(hmUI.widget.TEXT, {
                         x: 170,
@@ -591,7 +560,7 @@ try {
                         align_h: hmUI.align.LEFT,
                         text_style: hmUI.text_style.NONE,
                         unit_type: 0,
-                        text: 'Err',
+                        text: '',
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
 
@@ -976,7 +945,7 @@ try {
                             )
                         }
                     }
-
+                    newColorCache.push(hmBle.connectStatus().toString())
                     const finalColorCache = newColorCache.join('')
                     if (colorCache !== finalColorCache) {
                         colorCache = finalColorCache
