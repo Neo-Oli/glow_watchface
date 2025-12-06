@@ -23,7 +23,7 @@ try {
 
         //dynamic modify start
 
-
+        const dayNames = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
         let normal_background_bg = ''
         let normal_system_dnd_img = ''
         let normal_system_disconnect_img = ''
@@ -61,6 +61,7 @@ try {
         let fontCache5 = ''
 
         let colorCache = ''
+        const cacheText="$|^0123456789 _-.,:;`'% ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz°\\/"
 
 
         //dynamic modify end
@@ -118,7 +119,7 @@ try {
                     vibrate.stop();
                     if(timer_StopVibrate) timer.stopTimer(timer_StopVibrate);
                 }
-                const render = (fgColor = 0xFFFF8C00) =>{
+                const render = (fgColor = 0xFFFF8C00,bgColor = 0xFF000000) =>{
 
                     // FontName: 3270NerdFontMono-Regular.ttf; FontSize: 18
                     del(fontCache1)
@@ -135,7 +136,7 @@ try {
                         align_h: hmUI.align.LEFT,
                         align_v: hmUI.align.TOP,
                         text_style: hmUI.text_style.ELLIPSIS,
-                        text: "0123456789 _-.,:;`'%°\\/",
+                        text: cacheText,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     });
 
@@ -154,7 +155,7 @@ try {
                         align_h: hmUI.align.RIGHT,
                         align_v: hmUI.align.CENTER_V,
                         text_style: hmUI.text_style.ELLIPSIS,
-                        text: "0123456789 _-.,:;`'%°\\/",
+                        text: cacheText,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     });
 
@@ -173,7 +174,7 @@ try {
                         align_h: hmUI.align.LEFT,
                         align_v: hmUI.align.TOP,
                         text_style: hmUI.text_style.NONE,
-                        text: "0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя  ҐЄІЇґєії _-.,:;`'%°\\/",
+                        text: cacheText,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     });
 
@@ -192,7 +193,7 @@ try {
                         align_h: hmUI.align.LEFT,
                         align_v: hmUI.align.CENTER_V,
                         text_style: hmUI.text_style.NONE,
-                        text: "0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя  ҐЄІЇґєії _-.,:;`'%°\\/",
+                        text: cacheText,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     });
 
@@ -211,7 +212,7 @@ try {
                         align_h: hmUI.align.LEFT,
                         align_v: hmUI.align.BOTTOM,
                         text_style: hmUI.text_style.ELLIPSIS,
-                        text: "0123456789 _-.,:;`'%°\\/",
+                        text: cacheText,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     });
 
@@ -222,7 +223,7 @@ try {
                         y: 0,
                         w: 466,
                         h: 466,
-                        color: 'fgColor',
+                        color: bgColor,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     });
 
@@ -356,9 +357,9 @@ try {
                     });
                     del(normal_day_month_year_font)
                     normal_day_month_year_font = hmUI.createWidget(hmUI.widget.TEXT, {
-                        x: 133,
+                        x: 113,
                         y: 52,
-                        w: 200,
+                        w: 230,
                         h: 36,
                         text_size: 36,
                         char_space: 0,
@@ -657,19 +658,11 @@ try {
                         let normal_DayStr = timeSensor.day.toString();
                         let normal_MonthStr = timeSensor.month.toString();
                         let normal_YearStr = (timeSensor.year % 100).toString();
+                        const day = timeSensor.week;
+                        const dayString = dayNames[day-1]
                         normal_DayStr = normal_DayStr.padStart(2, '0');
                         normal_MonthStr = normal_MonthStr.padStart(2, '0');
-                        let normal_DayMonthYearStr = '--';
-                        const dateFormat = hmSetting.getDateFormat();
-                        if (dateFormat == 0) {
-                            normal_DayMonthYearStr = normal_YearStr + '/' + normal_MonthStr + '/' + normal_DayStr;
-                        }
-                        if (dateFormat == 1) {
-                            normal_DayMonthYearStr = normal_DayStr + '/' + normal_MonthStr + '/' + normal_YearStr;
-                        }
-                        if (dateFormat == 2) {
-                            normal_DayMonthYearStr = normal_MonthStr + '/' + normal_DayStr + '/' + normal_YearStr;
-                        }
+                        const normal_DayMonthYearStr = `${dayString} ${normal_YearStr}.${normal_MonthStr}.${normal_DayStr}`;
                         normal_day_month_year_font.setProperty(hmUI.prop.TEXT, normal_DayMonthYearStr );
                     };
 
@@ -707,7 +700,10 @@ try {
                     console.log('Weather city name');
                     let weatherData = weatherSensor.getForecastWeather();
                     let normal_cityNameStr = weatherData.cityName;
-                    normal_city_name_text.setProperty(hmUI.prop.TEXT, normal_cityNameStr);
+                    const [cityName = "Default City", fgColorHex = "FFFFFF", bgColorHex = "000000"] = normal_cityNameStr.split("%%%");
+                    
+
+                    normal_city_name_text.setProperty(hmUI.prop.TEXT, cityName);
 
 
 
@@ -738,14 +734,16 @@ try {
                         };
                     };
 
-                    const color=0xFFF0000
 
 
-                    const newColorCache=[color].join()
+                    const newColorCache=[fgColorHex,bgColorHex].join()
 
                     if( colorCache != newColorCache ){
                         colorCache=newColorCache
-                        render(color)
+                        render(
+                            Number("0xFF" + fgColorHex),
+                            Number("0xFF" + bgColorHex)
+                        )
                     }
                 };
 
