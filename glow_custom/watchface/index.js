@@ -842,8 +842,6 @@ try {
                         )
                     }
 
-                    console.log('hour:min:sec font')
-
                     const hourStr = format_hour.toString().padStart(2, '0')
                     const minuteStr = minute.toString().padStart(2, '0')
                     const secondStr = second.toString().padStart(2, '0')
@@ -864,8 +862,6 @@ try {
                         hmUI.prop.LEVEL,
                         (second / 60) * 100,
                     )
-
-                    console.log('hour:min font')
 
                     if (updateMinute) {
                         const hourStr = format_hour.toString().padStart(2, '0')
