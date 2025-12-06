@@ -8,6 +8,8 @@ export default {
     files: ['glow_custom/**/*'],
     ignores: [],
     languageOptions: {
+        ecmaVersion: 2020,
+        sourceType: 'script',
         globals: {
             console: 'readonly',
             setTimeout: 'readonly',
@@ -22,6 +24,7 @@ export default {
         'linebreak-style': ['error', 'unix'],
         'multiline-comment-style': ['error', 'starred-block'],
         'no-var': 1,
+        'prefer-const': 'error',
         'prefer-template': 'error',
         'prettier/prettier': 'error',
     },

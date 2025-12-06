@@ -27,6 +27,39 @@ try {
 
         //dynamic modify start
 
+        const weather_icons = [
+            ' ', // 0 Cloudy
+            ' ', // 1 Shower
+            '󰖘 ', // 2 Snow shower
+            '󰖙 ', // 3 Sunny
+            ' ', // 4 Overcast
+            '󰖗 ', // 5 Light rain
+            '󰖘 ', // 6 Light snow
+            ' ', // 7 Moderate rain
+            '󰖘 ', // 8 Moderate snow
+            '󰼶 ', // 9 Heavy snow
+            ' ', // 10 Heavy rain
+            ' ', // 11 Sandstorm
+            ' ', // 12 Sleet
+            '󰖑 ', // 13 Fog
+            '󰖑 ', // 14 Haze
+            ' ', // 15 Thundershower
+            '󰖘 ', // 16 Snowstorm
+            ' ', // 17 Dust
+            ' ', // 18 Extraordinary rainstorm
+            '󰙿 ', // 19 Rain with hail
+            ' ', // 20 Thundershowers with hail
+            ' ', // 21 Heavy rainstorm
+            ' ', // 22 Sand blowing
+            ' ', // 23 Strong sandstorm
+            ' ', // 24 Rainstorm
+            ' ', // 25 Unknown weather
+            '󰼱 ', // 26 Cloudy at night
+            ' ', // 27 Shower at night
+            ' ', // 28 Clear night
+        ]
+
+        const iconSize = 50
         const dayNames = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
         let normal_background_bg = ''
         let normal_system_dnd_img = ''
@@ -42,7 +75,7 @@ try {
         let normal_battery_circle_scale = ''
         let normal_battery_current_text_font = ''
         let normal_city_name_text = ''
-        let normal_weather_image_progress_img_level = ''
+        const normal_weather_image_progress_img_level = ''
         let normal_weather_text = ''
         let normal_temperature_current_text_font = ''
         let normal_time_hour_min_sec_text_font = ''
@@ -58,16 +91,21 @@ try {
         let Button_1 = ''
         let Button_2 = ''
         let timeSensor = ''
+        let weatherSensor = ''
+        let battery = ''
 
         let fontCache1 = ''
         let fontCache2 = ''
         let fontCache3 = ''
         let fontCache4 = ''
         let fontCache5 = ''
+        let fontCache6 = ''
 
         let colorCache = ''
-        const cacheText =
-            "$|^0123456789 _-.,:;`'% ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz°\\/"
+        const cacheText = [
+            "$|^0123456789 _-.,:;`'% ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz°\\/",
+            weather_icons.join(''),
+        ].join('')
 
         //dynamic modify end
 
@@ -77,14 +115,20 @@ try {
                 const del = (widget) => {
                     hmUI.deleteWidget(widget)
                 }
-                const weatherSensor = hmSensor.createSensor(hmSensor.id.WEATHER)
-                const battery = hmSensor.createSensor(hmSensor.id.BATTERY)
-                battery.addEventListener(hmSensor.event.CHANGE, function () {
-                    scale_call()
-                })
+                if (!weatherSensor)
+                    weatherSensor = hmSensor.createSensor(hmSensor.id.WEATHER)
+                if (!battery) {
+                    battery = hmSensor.createSensor(hmSensor.id.BATTERY)
+                    battery.addEventListener(
+                        hmSensor.event.CHANGE,
+                        function () {
+                            scale_call()
+                        },
+                    )
+                }
                 if (!timeSensor)
                     timeSensor = hmSensor.createSensor(hmSensor.id.TIME)
-                let screenType = hmSetting.getScreenType()
+                const screenType = hmSetting.getScreenType()
                 function checkConnection() {
                     console.log('checkConnection()')
                     hmBle.removeListener()
@@ -228,6 +272,23 @@ try {
                     })
 
                     console.log('Watch_Face.ScreenNormal')
+                    del(fontCache6)
+                    fontCache6 = hmUI.createWidget(hmUI.widget.TEXT, {
+                        x: 464,
+                        y: 464,
+                        w: 10000,
+                        h: 117,
+                        text_size: iconSize,
+                        char_space: 0,
+                        line_space: 0,
+                        font: 'fonts/3270NerdFontMono-Regular.ttf',
+                        color: fgColor,
+                        align_h: hmUI.align.LEFT,
+                        align_v: hmUI.align.BOTTOM,
+                        text_style: hmUI.text_style.ELLIPSIS,
+                        text: cacheText,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
                     del(normal_background_bg)
                     normal_background_bg = hmUI.createWidget(
                         hmUI.widget.FILL_RECT,
@@ -470,6 +531,70 @@ try {
                         },
                     )
 
+                    /*
+                     * del(normal_weather_image_progress_img_level)
+                     * normal_weather_image_progress_img_level = hmUI.createWidget(
+                     * hmUI.widget.IMG_LEVEL,
+                     * {
+                     * x: 170,
+                     * y: 100,
+                     * image_array: [
+                     * '01.png',
+                     * '02.png',
+                     * '03.png',
+                     * '04.png',
+                     * '05.png',
+                     * '06.png',
+                     * '07.png',
+                     * '08.png',
+                     * '09.png',
+                     * '10.png',
+                     * '11.png',
+                     * '12.png',
+                     * '13.png',
+                     * '14.png',
+                     * '15.png',
+                     * '16.png',
+                     * '17.png',
+                     * '18.png',
+                     * '19.png',
+                     * '20.png',
+                     * '21.png',
+                     * '22.png',
+                     * '23.png',
+                     * '24.png',
+                     * '25.png',
+                     * '26.png',
+                     * '27.png',
+                     * '28.png',
+                     * '29.png',
+                     * ],
+                     * image_length: 29,
+                     * type: hmUI.data_type.WEATHER_CURRENT,
+                     * show_level: hmUI.show_level.ONLY_NORMAL,
+                     * },
+                     * )
+                     */
+
+                    del(normal_weather_text)
+                    normal_weather_text = hmUI.createWidget(hmUI.widget.TEXT, {
+                        x: 170,
+                        y: 90,
+                        w: 200,
+                        h: 50,
+                        text_size: iconSize,
+                        char_space: 0,
+                        font: 'fonts/3270NerdFontMono-Regular.ttf',
+                        color: fgColor,
+                        line_space: 0,
+                        align_v: hmUI.align.CENTER_V,
+                        align_h: hmUI.align.LEFT,
+                        text_style: hmUI.text_style.NONE,
+                        unit_type: 0,
+                        text: 'Err',
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
+
                     del(normal_city_name_text)
                     normal_city_name_text = hmUI.createWidget(
                         hmUI.widget.TEXT,
@@ -486,70 +611,6 @@ try {
                             align_v: hmUI.align.CENTER_V,
                             text_style: hmUI.text_style.ELLIPSIS,
                             align_h: hmUI.align.LEFT,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                    )
-
-                    del(normal_weather_image_progress_img_level)
-                    normal_weather_image_progress_img_level = hmUI.createWidget(
-                        hmUI.widget.IMG_LEVEL,
-                        {
-                            x: 170,
-                            y: 100,
-                            image_array: [
-                                '01.png',
-                                '02.png',
-                                '03.png',
-                                '04.png',
-                                '05.png',
-                                '06.png',
-                                '07.png',
-                                '08.png',
-                                '09.png',
-                                '10.png',
-                                '11.png',
-                                '12.png',
-                                '13.png',
-                                '14.png',
-                                '15.png',
-                                '16.png',
-                                '17.png',
-                                '18.png',
-                                '19.png',
-                                '20.png',
-                                '21.png',
-                                '22.png',
-                                '23.png',
-                                '24.png',
-                                '25.png',
-                                '26.png',
-                                '27.png',
-                                '28.png',
-                                '29.png',
-                            ],
-                            image_length: 29,
-                            type: hmUI.data_type.WEATHER_CURRENT,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                    )
-
-                    del(normal_weather_text)
-                    normal_weather_text = hmUI.createWidget(
-                        hmUI.widget.TEXT_FONT,
-                        {
-                            x: 160,
-                            y: 100,
-                            w: 50,
-                            h: 36,
-                            text_size: 36,
-                            char_space: 0,
-                            font: 'fonts/3270NerdFontMono-Regular.ttf',
-                            color: fgColor,
-                            line_space: 0,
-                            align_v: hmUI.align.CENTER_V,
-                            text_style: hmUI.text_style.ELLIPSIS,
-                            align_h: hmUI.align.RIGHT,
-                            unit_type: 0,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
                     )
@@ -789,16 +850,18 @@ try {
                 //#region time_update
                 function time_update(updateHour = false, updateMinute = false) {
                     console.log('time_update()')
-                    let hour = timeSensor.hour
-                    let minute = timeSensor.minute
-                    let second = timeSensor.second
-                    let format_hour = timeSensor.format_hour
+                    const hour = timeSensor.hour
+                    const minute = timeSensor.minute
+                    const second = timeSensor.second
+                    const format_hour = timeSensor.format_hour
 
                     console.log('day/month/year font')
                     if (updateHour) {
                         let normal_DayStr = timeSensor.day.toString()
                         let normal_MonthStr = timeSensor.month.toString()
-                        let normal_YearStr = (timeSensor.year % 100).toString()
+                        const normal_YearStr = (
+                            timeSensor.year % 100
+                        ).toString()
                         const day = timeSensor.week
                         const dayString = dayNames[day - 1]
                         normal_DayStr = normal_DayStr.padStart(2, '0')
@@ -812,9 +875,9 @@ try {
 
                     console.log('hour:min:sec font')
 
-                    let hourStr = format_hour.toString().padStart(2, '0')
-                    let minuteStr = minute.toString().padStart(2, '0')
-                    let secondStr = second.toString().padStart(2, '0')
+                    const hourStr = format_hour.toString().padStart(2, '0')
+                    const minuteStr = minute.toString().padStart(2, '0')
+                    const secondStr = second.toString().padStart(2, '0')
 
                     let normal_HourMinSecStr = `${hourStr}:${minuteStr}:${secondStr}`
 
@@ -828,7 +891,7 @@ try {
                     )
 
                     // Second Circle
-                    normal_second_circle_scale?.setProperty(
+                    normal_second_circle_scale.setProperty(
                         hmUI.prop.LEVEL,
                         (second / 60) * 100,
                     )
@@ -836,8 +899,8 @@ try {
                     console.log('hour:min font')
 
                     if (updateMinute) {
-                        let hourStr = format_hour.toString().padStart(2, '0')
-                        let minuteStr = minute.toString().padStart(2, '0')
+                        const hourStr = format_hour.toString().padStart(2, '0')
+                        const minuteStr = minute.toString().padStart(2, '0')
 
                         let idle_HourMinStr = `${hourStr}:${minuteStr}`
 
@@ -852,33 +915,50 @@ try {
                     }
                 }
 
+                function condition_icon(condition) {
+                    if (condition in weather_icons) {
+                        return weather_icons[condition]
+                    }
+                    return condition.toString()
+                }
+
                 //#endregion
                 function scale_call() {
                     console.log('scale_call()')
 
+                    const newColorCache = []
                     console.log('Weather city name')
-                    let weatherData = weatherSensor.getForecastWeather()
-                    let normal_cityNameStr = weatherData.cityName
+                    const weatherData = weatherSensor.getForecastWeather()
+                    const normal_cityNameStr = weatherData.cityName
                     const [
                         cityName = 'Default City',
                         fgColorHex = 'FFFFFF',
                         bgColorHex = '000000',
                     ] = normal_cityNameStr.split('%%%')
-                    const condition = weatherData
 
                     normal_city_name_text.setProperty(hmUI.prop.TEXT, cityName)
+                    newColorCache.push(fgColorHex)
+                    newColorCache.push(bgColorHex)
+                    const condition =
+                        weatherData?.forecastData?.data?.[0]?.index ?? -1
+                    normal_weather_text.setProperty(
+                        hmUI.prop.TEXT,
+                        condition_icon(condition),
+                    )
 
                     console.log('update scales BATTERY')
 
-                    let valueBattery = battery.current
-                    let targetBattery = 100
+                    const valueBattery = battery.current
+                    const targetBattery = 100
                     let progressBattery = valueBattery / targetBattery
                     if (progressBattery > 1) progressBattery = 1
-                    let progress_cs_normal_battery = progressBattery
+                    const progress_cs_normal_battery = progressBattery
 
                     if (screenType !== hmSetting.screen_type.AOD) {
                         // normal_battery_circle_scale_circle_scale
-                        let level = Math.round(progress_cs_normal_battery * 100)
+                        const level = Math.round(
+                            progress_cs_normal_battery * 100,
+                        )
                         if (normal_battery_circle_scale) {
                             normal_battery_circle_scale.setProperty(
                                 hmUI.prop.MORE,
@@ -897,10 +977,9 @@ try {
                         }
                     }
 
-                    const newColorCache = [fgColorHex, bgColorHex].join()
-
-                    if (colorCache !== newColorCache) {
-                        colorCache = newColorCache
+                    const finalColorCache = newColorCache.join('')
+                    if (colorCache !== finalColorCache) {
+                        colorCache = finalColorCache
                         render(
                             Number(`0xFF${fgColorHex}`),
                             Number(`0xFF${bgColorHex}`),
@@ -923,9 +1002,9 @@ try {
                                         0,
                                         1000,
                                         function (option) {
-                                            let updateHour =
+                                            const updateHour =
                                                 timeSensor.minute === 0
-                                            let updateMinute =
+                                            const updateMinute =
                                                 timeSensor.second < 2
                                             time_update(
                                                 updateHour,
@@ -940,8 +1019,8 @@ try {
                                 screenType === hmSetting.screen_type.WATCHFACE
                             ) {
                                 if (!normal_timerUpdateSec) {
-                                    let animDelay = timeSensor.utc % 1000
-                                    let animRepeat = 1000
+                                    const animDelay = timeSensor.utc % 1000
+                                    const animRepeat = 1000
                                     normal_timerUpdateSec = timer.createTimer(
                                         animDelay,
                                         animRepeat,
@@ -958,10 +1037,10 @@ try {
                                         0,
                                         1000,
                                         function (option) {
-                                            let updateHour =
+                                            const updateHour =
                                                 timeSensor.minute === 0 &&
                                                 timeSensor.second < 2
-                                            let updateMinute =
+                                            const updateMinute =
                                                 timeSensor.second < 2
                                             time_update(
                                                 updateHour,

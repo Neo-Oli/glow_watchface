@@ -36,13 +36,13 @@ try {
             }
             throw new Error('unable to locate global object')
         }
-        let globalNS$2 = getGlobal()
+        const globalNS$2 = getGlobal()
         if (!globalNS$2.Logger) {
             if (typeof DeviceRuntimeCore !== 'undefined') {
                 globalNS$2.Logger = DeviceRuntimeCore.HmLogger
             }
         }
-        let globalNS$1 = getGlobal()
+        const globalNS$1 = getGlobal()
         if (!globalNS$1.Buffer) {
             if (typeof Buffer !== 'undefined') {
                 globalNS$1.Buffer = Buffer
@@ -53,7 +53,7 @@ try {
         function isHmTimerDefined() {
             return typeof timer !== 'undefined'
         }
-        let globalNS = getGlobal()
+        const globalNS = getGlobal()
         if (typeof setTimeout === 'undefined' && isHmTimerDefined()) {
             globalNS.clearTimeout = function clearTimeout(timerRef) {
                 timerRef && timer.stopTimer(timerRef)
