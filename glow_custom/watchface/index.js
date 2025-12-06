@@ -1,10 +1,10 @@
-﻿    /*
-    ** Watch_Face_Editor tool
-    ** watchface js version v2.1.1
-    ** Copyright © SashaCX75. All Rights Reserved
-    */
-   
-    try {
+﻿/*
+** Watch_Face_Editor tool
+** watchface js version v2.1.1
+** Copyright © SashaCX75. All Rights Reserved
+*/
+
+try {
     (() => {
         //start of ignored block
         const __$$app$$__ = __$$hmAppManager$$__.currentApp;
@@ -23,7 +23,7 @@
 
         //dynamic modify start
 
-        
+
         let normal_background_bg = ''
         let normal_system_dnd_img = ''
         let normal_system_disconnect_img = ''
@@ -54,711 +54,758 @@
         let Button_2 = ''
         let timeSensor = '';
 
+        let fontCache1 = ''
+        let fontCache2 = ''
+        let fontCache3 = ''
+        let fontCache4 = ''
+        let fontCache5 = ''
+
+        let colorCache = ''
+
 
         //dynamic modify end
 
         __$$module$$__.module = DeviceRuntimeCore.WatchFace({
             init_view() {
                 //dynamic modify start
-                    
-                
-            // FontName: 3270NerdFontMono-Regular.ttf; FontSize: 18
-            hmUI.createWidget(hmUI.widget.TEXT, {
-              x: 464,
-              y: 464,
-              w: 298,
-              h: 22,
-              text_size: 18,
-              char_space: 0,
-              line_space: 0,
-              font: 'fonts/3270NerdFontMono-Regular.ttf',
-              color: 0xFFFF8C00,
-              align_h: hmUI.align.LEFT,
-              align_v: hmUI.align.TOP,
-              text_style: hmUI.text_style.ELLIPSIS,
-              text: "0123456789 _-.,:;`'%°\\/",
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            // FontName: 3270NerdFontMono-Regular.ttf; FontSize: 36
-            hmUI.createWidget(hmUI.widget.TEXT, {
-              x: 464,
-              y: 464,
-              w: 567,
-              h: 48,
-              text_size: 36,
-              char_space: 0,
-              line_space: 0,
-              font: 'fonts/3270NerdFontMono-Regular.ttf',
-              color: 0xFFFF8C00,
-              align_h: hmUI.align.RIGHT,
-              align_v: hmUI.align.CENTER_V,
-              text_style: hmUI.text_style.ELLIPSIS,
-              text: "0123456789 _-.,:;`'%°\\/",
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            // FontName: 3270NerdFontMono-Regular.ttf; FontSize: 20; Cache: full
-            hmUI.createWidget(hmUI.widget.TEXT, {
-              x: 464,
-              y: 464,
-              w: 24,
-              h: 24,
-              text_size: 20,
-              char_space: 0,
-              line_space: 0,
-              font: 'fonts/3270NerdFontMono-Regular.ttf',
-              color: 0xFFFF8C00,
-              align_h: hmUI.align.LEFT,
-              align_v: hmUI.align.TOP,
-              text_style: hmUI.text_style.NONE,
-              text: "0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя  ҐЄІЇґєії _-.,:;`'%°\\/",
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            // FontName: 3270NerdFontMono-Regular.ttf; FontSize: 36; Cache: full
-            hmUI.createWidget(hmUI.widget.TEXT, {
-              x: 464,
-              y: 464,
-              w: 43,
-              h: 43,
-              text_size: 36,
-              char_space: 0,
-              line_space: 0,
-              font: 'fonts/3270NerdFontMono-Regular.ttf',
-              color: 0xFFFF8C00,
-              align_h: hmUI.align.LEFT,
-              align_v: hmUI.align.CENTER_V,
-              text_style: hmUI.text_style.NONE,
-              text: "0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя  ҐЄІЇґєії _-.,:;`'%°\\/",
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            // FontName: 3270NerdFontMono-Regular.ttf; FontSize: 90
-            hmUI.createWidget(hmUI.widget.TEXT, {
-              x: 464,
-              y: 464,
-              w: 1461,
-              h: 117,
-              text_size: 90,
-              char_space: 0,
-              line_space: 0,
-              font: 'fonts/3270NerdFontMono-Regular.ttf',
-              color: 0xFFFF8000,
-              align_h: hmUI.align.LEFT,
-              align_v: hmUI.align.BOTTOM,
-              text_style: hmUI.text_style.ELLIPSIS,
-              text: "0123456789 _-.,:;`'%°\\/",
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            console.log('Watch_Face.ScreenNormal');
-            normal_background_bg = hmUI.createWidget(hmUI.widget.FILL_RECT, {
-              x: 0,
-              y: 0,
-              w: 466,
-              h: 466,
-              color: '0xFF170C00',
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            normal_system_dnd_img = hmUI.createWidget(hmUI.widget.IMG_STATUS, {
-              x: 185,
-              y: 10,
-              src: '04.png',
-              type: hmUI.system_status.DISTURB,
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            normal_system_disconnect_img = hmUI.createWidget(hmUI.widget.IMG_STATUS, {
-              x: 220,
-              y: 10,
-              src: '02.png',
-              type: hmUI.system_status.DISCONNECT,
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            normal_sun_high_text_font = hmUI.createWidget(hmUI.widget.TEXT_FONT, {
-              x: 290,
-              y: 102,
-              w: 150,
-              h: 30,
-              text_size: 18,
-              char_space: 0,
-              font: 'fonts/3270NerdFontMono-Regular.ttf',
-              color: 0xFFFF8C00,
-              line_space: 0,
-              align_v: hmUI.align.TOP,
-              text_style: hmUI.text_style.ELLIPSIS,
-              align_h: hmUI.align.LEFT,
-              type: hmUI.data_type.SUN_RISE,
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            normal_sun_low_text_font = hmUI.createWidget(hmUI.widget.TEXT_FONT, {
-              x: 290,
-              y: 116,
-              w: 150,
-              h: 30,
-              text_size: 18,
-              char_space: 0,
-              font: 'fonts/3270NerdFontMono-Regular.ttf',
-              color: 0xFFFF8C00,
-              line_space: 0,
-              align_v: hmUI.align.TOP,
-              text_style: hmUI.text_style.ELLIPSIS,
-              align_h: hmUI.align.LEFT,
-              type: hmUI.data_type.SUN_SET,
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            normal_humidity_current_text_font = hmUI.createWidget(hmUI.widget.TEXT_FONT, {
-              x: 130,
-              y: 100,
-              w: 150,
-              h: 36,
-              text_size: 36,
-              char_space: 0,
-              font: 'fonts/3270NerdFontMono-Regular.ttf',
-              color: 0xFFFF8C00,
-              line_space: 0,
-              align_v: hmUI.align.CENTER_V,
-              text_style: hmUI.text_style.ELLIPSIS,
-              align_h: hmUI.align.RIGHT,
-              unit_type: 1,
-              type: hmUI.data_type.HUMIDITY,
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            normal_heart_rate_text_font = hmUI.createWidget(hmUI.widget.TEXT_FONT, {
-              x: 321,
-              y: 350,
-              w: 150,
-              h: 30,
-              text_size: 20,
-              char_space: 0,
-              font: 'fonts/3270NerdFontMono-Regular.ttf',
-              color: 0xFFFF8C00,
-              line_space: 0,
-              align_v: hmUI.align.TOP,
-              text_style: hmUI.text_style.ELLIPSIS,
-              align_h: hmUI.align.LEFT,
-              unit_type: 1,
-              type: hmUI.data_type.HEART,
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            normal_distance_current_text_font = hmUI.createWidget(hmUI.widget.TEXT_FONT, {
-              x: 321,
-              y: 330,
-              w: 150,
-              h: 50,
-              text_size: 20,
-              char_space: 0,
-              font: 'fonts/3270NerdFontMono-Regular.ttf',
-              color: 0xFFFF8C00,
-              line_space: 0,
-              align_v: hmUI.align.TOP,
-              text_style: hmUI.text_style.ELLIPSIS,
-              align_h: hmUI.align.LEFT,
-              unit_type: 1,
-              type: hmUI.data_type.DISTANCE,
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            normal_step_current_text_font = hmUI.createWidget(hmUI.widget.TEXT_FONT, {
-              x: 321,
-              y: 310,
-              w: 150,
-              h: 30,
-              text_size: 20,
-              char_space: 0,
-              font: 'fonts/3270NerdFontMono-Regular.ttf',
-              color: 0xFFFF8C00,
-              line_space: 0,
-              align_v: hmUI.align.TOP,
-              text_style: hmUI.text_style.ELLIPSIS,
-              align_h: hmUI.align.LEFT,
-              unit_type: 2,
-              type: hmUI.data_type.STEP,
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            if (!timeSensor) timeSensor = hmSensor.createSensor(hmSensor.id.TIME);
-            let screenType = hmSetting.getScreenType();
-            normal_day_month_year_font = hmUI.createWidget(hmUI.widget.TEXT, {
-              x: 133,
-              y: 52,
-              w: 200,
-              h: 36,
-              text_size: 36,
-              char_space: 0,
-              font: 'fonts/3270NerdFontMono-Regular.ttf',
-              color: 0xFFFF8C00,
-              line_space: 0,
-              align_v: hmUI.align.TOP,
-              text_style: hmUI.text_style.ELLIPSIS,
-              align_h: hmUI.align.CENTER_H,
-              // padding: true,
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            // normal_battery_circle_scale = hmUI.createWidget(hmUI.widget.Circle_Scale, {
-              // center_x: 145,
-              // center_y: 364,
-              // start_angle: 0,
-              // end_angle: 360,
-              // radius: 49,
-              // line_width: 5,
-              // line_cap: Flat,
-              // color: 0xFFFF8C00,
-              // mirror: False,
-              // inversion: False,
-              // alpha: 255,
-              // type: hmUI.data_type.BATTERY,
-              // show_level: hmUI.show_level.ONLY_NORMAL,
-            // });
-
-            normal_battery_circle_scale = hmUI.createWidget(hmUI.widget.ARC_PROGRESS, {
-              center_x: 145,
-              center_y: 364,
-              start_angle: 0,
-              end_angle: 360,
-              radius: 47,
-              line_width: 5,
-              corner_flag: 3,
-              color: 0xFFFF8C00,
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-            
-            const battery = hmSensor.createSensor(hmSensor.id.BATTERY);
-            battery.addEventListener(hmSensor.event.CHANGE, function() {
-              scale_call();
-            });
-
-            normal_battery_current_text_font = hmUI.createWidget(hmUI.widget.TEXT_FONT, {
-              x: 69,
-              y: 346,
-              w: 150,
-              h: 36,
-              text_size: 36,
-              char_space: 0,
-              font: 'fonts/3270NerdFontMono-Regular.ttf',
-              color: 0xFFFF8C00,
-              line_space: 0,
-              align_v: hmUI.align.CENTER_V,
-              text_style: hmUI.text_style.ELLIPSIS,
-              align_h: hmUI.align.CENTER_H,
-              unit_type: 1,
-              type: hmUI.data_type.BATTERY,
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-              const weatherSensor = hmSensor.createSensor(hmSensor.id.WEATHER);
-
-            normal_city_name_text = hmUI.createWidget(hmUI.widget.TEXT, {
-              x: 45,
-              y: 254,
-              w: 380,
-              h: 39,
-              text_size: 36,
-              char_space: 0,
-              font: 'fonts/3270NerdFontMono-Regular.ttf',
-              color: 0xFFFF8C00,
-              line_space: 0,
-              align_v: hmUI.align.CENTER_V,
-              text_style: hmUI.text_style.ELLIPSIS,
-              align_h: hmUI.align.LEFT,
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            normal_weather_image_progress_img_level = hmUI.createWidget(hmUI.widget.IMG_LEVEL, {
-              x: 170,
-              y: 100,
-              image_array: ["01.png","02.png","03.png","04.png","05.png","06.png","07.png","08.png","09.png","10.png","11.png","12.png","13.png","14.png","15.png","16.png","17.png","18.png","19.png","20.png","21.png","22.png","23.png","24.png","25.png","26.png","27.png","28.png","29.png"],
-              image_length: 29,
-              type: hmUI.data_type.WEATHER_CURRENT,
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            normal_temperature_current_text_font = hmUI.createWidget(hmUI.widget.TEXT_FONT, {
-              x: 65,
-              y: 100,
-              w: 100,
-              h: 36,
-              text_size: 36,
-              char_space: 0,
-              font: 'fonts/3270NerdFontMono-Regular.ttf',
-              color: 0xFFFF8000,
-              line_space: 0,
-              align_v: hmUI.align.CENTER_V,
-              text_style: hmUI.text_style.ELLIPSIS,
-              align_h: hmUI.align.RIGHT,
-              unit_type: 1,
-              type: hmUI.data_type.WEATHER_CURRENT,
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            normal_time_hour_min_sec_text_font = hmUI.createWidget(hmUI.widget.TEXT, {
-              x: 37,
-              y: 157,
-              w: 999,
-              h: 100,
-              text_size: 90,
-              char_space: 0,
-              font: 'fonts/3270NerdFontMono-Regular.ttf',
-              color: 0xFFFF8000,
-              line_space: 0,
-              align_v: hmUI.align.BOTTOM,
-              text_style: hmUI.text_style.ELLIPSIS,
-              align_h: hmUI.align.LEFT,
-              // padding: true,
-              // unit_type: 1,
-              // unit_end: 1,
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            // normal_second_circle_scale = hmUI.createWidget(hmUI.widget.Circle_Scale, {
-              // center_x: 233,
-              // center_y: 233,
-              // start_angle: 0,
-              // end_angle: 360,
-              // radius: 233,
-              // line_width: 5,
-              // line_cap: Flat,
-              // color: 0xFFFF8C00,
-              // mirror: False,
-              // inversion: False,
-              // alpha: 255,
-              // type: hmUI.data_type.SECOND,
-              // show_level: hmUI.show_level.ONLY_NORMAL,
-            // });
-
-
-            normal_second_circle_scale = hmUI.createWidget(hmUI.widget.ARC_PROGRESS, {
-              center_x: 233,
-              center_y: 233,
-              start_angle: 0,
-              end_angle: 360,
-              radius: 231,
-              line_width: 5,
-              corner_flag: 3,
-              color: 0xFFFF8C00,
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            // normal_time_circle_options = hmUI.createWidget(hmUI.widget.TIME_CIRCLE_OPTIONS, {
-              // smooth: false,
-              // format24h: false,
-              // show_level: hmUI.show_level.ONLY_NORMAL,
-            // });
-
-
-
-            console.log('Watch_Face.ScreenAOD');
-
-            idle_time_hour_min_text_font = hmUI.createWidget(hmUI.widget.TEXT, {
-              x: 37,
-              y: 157,
-              w: 999,
-              h: 100,
-              text_size: 90,
-              char_space: 0,
-              font: 'fonts/3270NerdFontMono-Regular.ttf',
-              color: 0xFFFF8C00,
-              line_space: 0,
-              align_v: hmUI.align.BOTTOM,
-              text_style: hmUI.text_style.ELLIPSIS,
-              align_h: hmUI.align.LEFT,
-              // padding: true,
-              // unit_type: 1,
-              // unit_end: 1,
-              show_level: hmUI.show_level.ONLY_AOD,
-            });
-            
-            // disconnectAlert = hmUI.createWidget(hmUI.widget.DisconnectAlert, {
-              // disconneсnt_vibrate_type: 25,
-              // disconneсnt_toast_text: connection lost,
-              // conneсnt_vibrate_type: 25,
-              // conneсnt_toast_text: connection restored,
-            // });
-
-            // vibration when connecting or disconnecting
-
-            function checkConnection() {
-              console.log('checkConnection()');
-              hmBle.removeListener;
-              hmBle.addListener(function (status) {
-                if(!status) {
-                  hmUI.showToast({text: "connection lost"});
-                  vibro(25);
+                const del = (widget) =>{
+                    hmUI.deleteWidget(widget)
                 }
-                if(status) {
-                  hmUI.showToast({text: "connection restored"});
-                  vibro(25);
-                }
-              });
-            }
-
-            // end vibration when connecting or disconnecting
-            //#region vibrate function
-
-            const vibrate = hmSensor.createSensor(hmSensor.id.VIBRATE);
-            let timer_StopVibrate = null;
-
-
-            function vibro(scene = 25) {
-              let stopDelay = 50;
-              stopVibro();
-              vibrate.stop();
-              vibrate.scene = scene;
-              if(scene < 23 || scene > 25) stopDelay = 1300;
-              vibrate.start();
-              if (scene != 1) timer_StopVibrate = timer.createTimer(stopDelay, 3000, stopVibro, {});
-            }
-
-            function stopVibro(){
-              vibrate.stop();
-              if(timer_StopVibrate) timer.stopTimer(timer_StopVibrate);
-            }
-
-            //#endregion
-            console.log('Watch_Face.Shortcuts');
-
-            normal_step_jumpable_img_click = hmUI.createWidget(hmUI.widget.IMG_CLICK, {
-              x: 319,
-              y: 300,
-              w: 116,
-              h: 50,
-              src: 'empty.png',
-              type: hmUI.data_type.STEP,
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            normal_heart_jumpable_img_click = hmUI.createWidget(hmUI.widget.IMG_CLICK, {
-              x: 318,
-              y: 351,
-              w: 100,
-              h: 50,
-              src: 'empty.png',
-              type: hmUI.data_type.HEART,
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            normal_sunrise_jumpable_img_click = hmUI.createWidget(hmUI.widget.IMG_CLICK, {
-              x: 285,
-              y: 90,
-              w: 60,
-              h: 50,
-              src: 'empty.png',
-              type: hmUI.data_type.SUN_CURRENT,
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            normal_temperature_jumpable_img_click = hmUI.createWidget(hmUI.widget.IMG_CLICK, {
-              x: 90,
-              y: 90,
-              w: 194,
-              h: 50,
-              src: 'empty.png',
-              type: hmUI.data_type.WEATHER_CURRENT,
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            normal_countdown_jumpable_img_click = hmUI.createWidget(hmUI.widget.IMG_CLICK, {
-              x: 41,
-              y: 157,
-              w: 384,
-              h: 100,
-              src: 'empty.png',
-              type: hmUI.data_type.COUNT_DOWN,
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            });
-
-            console.log('Watch_Face.Buttons');
-            Button_1 = hmUI.createWidget(hmUI.widget.BUTTON, {
-              x: 41,
-              y: 258,
-              w: 200,
-              h: 999,
-              text: '',
-              color: 0xFFFF8C00,
-              text_size: 25,
-              press_src: 'empty.png',
-              normal_src: 'empty.png',
-              click_func: (button_widget) => {
-                hmApp.startApp({url: 'FindPhoneScreen', native: true });
-              }, // end func
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            }); // end button
-
-            Button_2 = hmUI.createWidget(hmUI.widget.BUTTON, {
-              x: 100,
-              y: 40,
-              w: 260,
-              h: 50,
-              text: '',
-              color: 0xFFFF8C00,
-              text_size: 25,
-              press_src: 'empty.png',
-              normal_src: 'empty.png',
-              click_func: (button_widget) => {
-                hmApp.startApp({url: 'ScheduleCalScreen', native: true });
-              }, // end func
-              show_level: hmUI.show_level.ONLY_NORMAL,
-            }); // end button
-
-            //#region time_update
-            function time_update(updateHour = false, updateMinute = false) {
-              console.log('time_update()');
-              let hour = timeSensor.hour;
-              let minute = timeSensor.minute;
-              let second = timeSensor.second;
-              let format_hour = timeSensor.format_hour;
-
-              console.log('day/month/year font');
-              if (updateHour) {
-                let normal_DayStr = timeSensor.day.toString();
-                let normal_MonthStr = timeSensor.month.toString();
-                let normal_YearStr = (timeSensor.year % 100).toString();
-                normal_DayStr = normal_DayStr.padStart(2, '0');
-                normal_MonthStr = normal_MonthStr.padStart(2, '0');
-                let normal_DayMonthYearStr = '--';
-                const dateFormat = hmSetting.getDateFormat();
-                if (dateFormat == 0) {
-                  normal_DayMonthYearStr = normal_YearStr + '/' + normal_MonthStr + '/' + normal_DayStr;
-                }
-                if (dateFormat == 1) {
-                  normal_DayMonthYearStr = normal_DayStr + '/' + normal_MonthStr + '/' + normal_YearStr;
-                }
-                if (dateFormat == 2) {
-                  normal_DayMonthYearStr = normal_MonthStr + '/' + normal_DayStr + '/' + normal_YearStr;
-                }
-                normal_day_month_year_font.setProperty(hmUI.prop.TEXT, normal_DayMonthYearStr );
-              };
-
-              console.log('hour:min:sec font');
-              let normal_HourMinSecStr = format_hour.toString();
-              normal_HourMinSecStr = normal_HourMinSecStr.padStart(2, '0');
-              normal_HourMinSecStr = normal_HourMinSecStr + ':' + minute.toString().padStart(2, '0') + ':' + second.toString().padStart(2, '0');
-              if (!timeSensor.is24Hour) {
-                if (hour > 11) normal_HourMinSecStr = normal_HourMinSecStr + ' Pm';
-                else normal_HourMinSecStr = normal_HourMinSecStr + ' Am';
-              };
-              normal_time_hour_min_sec_text_font.setProperty(hmUI.prop.TEXT, normal_HourMinSecStr );
-              // Second Circle
-              let normal_secondCircleProgress = 100 * second/60;
-              if (normal_second_circle_scale) normal_second_circle_scale.setProperty(hmUI.prop.LEVEL, normal_secondCircleProgress );
-
-              console.log('hour:min font');
-              if (updateMinute) {
-                let idle_HourMinStr = format_hour.toString();
-                idle_HourMinStr = idle_HourMinStr.padStart(2, '0');
-                idle_HourMinStr = idle_HourMinStr + ':' + minute.toString().padStart(2, '0')
-                if (!timeSensor.is24Hour) {
-                  if (hour > 11) idle_HourMinStr = idle_HourMinStr + ' Pm';
-                  else idle_HourMinStr = idle_HourMinStr + ' Am';
-                };
-                idle_time_hour_min_text_font.setProperty(hmUI.prop.TEXT, idle_HourMinStr );
-              };
-
-            };
-
-            //#endregion
-            function scale_call() {
-              console.log('scale_call()');
-
-                console.log('update scales BATTERY');
-                
-                let valueBattery = battery.current;
-                let targetBattery = 100;
-                let progressBattery = valueBattery/targetBattery;
-                if (progressBattery > 1) progressBattery = 1;
-                let progress_cs_normal_battery = progressBattery;
-
-                if (screenType != hmSetting.screen_type.AOD) {
-
-                  // normal_battery_circle_scale_circle_scale
-                  let level = Math.round(progress_cs_normal_battery * 100);
-                  if (normal_battery_circle_scale) {
-                    normal_battery_circle_scale.setProperty(hmUI.prop.MORE, {                      
-                      center_x: 145,
-                      center_y: 364,
-                      start_angle: 0,
-                      end_angle: 360,
-                      radius: 47,
-                      line_width: 5,
-                      corner_flag: 3,
-                      color: 0xFFFF8C00,
-                      show_level: hmUI.show_level.ONLY_NORMAL,
-                      level: level,
+                const weatherSensor = hmSensor.createSensor(hmSensor.id.WEATHER);
+                const battery = hmSensor.createSensor(hmSensor.id.BATTERY);
+                battery.addEventListener(hmSensor.event.CHANGE, function() {
+                    scale_call();
+                });
+                if (!timeSensor) timeSensor = hmSensor.createSensor(hmSensor.id.TIME);
+                let screenType = hmSetting.getScreenType();
+                function checkConnection() {
+                    console.log('checkConnection()');
+                    hmBle.removeListener();
+                    hmBle.addListener(function (status) {
+                        if(!status) {
+                            hmUI.showToast({text: "connection lost"});
+                            vibro(25);
+                        }
+                        if(status) {
+                            hmUI.showToast({text: "connection restored"});
+                            vibro(25);
+                        }
                     });
-                  };
+                }
+                // disconnectAlert = hmUI.createWidget(hmUI.widget.DisconnectAlert, {
+                    // disconneсnt_vibrate_type: 25,
+                    // disconneсnt_toast_text: connection lost,
+                    // conneсnt_vibrate_type: 25,
+                    // conneсnt_toast_text: connection restored,
+                // });
+
+
+                const vibrate = hmSensor.createSensor(hmSensor.id.VIBRATE);
+                let timer_StopVibrate = null;
+
+
+                function vibro(scene = 25) {
+                    let stopDelay = 50;
+                    stopVibro();
+                    vibrate.stop();
+                    vibrate.scene = scene;
+                    if(scene < 23 || scene > 25) stopDelay = 1300;
+                    vibrate.start();
+                    if (scene != 1) timer_StopVibrate = timer.createTimer(stopDelay, 3000, stopVibro, {});
+                }
+
+                function stopVibro(){
+                    vibrate.stop();
+                    if(timer_StopVibrate) timer.stopTimer(timer_StopVibrate);
+                }
+                const render = (fgColor = 0xFFFF8C00) =>{
+
+                    // FontName: 3270NerdFontMono-Regular.ttf; FontSize: 18
+                    del(fontCache1)
+                    fontCache1 = hmUI.createWidget(hmUI.widget.TEXT, {
+                        x: 464,
+                        y: 464,
+                        w: 298,
+                        h: 22,
+                        text_size: 18,
+                        char_space: 0,
+                        line_space: 0,
+                        font: 'fonts/3270NerdFontMono-Regular.ttf',
+                        color: fgColor,
+                        align_h: hmUI.align.LEFT,
+                        align_v: hmUI.align.TOP,
+                        text_style: hmUI.text_style.ELLIPSIS,
+                        text: "0123456789 _-.,:;`'%°\\/",
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    // FontName: 3270NerdFontMono-Regular.ttf; FontSize: 36
+                    del(fontCache2)
+                    fontCache2 = hmUI.createWidget(hmUI.widget.TEXT, {
+                        x: 464,
+                        y: 464,
+                        w: 567,
+                        h: 48,
+                        text_size: 36,
+                        char_space: 0,
+                        line_space: 0,
+                        font: 'fonts/3270NerdFontMono-Regular.ttf',
+                        color: fgColor,
+                        align_h: hmUI.align.RIGHT,
+                        align_v: hmUI.align.CENTER_V,
+                        text_style: hmUI.text_style.ELLIPSIS,
+                        text: "0123456789 _-.,:;`'%°\\/",
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    // FontName: 3270NerdFontMono-Regular.ttf; FontSize: 20; Cache: full
+                    del(fontCache3)
+                    fontCache3 = hmUI.createWidget(hmUI.widget.TEXT, {
+                        x: 464,
+                        y: 464,
+                        w: 24,
+                        h: 24,
+                        text_size: 20,
+                        char_space: 0,
+                        line_space: 0,
+                        font: 'fonts/3270NerdFontMono-Regular.ttf',
+                        color: fgColor,
+                        align_h: hmUI.align.LEFT,
+                        align_v: hmUI.align.TOP,
+                        text_style: hmUI.text_style.NONE,
+                        text: "0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя  ҐЄІЇґєії _-.,:;`'%°\\/",
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    // FontName: 3270NerdFontMono-Regular.ttf; FontSize: 36; Cache: full
+                    del(fontCache4)
+                    fontCache4 = hmUI.createWidget(hmUI.widget.TEXT, {
+                        x: 464,
+                        y: 464,
+                        w: 43,
+                        h: 43,
+                        text_size: 36,
+                        char_space: 0,
+                        line_space: 0,
+                        font: 'fonts/3270NerdFontMono-Regular.ttf',
+                        color: fgColor,
+                        align_h: hmUI.align.LEFT,
+                        align_v: hmUI.align.CENTER_V,
+                        text_style: hmUI.text_style.NONE,
+                        text: "0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя  ҐЄІЇґєії _-.,:;`'%°\\/",
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    // FontName: 3270NerdFontMono-Regular.ttf; FontSize: 90
+                    del(fontCache5)
+                    fontCache5 = hmUI.createWidget(hmUI.widget.TEXT, {
+                        x: 464,
+                        y: 464,
+                        w: 1461,
+                        h: 117,
+                        text_size: 90,
+                        char_space: 0,
+                        line_space: 0,
+                        font: 'fonts/3270NerdFontMono-Regular.ttf',
+                        color: fgColor,
+                        align_h: hmUI.align.LEFT,
+                        align_v: hmUI.align.BOTTOM,
+                        text_style: hmUI.text_style.ELLIPSIS,
+                        text: "0123456789 _-.,:;`'%°\\/",
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    console.log('Watch_Face.ScreenNormal');
+                    del(normal_background_bg)
+                    normal_background_bg = hmUI.createWidget(hmUI.widget.FILL_RECT, {
+                        x: 0,
+                        y: 0,
+                        w: 466,
+                        h: 466,
+                        color: 'fgColor',
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    del(normal_system_dnd_img)
+                    normal_system_dnd_img = hmUI.createWidget(hmUI.widget.IMG_STATUS, {
+                        x: 185,
+                        y: 10,
+                        src: '04.png',
+                        type: hmUI.system_status.DISTURB,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    del(normal_system_disconnect_img)
+                    normal_system_disconnect_img = hmUI.createWidget(hmUI.widget.IMG_STATUS, {
+                        x: 220,
+                        y: 10,
+                        src: '02.png',
+                        type: hmUI.system_status.DISCONNECT,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+                    del(normal_sun_high_text_font)
+                    normal_sun_high_text_font = hmUI.createWidget(hmUI.widget.TEXT_FONT, {
+                        x: 290,
+                        y: 102,
+                        w: 150,
+                        h: 30,
+                        text_size: 18,
+                        char_space: 0,
+                        font: 'fonts/3270NerdFontMono-Regular.ttf',
+                        color: fgColor,
+                        line_space: 0,
+                        align_v: hmUI.align.TOP,
+                        text_style: hmUI.text_style.ELLIPSIS,
+                        align_h: hmUI.align.LEFT,
+                        type: hmUI.data_type.SUN_RISE,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    del(normal_sun_low_text_font)
+                    normal_sun_low_text_font = hmUI.createWidget(hmUI.widget.TEXT_FONT, {
+                        x: 290,
+                        y: 116,
+                        w: 150,
+                        h: 30,
+                        text_size: 18,
+                        char_space: 0,
+                        font: 'fonts/3270NerdFontMono-Regular.ttf',
+                        color: fgColor,
+                        line_space: 0,
+                        align_v: hmUI.align.TOP,
+                        text_style: hmUI.text_style.ELLIPSIS,
+                        align_h: hmUI.align.LEFT,
+                        type: hmUI.data_type.SUN_SET,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    del(normal_humidity_current_text_font)
+                    normal_humidity_current_text_font = hmUI.createWidget(hmUI.widget.TEXT_FONT, {
+                        x: 130,
+                        y: 100,
+                        w: 150,
+                        h: 36,
+                        text_size: 36,
+                        char_space: 0,
+                        font: 'fonts/3270NerdFontMono-Regular.ttf',
+                        color: fgColor,
+                        line_space: 0,
+                        align_v: hmUI.align.CENTER_V,
+                        text_style: hmUI.text_style.ELLIPSIS,
+                        align_h: hmUI.align.RIGHT,
+                        unit_type: 1,
+                        type: hmUI.data_type.HUMIDITY,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    del(normal_heart_rate_text_font)
+                    normal_heart_rate_text_font = hmUI.createWidget(hmUI.widget.TEXT_FONT, {
+                        x: 321,
+                        y: 350,
+                        w: 150,
+                        h: 30,
+                        text_size: 20,
+                        char_space: 0,
+                        font: 'fonts/3270NerdFontMono-Regular.ttf',
+                        color: fgColor,
+                        line_space: 0,
+                        align_v: hmUI.align.TOP,
+                        text_style: hmUI.text_style.ELLIPSIS,
+                        align_h: hmUI.align.LEFT,
+                        unit_type: 1,
+                        type: hmUI.data_type.HEART,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    del(normal_distance_current_text_font)
+                    normal_distance_current_text_font = hmUI.createWidget(hmUI.widget.TEXT_FONT, {
+                        x: 321,
+                        y: 330,
+                        w: 150,
+                        h: 50,
+                        text_size: 20,
+                        char_space: 0,
+                        font: 'fonts/3270NerdFontMono-Regular.ttf',
+                        color: fgColor,
+                        line_space: 0,
+                        align_v: hmUI.align.TOP,
+                        text_style: hmUI.text_style.ELLIPSIS,
+                        align_h: hmUI.align.LEFT,
+                        unit_type: 1,
+                        type: hmUI.data_type.DISTANCE,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    del(normal_step_current_text_font)
+                    normal_step_current_text_font = hmUI.createWidget(hmUI.widget.TEXT_FONT, {
+                        x: 321,
+                        y: 310,
+                        w: 150,
+                        h: 30,
+                        text_size: 20,
+                        char_space: 0,
+                        font: 'fonts/3270NerdFontMono-Regular.ttf',
+                        color: fgColor,
+                        line_space: 0,
+                        align_v: hmUI.align.TOP,
+                        text_style: hmUI.text_style.ELLIPSIS,
+                        align_h: hmUI.align.LEFT,
+                        unit_type: 2,
+                        type: hmUI.data_type.STEP,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+                    del(normal_day_month_year_font)
+                    normal_day_month_year_font = hmUI.createWidget(hmUI.widget.TEXT, {
+                        x: 133,
+                        y: 52,
+                        w: 200,
+                        h: 36,
+                        text_size: 36,
+                        char_space: 0,
+                        font: 'fonts/3270NerdFontMono-Regular.ttf',
+                        color: fgColor,
+                        line_space: 0,
+                        align_v: hmUI.align.TOP,
+                        text_style: hmUI.text_style.ELLIPSIS,
+                        align_h: hmUI.align.CENTER_H,
+                        // padding: true,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    // normal_battery_circle_scale = hmUI.createWidget(hmUI.widget.Circle_Scale, {
+                        // center_x: 145,
+                        // center_y: 364,
+                        // start_angle: 0,
+                        // end_angle: 360,
+                        // radius: 49,
+                        // line_width: 5,
+                        // line_cap: Flat,
+                        // color: fgColor,
+                        // mirror: False,
+                        // inversion: False,
+                        // alpha: 255,
+                        // type: hmUI.data_type.BATTERY,
+                        // show_level: hmUI.show_level.ONLY_NORMAL,
+                    // });
+
+                    del(normal_battery_circle_scale)
+                    normal_battery_circle_scale = hmUI.createWidget(hmUI.widget.ARC_PROGRESS, {
+                        center_x: 145,
+                        center_y: 364,
+                        start_angle: 0,
+                        end_angle: 360,
+                        radius: 47,
+                        line_width: 5,
+                        corner_flag: 3,
+                        color: fgColor,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+
+                    del(normal_battery_current_text_font)
+                    normal_battery_current_text_font = hmUI.createWidget(hmUI.widget.TEXT_FONT, {
+                        x: 69,
+                        y: 346,
+                        w: 150,
+                        h: 36,
+                        text_size: 36,
+                        char_space: 0,
+                        font: 'fonts/3270NerdFontMono-Regular.ttf',
+                        color: fgColor,
+                        line_space: 0,
+                        align_v: hmUI.align.CENTER_V,
+                        text_style: hmUI.text_style.ELLIPSIS,
+                        align_h: hmUI.align.CENTER_H,
+                        unit_type: 1,
+                        type: hmUI.data_type.BATTERY,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    del(normal_city_name_text)
+                    normal_city_name_text = hmUI.createWidget(hmUI.widget.TEXT, {
+                        x: 45,
+                        y: 254,
+                        w: 380,
+                        h: 39,
+                        text_size: 36,
+                        char_space: 0,
+                        font: 'fonts/3270NerdFontMono-Regular.ttf',
+                        color: fgColor,
+                        line_space: 0,
+                        align_v: hmUI.align.CENTER_V,
+                        text_style: hmUI.text_style.ELLIPSIS,
+                        align_h: hmUI.align.LEFT,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    del(normal_weather_image_progress_img_level)
+                    normal_weather_image_progress_img_level = hmUI.createWidget(hmUI.widget.IMG_LEVEL, {
+                        x: 170,
+                        y: 100,
+                        image_array: ["01.png","02.png","03.png","04.png","05.png","06.png","07.png","08.png","09.png","10.png","11.png","12.png","13.png","14.png","15.png","16.png","17.png","18.png","19.png","20.png","21.png","22.png","23.png","24.png","25.png","26.png","27.png","28.png","29.png"],
+                        image_length: 29,
+                        type: hmUI.data_type.WEATHER_CURRENT,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    del(normal_temperature_current_text_font)
+                    normal_temperature_current_text_font = hmUI.createWidget(hmUI.widget.TEXT_FONT, {
+                        x: 65,
+                        y: 100,
+                        w: 100,
+                        h: 36,
+                        text_size: 36,
+                        char_space: 0,
+                        font: 'fonts/3270NerdFontMono-Regular.ttf',
+                        color: fgColor,
+                        line_space: 0,
+                        align_v: hmUI.align.CENTER_V,
+                        text_style: hmUI.text_style.ELLIPSIS,
+                        align_h: hmUI.align.RIGHT,
+                        unit_type: 1,
+                        type: hmUI.data_type.WEATHER_CURRENT,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    del(normal_time_hour_min_sec_text_font)
+                    normal_time_hour_min_sec_text_font = hmUI.createWidget(hmUI.widget.TEXT, {
+                        x: 37,
+                        y: 157,
+                        w: 999,
+                        h: 100,
+                        text_size: 90,
+                        char_space: 0,
+                        font: 'fonts/3270NerdFontMono-Regular.ttf',
+                        color: fgColor,
+                        line_space: 0,
+                        align_v: hmUI.align.BOTTOM,
+                        text_style: hmUI.text_style.ELLIPSIS,
+                        align_h: hmUI.align.LEFT,
+                        // padding: true,
+                        // unit_type: 1,
+                        // unit_end: 1,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    // normal_second_circle_scale = hmUI.createWidget(hmUI.widget.Circle_Scale, {
+                        // center_x: 233,
+                        // center_y: 233,
+                        // start_angle: 0,
+                        // end_angle: 360,
+                        // radius: 233,
+                        // line_width: 5,
+                        // line_cap: Flat,
+                        // color: fgColor,
+                        // mirror: False,
+                        // inversion: False,
+                        // alpha: 255,
+                        // type: hmUI.data_type.SECOND,
+                        // show_level: hmUI.show_level.ONLY_NORMAL,
+                    // });
+
+
+                    del(normal_second_circle_scale)
+                    normal_second_circle_scale = hmUI.createWidget(hmUI.widget.ARC_PROGRESS, {
+                        center_x: 233,
+                        center_y: 233,
+                        start_angle: 0,
+                        end_angle: 360,
+                        radius: 231,
+                        line_width: 5,
+                        corner_flag: 3,
+                        color: fgColor,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    // normal_time_circle_options = hmUI.createWidget(hmUI.widget.TIME_CIRCLE_OPTIONS, {
+                        // smooth: false,
+                        // format24h: false,
+                        // show_level: hmUI.show_level.ONLY_NORMAL,
+                    // });
+
+
+
+                    console.log('Watch_Face.ScreenAOD');
+
+                    del(idle_time_hour_min_text_font)
+                    idle_time_hour_min_text_font = hmUI.createWidget(hmUI.widget.TEXT, {
+                        x: 37,
+                        y: 157,
+                        w: 999,
+                        h: 100,
+                        text_size: 90,
+                        char_space: 0,
+                        font: 'fonts/3270NerdFontMono-Regular.ttf',
+                        color: fgColor,
+                        line_space: 0,
+                        align_v: hmUI.align.BOTTOM,
+                        text_style: hmUI.text_style.ELLIPSIS,
+                        align_h: hmUI.align.LEFT,
+                        // padding: true,
+                        // unit_type: 1,
+                        // unit_end: 1,
+                        show_level: hmUI.show_level.ONLY_AOD,
+                    });
+
+
+                    //#endregion
+                    console.log('Watch_Face.Shortcuts');
+
+                    del(normal_step_jumpable_img_click)
+                    normal_step_jumpable_img_click = hmUI.createWidget(hmUI.widget.IMG_CLICK, {
+                        x: 319,
+                        y: 300,
+                        w: 116,
+                        h: 50,
+                        src: 'empty.png',
+                        type: hmUI.data_type.STEP,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    del(normal_heart_jumpable_img_click)
+                    normal_heart_jumpable_img_click = hmUI.createWidget(hmUI.widget.IMG_CLICK, {
+                        x: 318,
+                        y: 351,
+                        w: 100,
+                        h: 50,
+                        src: 'empty.png',
+                        type: hmUI.data_type.HEART,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    del(normal_sunrise_jumpable_img_click)
+                    normal_sunrise_jumpable_img_click = hmUI.createWidget(hmUI.widget.IMG_CLICK, {
+                        x: 285,
+                        y: 90,
+                        w: 60,
+                        h: 50,
+                        src: 'empty.png',
+                        type: hmUI.data_type.SUN_CURRENT,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    del(normal_temperature_jumpable_img_click)
+                    normal_temperature_jumpable_img_click = hmUI.createWidget(hmUI.widget.IMG_CLICK, {
+                        x: 90,
+                        y: 90,
+                        w: 194,
+                        h: 50,
+                        src: 'empty.png',
+                        type: hmUI.data_type.WEATHER_CURRENT,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    del(normal_countdown_jumpable_img_click)
+                    normal_countdown_jumpable_img_click = hmUI.createWidget(hmUI.widget.IMG_CLICK, {
+                        x: 41,
+                        y: 157,
+                        w: 384,
+                        h: 100,
+                        src: 'empty.png',
+                        type: hmUI.data_type.COUNT_DOWN,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    });
+
+                    console.log('Watch_Face.Buttons');
+                    del(Button_1)
+                    Button_1 = hmUI.createWidget(hmUI.widget.BUTTON, {
+                        x: 41,
+                        y: 258,
+                        w: 200,
+                        h: 999,
+                        text: '',
+                        color: fgColor,
+                        text_size: 25,
+                        press_src: 'empty.png',
+                        normal_src: 'empty.png',
+                        click_func: (button_widget) => {
+                            hmApp.startApp({url: 'FindPhoneScreen', native: true });
+                        }, // end func
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    }); // end button
+
+                    del(Button_2)
+                    Button_2 = hmUI.createWidget(hmUI.widget.BUTTON, {
+                        x: 100,
+                        y: 40,
+                        w: 260,
+                        h: 50,
+                        text: '',
+                        color: fgColor,
+                        text_size: 25,
+                        press_src: 'empty.png',
+                        normal_src: 'empty.png',
+                        click_func: (button_widget) => {
+                            hmApp.startApp({url: 'ScheduleCalScreen', native: true });
+                        }, // end func
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    }); // end button
+
+                }
+
+                render()
+                //#region time_update
+                function time_update(updateHour = false, updateMinute = false) {
+                    console.log('time_update()');
+                    let hour = timeSensor.hour;
+                    let minute = timeSensor.minute;
+                    let second = timeSensor.second;
+                    let format_hour = timeSensor.format_hour;
+
+                    console.log('day/month/year font');
+                    if (updateHour) {
+                        let normal_DayStr = timeSensor.day.toString();
+                        let normal_MonthStr = timeSensor.month.toString();
+                        let normal_YearStr = (timeSensor.year % 100).toString();
+                        normal_DayStr = normal_DayStr.padStart(2, '0');
+                        normal_MonthStr = normal_MonthStr.padStart(2, '0');
+                        let normal_DayMonthYearStr = '--';
+                        const dateFormat = hmSetting.getDateFormat();
+                        if (dateFormat == 0) {
+                            normal_DayMonthYearStr = normal_YearStr + '/' + normal_MonthStr + '/' + normal_DayStr;
+                        }
+                        if (dateFormat == 1) {
+                            normal_DayMonthYearStr = normal_DayStr + '/' + normal_MonthStr + '/' + normal_YearStr;
+                        }
+                        if (dateFormat == 2) {
+                            normal_DayMonthYearStr = normal_MonthStr + '/' + normal_DayStr + '/' + normal_YearStr;
+                        }
+                        normal_day_month_year_font.setProperty(hmUI.prop.TEXT, normal_DayMonthYearStr );
+                    };
+
+                    console.log('hour:min:sec font');
+                    let normal_HourMinSecStr = format_hour.toString();
+                    normal_HourMinSecStr = normal_HourMinSecStr.padStart(2, '0');
+                    normal_HourMinSecStr = normal_HourMinSecStr + ':' + minute.toString().padStart(2, '0') + ':' + second.toString().padStart(2, '0');
+                    if (!timeSensor.is24Hour) {
+                        if (hour > 11) normal_HourMinSecStr = normal_HourMinSecStr + ' Pm';
+                        else normal_HourMinSecStr = normal_HourMinSecStr + ' Am';
+                    };
+                    normal_time_hour_min_sec_text_font.setProperty(hmUI.prop.TEXT, normal_HourMinSecStr );
+                    // Second Circle
+                    let normal_secondCircleProgress = 100 * second/60;
+                    if (normal_second_circle_scale) normal_second_circle_scale.setProperty(hmUI.prop.LEVEL, normal_secondCircleProgress );
+
+                    console.log('hour:min font');
+                    if (updateMinute) {
+                        let idle_HourMinStr = format_hour.toString();
+                        idle_HourMinStr = idle_HourMinStr.padStart(2, '0');
+                        idle_HourMinStr = idle_HourMinStr + ':' + minute.toString().padStart(2, '0')
+                        if (!timeSensor.is24Hour) {
+                            if (hour > 11) idle_HourMinStr = idle_HourMinStr + ' Pm';
+                            else idle_HourMinStr = idle_HourMinStr + ' Am';
+                        };
+                        idle_time_hour_min_text_font.setProperty(hmUI.prop.TEXT, idle_HourMinStr );
+                    };
+
                 };
 
-              console.log('Weather city name');
-              let weatherData = weatherSensor.getForecastWeather();
-              let normal_cityNameStr = weatherData.cityName;
-              normal_city_name_text.setProperty(hmUI.prop.TEXT, normal_cityNameStr);
+                //#endregion
+                function scale_call() {
+                    console.log('scale_call()');
 
-            };
+                    console.log('Weather city name');
+                    let weatherData = weatherSensor.getForecastWeather();
+                    let normal_cityNameStr = weatherData.cityName;
+                    normal_city_name_text.setProperty(hmUI.prop.TEXT, normal_cityNameStr);
 
-            const widgetDelegate = hmUI.createWidget(hmUI.widget.WIDGET_DELEGATE, {
-              resume_call: (function () {
-                console.log('resume_call()');
-                scale_call();
-                time_update(true, true);
-                if (screenType == hmSetting.screen_type.WATCHFACE) {
-                  if (!normal_timerTimeUpdate) {
-                    normal_timerTimeUpdate = timer.createTimer(0, 1000, (function (option) {
-                      let updateHour = timeSensor.minute == 0;
-                      let updateMinute = timeSensor.second < 2;
-                      time_update(updateHour, updateMinute);
-                    }));  // end timer 
-                  };  // end timer check
-                };  // end screenType
 
-                if (screenType == hmSetting.screen_type.WATCHFACE) {
-                  if (!normal_timerUpdateSec) {
-                    let animDelay = timeSensor.utc % 1000;
-                    let animRepeat = 1000;
-                    normal_timerUpdateSec = timer.createTimer(animDelay, animRepeat, (function (option) {
-                      time_update(false, false);
-                    }));  // end timer 
-                  };  // end timer check
-                };  // end screenType
 
-                if (screenType == hmSetting.screen_type.AOD) {
-                  if (!idle_timerTimeUpdate) {
-                    idle_timerTimeUpdate = timer.createTimer(0, 1000, (function (option) {
-                      let updateHour = timeSensor.minute == 0 && timeSensor.second < 2;
-                      let updateMinute = timeSensor.second < 2;
-                      time_update(updateHour, updateMinute);
-                    }));  // end timer 
-                  };  // end timer check
-                };  // end screenType
+                    console.log('update scales BATTERY');
 
-                checkConnection();
-                stopVibro();
+                    let valueBattery = battery.current;
+                    let targetBattery = 100;
+                    let progressBattery = valueBattery/targetBattery;
+                    if (progressBattery > 1) progressBattery = 1;
+                    let progress_cs_normal_battery = progressBattery;
 
-              }),
-              pause_call: (function () {
-                console.log('pause_call()');
-                if (normal_timerTimeUpdate) {
-                  timer.stopTimer(normal_timerTimeUpdate);
-                  normal_timerTimeUpdate = undefined;
-                }
-                if (normal_timerUpdateSec) {
-                  timer.stopTimer(normal_timerUpdateSec);
-                  normal_timerUpdateSec = undefined;
-                }
-                if (idle_timerTimeUpdate) {
-                  timer.stopTimer(idle_timerTimeUpdate);
-                  idle_timerTimeUpdate = undefined;
-                }
-                stopVibro();
+                    if (screenType != hmSetting.screen_type.AOD) {
 
-              }),
-            });
+                        // normal_battery_circle_scale_circle_scale
+                        let level = Math.round(progress_cs_normal_battery * 100);
+                        if (normal_battery_circle_scale) {
+                            normal_battery_circle_scale.setProperty(hmUI.prop.MORE, {
+                                center_x: 145,
+                                center_y: 364,
+                                start_angle: 0,
+                                end_angle: 360,
+                                radius: 47,
+                                line_width: 5,
+                                corner_flag: 3,
+                                show_level: hmUI.show_level.ONLY_NORMAL,
+                                level: level,
+                            });
+                        };
+                    };
+
+                    const color=0xFFF0000
+
+
+                    const newColorCache=[color].join()
+
+                    if( colorCache != newColorCache ){
+                        colorCache=newColorCache
+                        render(color)
+                    }
+                };
+
+                const widgetDelegate = hmUI.createWidget(hmUI.widget.WIDGET_DELEGATE, {
+                    resume_call: (function () {
+                        console.log('resume_call()');
+                        scale_call();
+                        time_update(true, true);
+                        if (screenType == hmSetting.screen_type.WATCHFACE) {
+                            if (!normal_timerTimeUpdate) {
+                                normal_timerTimeUpdate = timer.createTimer(0, 1000, (function (option) {
+                                    let updateHour = timeSensor.minute == 0;
+                                    let updateMinute = timeSensor.second < 2;
+                                    time_update(updateHour, updateMinute);
+                                }));  // end timer
+                            };  // end timer check
+                        };  // end screenType
+
+                        if (screenType == hmSetting.screen_type.WATCHFACE) {
+                            if (!normal_timerUpdateSec) {
+                                let animDelay = timeSensor.utc % 1000;
+                                let animRepeat = 1000;
+                                normal_timerUpdateSec = timer.createTimer(animDelay, animRepeat, (function (option) {
+                                    time_update(false, false);
+                                }));  // end timer
+                            };  // end timer check
+                        };  // end screenType
+
+                        if (screenType == hmSetting.screen_type.AOD) {
+                            if (!idle_timerTimeUpdate) {
+                                idle_timerTimeUpdate = timer.createTimer(0, 1000, (function (option) {
+                                    let updateHour = timeSensor.minute == 0 && timeSensor.second < 2;
+                                    let updateMinute = timeSensor.second < 2;
+                                    time_update(updateHour, updateMinute);
+                                }));  // end timer
+                            };  // end timer check
+                        };  // end screenType
+
+                        checkConnection();
+                        stopVibro();
+
+                    }),
+                    pause_call: (function () {
+                        console.log('pause_call()');
+                        if (normal_timerTimeUpdate) {
+                            timer.stopTimer(normal_timerTimeUpdate);
+                            normal_timerTimeUpdate = undefined;
+                        }
+                        if (normal_timerUpdateSec) {
+                            timer.stopTimer(normal_timerUpdateSec);
+                            normal_timerUpdateSec = undefined;
+                        }
+                        if (idle_timerTimeUpdate) {
+                            timer.stopTimer(idle_timerTimeUpdate);
+                            idle_timerTimeUpdate = undefined;
+                        }
+                        stopVibro();
+
+                    }),
+                });
 
                 //dynamic modify end
             },
