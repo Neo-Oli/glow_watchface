@@ -427,7 +427,7 @@
               w: 244,
               h: 83,
               src: 'click_e.png',
-              type: hmUI.data_type.ALARM_CLOCK,
+              type: hmUI.data_type.COUNT_DOWN,
               show_level: hmUI.show_level.ONLY_NORMAL,
             });
 
