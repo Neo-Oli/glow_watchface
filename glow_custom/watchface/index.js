@@ -59,8 +59,12 @@ try {
             ' ', // 28 Clear night
         ]
 
-        const disconnectIcon = '󰂲 '
-
+        const icons = {
+            disconnect: '󰂲',
+            steps: '',
+            heart: '󰋑',
+            distance: '',
+        }
         const iconSize = 50
         const dayNames = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
         let normal_background_bg = ''
@@ -69,12 +73,10 @@ try {
         let normal_sun_high_text_font = ''
         let normal_sun_low_text_font = ''
         let normal_humidity_current_text_font = ''
-        let normal_heart_rate_text_font = ''
-        let normal_distance_current_text_font = ''
-        let normal_step_current_text_font = ''
         let normal_day_month_year_font = ''
         let normal_timerTimeUpdate = undefined
         let normal_battery_circle_scale = ''
+        let normal_battery_circle_bg = ''
         let normal_battery_current_text_font = ''
         let normal_city_name_text = ''
         let normal_weather_text = ''
@@ -84,8 +86,6 @@ try {
         let normal_timerUpdateSec = undefined
         let idle_time_hour_min_text_font = ''
         let idle_timerTimeUpdate = undefined
-        let normal_step_jumpable_img_click = ''
-        let normal_heart_jumpable_img_click = ''
         let normal_sunrise_jumpable_img_click = ''
         let normal_temperature_jumpable_img_click = ''
         let normal_countdown_jumpable_img_click = ''
@@ -94,20 +94,102 @@ try {
         let timeSensor = ''
         let weatherSensor = ''
         let battery = ''
-
-        let fontCache1 = ''
-        let fontCache2 = ''
-        let fontCache3 = ''
-        let fontCache4 = ''
-        let fontCache5 = ''
-        let fontCache6 = ''
+        let step = ''
+        let heart = ''
+        let distance = ''
 
         let colorCache = ''
         const cacheText = [
             "$|^0123456789 _-.,:;`'% ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz°\\/",
             weather_icons.join(''),
-            disconnectIcon,
+            Object.values(icons).join(''),
         ].join('')
+
+        const statsPos = {
+            x: 280,
+            y: 310,
+            gap: 24,
+            size: 24,
+        }
+
+        const statsOrder = ['steps', 'distance', 'heart']
+        const stats = {
+            steps: {
+                icon: icons.steps,
+                element: '',
+                iconElement: '',
+                button: hmUI.data_type.STEP,
+                buttonElement: '',
+            },
+            distance: {
+                icon: icons.distance,
+                element: '',
+                iconElement: '',
+                button: hmUI.data_type.STEP,
+                buttonElement: '',
+            },
+            heart: {
+                icon: icons.heart,
+                element: '',
+                iconElement: '',
+                button: hmUI.data_type.HEART,
+                buttonElement: '',
+            },
+        }
+
+        const big = 30
+        const small = 18
+
+        const fontCaches = []
+        const timeSize = 90
+        const timeCoords = {
+            x: 35,
+            y: 157,
+            w: 393,
+            h: 90,
+            rect_gap: 3,
+        }
+        const weatherPos = 108
+        const weatherGap = 30
+        const weatherStart = timeCoords.x + weatherGap
+        const weatherHeight = big
+        const dateCoords = {
+            x: 113,
+            y: 60,
+            w: 230,
+            h: 36,
+            rect_gap: 3,
+        }
+        const cityNameCoords = {
+            x: timeCoords.x,
+            y: 259,
+            w: timeCoords.w,
+            h: 39,
+            rect_gap: 3,
+        }
+
+        const fontSizes = [iconSize, statsPos.size, timeSize, big, small]
+        const rectangles = []
+        const statsWidth = 120
+        const drawRect = [
+            timeCoords,
+            cityNameCoords,
+            dateCoords,
+            {
+                w: statsWidth,
+                h: statsPos.size * statsOrder.length,
+                x: statsPos.x,
+                y: statsPos.y,
+                rect_gap: 3,
+            },
+            {
+                w: timeCoords.w - weatherGap * 2,
+                h: weatherHeight,
+                x: weatherStart,
+                y: weatherPos,
+                rect_gap: 3,
+            },
+        ]
 
         //dynamic modify end
 
@@ -117,6 +199,7 @@ try {
                 const del = (widget) => {
                     hmUI.deleteWidget(widget)
                 }
+
                 if (!weatherSensor)
                     weatherSensor = hmSensor.createSensor(hmSensor.id.WEATHER)
                 if (!battery) {
@@ -145,6 +228,12 @@ try {
                         }
                     })
                 }
+
+                if (!step) step = hmSensor.createSensor(hmSensor.id.STEP)
+                if (!heart) heart = hmSensor.createSensor(hmSensor.id.HEART)
+                if (!distance)
+                    distance = hmSensor.createSensor(hmSensor.id.DISTANCE)
+
                 /*
                  * disconnectAlert = hmUI.createWidget(hmUI.widget.DisconnectAlert, {
                  * disconneсnt_vibrate_type: 25,
@@ -177,120 +266,34 @@ try {
                     vibrate.stop()
                     if (timer_StopVibrate) timer.stopTimer(timer_StopVibrate)
                 }
-                const render = (fgColor = 0xffff8c00, bgColor = 0xff000000) => {
-                    // FontName: 3270NerdFontMono-Regular.ttf; FontSize: 18
-                    del(fontCache1)
-                    fontCache1 = hmUI.createWidget(hmUI.widget.TEXT, {
-                        x: 464,
-                        y: 464,
-                        w: 298,
-                        h: 22,
-                        text_size: 18,
-                        char_space: 0,
-                        line_space: 0,
-                        font: 'fonts/3270NerdFontMono-Regular.ttf',
-                        color: fgColor,
-                        align_h: hmUI.align.LEFT,
-                        align_v: hmUI.align.TOP,
-                        text_style: hmUI.text_style.ELLIPSIS,
-                        text: cacheText,
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    })
-
-                    // FontName: 3270NerdFontMono-Regular.ttf; FontSize: 36
-                    del(fontCache2)
-                    fontCache2 = hmUI.createWidget(hmUI.widget.TEXT, {
-                        x: 464,
-                        y: 464,
-                        w: 567,
-                        h: 48,
-                        text_size: 36,
-                        char_space: 0,
-                        line_space: 0,
-                        font: 'fonts/3270NerdFontMono-Regular.ttf',
-                        color: fgColor,
-                        align_h: hmUI.align.RIGHT,
-                        align_v: hmUI.align.CENTER_V,
-                        text_style: hmUI.text_style.ELLIPSIS,
-                        text: cacheText,
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    })
-
-                    // FontName: 3270NerdFontMono-Regular.ttf; FontSize: 20; Cache: full
-                    del(fontCache3)
-                    fontCache3 = hmUI.createWidget(hmUI.widget.TEXT, {
-                        x: 464,
-                        y: 464,
-                        w: 24,
-                        h: 24,
-                        text_size: 20,
-                        char_space: 0,
-                        line_space: 0,
-                        font: 'fonts/3270NerdFontMono-Regular.ttf',
-                        color: fgColor,
-                        align_h: hmUI.align.LEFT,
-                        align_v: hmUI.align.TOP,
-                        text_style: hmUI.text_style.NONE,
-                        text: cacheText,
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    })
-
-                    // FontName: 3270NerdFontMono-Regular.ttf; FontSize: 36; Cache: full
-                    del(fontCache4)
-                    fontCache4 = hmUI.createWidget(hmUI.widget.TEXT, {
-                        x: 464,
-                        y: 464,
-                        w: 43,
-                        h: 43,
-                        text_size: 36,
-                        char_space: 0,
-                        line_space: 0,
-                        font: 'fonts/3270NerdFontMono-Regular.ttf',
-                        color: fgColor,
-                        align_h: hmUI.align.LEFT,
-                        align_v: hmUI.align.CENTER_V,
-                        text_style: hmUI.text_style.NONE,
-                        text: cacheText,
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    })
-
-                    // FontName: 3270NerdFontMono-Regular.ttf; FontSize: 90
-                    del(fontCache5)
-                    fontCache5 = hmUI.createWidget(hmUI.widget.TEXT, {
-                        x: 464,
-                        y: 464,
-                        w: 1461,
-                        h: 117,
-                        text_size: 90,
-                        char_space: 0,
-                        line_space: 0,
-                        font: 'fonts/3270NerdFontMono-Regular.ttf',
-                        color: fgColor,
-                        align_h: hmUI.align.LEFT,
-                        align_v: hmUI.align.BOTTOM,
-                        text_style: hmUI.text_style.ELLIPSIS,
-                        text: cacheText,
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    })
-
-                    console.log('Watch_Face.ScreenNormal')
-                    del(fontCache6)
-                    fontCache6 = hmUI.createWidget(hmUI.widget.TEXT, {
-                        x: 464,
-                        y: 464,
-                        w: 10000,
-                        h: 117,
-                        text_size: iconSize,
-                        char_space: 0,
-                        line_space: 0,
-                        font: 'fonts/3270NerdFontMono-Regular.ttf',
-                        color: fgColor,
-                        align_h: hmUI.align.LEFT,
-                        align_v: hmUI.align.BOTTOM,
-                        text_style: hmUI.text_style.ELLIPSIS,
-                        text: cacheText,
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    })
+                const render = (
+                    fgColor = 0xffff8c00,
+                    bgColor = 0xff000000,
+                    elementBgColor = 0xff333333,
+                ) => {
+                    for (const cache of fontCaches) {
+                        del(cache)
+                    }
+                    for (const size of fontSizes) {
+                        fontCaches.push(
+                            hmUI.createWidget(hmUI.widget.TEXT, {
+                                x: 464,
+                                y: 464,
+                                w: 10000,
+                                h: 22,
+                                text_size: size,
+                                char_space: 0,
+                                line_space: 0,
+                                font: 'fonts/3270NerdFontMono-Regular.ttf',
+                                color: fgColor,
+                                align_h: hmUI.align.LEFT,
+                                align_v: hmUI.align.TOP,
+                                text_style: hmUI.text_style.ELLIPSIS,
+                                text: cacheText,
+                                show_level: hmUI.show_level.ONLY_NORMAL,
+                            }),
+                        )
+                    }
                     del(normal_background_bg)
                     normal_background_bg = hmUI.createWidget(
                         hmUI.widget.FILL_RECT,
@@ -303,7 +306,22 @@ try {
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
                     )
-
+                    for (const rect of rectangles) {
+                        del(rect)
+                    }
+                    for (const rect of drawRect) {
+                        rectangles.push(
+                            hmUI.createWidget(hmUI.widget.FILL_RECT, {
+                                x: rect.x - rect.rect_gap,
+                                y: rect.y - rect.rect_gap,
+                                w: rect.w + rect.rect_gap * 2,
+                                h: rect.h + rect.rect_gap * 2,
+                                radius: 0,
+                                color: elementBgColor,
+                                show_level: hmUI.show_level.ONLY_NORMAL,
+                            }),
+                        )
+                    }
                     del(normal_system_dnd_img)
                     normal_system_dnd_img = hmUI.createWidget(
                         hmUI.widget.IMG_STATUS,
@@ -322,7 +340,7 @@ try {
                         {
                             x: 220,
                             y: 10,
-                            text: hmBle.connectStatus() ? '' : disconnectIcon,
+                            text: hmBle.connectStatus() ? '' : icons.disconnect,
                             type: hmUI.system_status.DISCONNECT,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                             w: 200,
@@ -344,10 +362,10 @@ try {
                         hmUI.widget.TEXT_FONT,
                         {
                             x: 290,
-                            y: 102,
+                            y: weatherPos - 2,
                             w: 150,
                             h: 30,
-                            text_size: 18,
+                            text_size: small,
                             char_space: 0,
                             font: 'fonts/3270NerdFontMono-Regular.ttf',
                             color: fgColor,
@@ -365,10 +383,10 @@ try {
                         hmUI.widget.TEXT_FONT,
                         {
                             x: 290,
-                            y: 116,
+                            y: weatherPos + 12,
                             w: 150,
                             h: 30,
-                            text_size: 18,
+                            text_size: small,
                             char_space: 0,
                             font: 'fonts/3270NerdFontMono-Regular.ttf',
                             color: fgColor,
@@ -386,10 +404,10 @@ try {
                         hmUI.widget.TEXT_FONT,
                         {
                             x: 130,
-                            y: 100,
+                            y: weatherPos,
                             w: 150,
-                            h: 36,
-                            text_size: 36,
+                            h: weatherHeight,
+                            text_size: big,
                             char_space: 0,
                             font: 'fonts/3270NerdFontMono-Regular.ttf',
                             color: fgColor,
@@ -403,80 +421,56 @@ try {
                         },
                     )
 
-                    del(normal_heart_rate_text_font)
-                    normal_heart_rate_text_font = hmUI.createWidget(
-                        hmUI.widget.TEXT_FONT,
-                        {
-                            x: 321,
-                            y: 350,
-                            w: 150,
-                            h: 30,
-                            text_size: 20,
-                            char_space: 0,
-                            font: 'fonts/3270NerdFontMono-Regular.ttf',
-                            color: fgColor,
-                            line_space: 0,
-                            align_v: hmUI.align.TOP,
-                            text_style: hmUI.text_style.ELLIPSIS,
-                            align_h: hmUI.align.LEFT,
-                            unit_type: 1,
-                            type: hmUI.data_type.HEART,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                    )
-
-                    del(normal_distance_current_text_font)
-                    normal_distance_current_text_font = hmUI.createWidget(
-                        hmUI.widget.TEXT_FONT,
-                        {
-                            x: 321,
-                            y: 330,
-                            w: 150,
-                            h: 50,
-                            text_size: 20,
-                            char_space: 0,
-                            font: 'fonts/3270NerdFontMono-Regular.ttf',
-                            color: fgColor,
-                            line_space: 0,
-                            align_v: hmUI.align.TOP,
-                            text_style: hmUI.text_style.ELLIPSIS,
-                            align_h: hmUI.align.LEFT,
-                            unit_type: 1,
-                            type: hmUI.data_type.DISTANCE,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                    )
-
-                    del(normal_step_current_text_font)
-                    normal_step_current_text_font = hmUI.createWidget(
-                        hmUI.widget.TEXT_FONT,
-                        {
-                            x: 321,
-                            y: 310,
-                            w: 150,
-                            h: 30,
-                            text_size: 20,
-                            char_space: 0,
-                            font: 'fonts/3270NerdFontMono-Regular.ttf',
-                            color: fgColor,
-                            line_space: 0,
-                            align_v: hmUI.align.TOP,
-                            text_style: hmUI.text_style.ELLIPSIS,
-                            align_h: hmUI.align.LEFT,
-                            unit_type: 2,
-                            type: hmUI.data_type.STEP,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                    )
+                    let countStats = 0
+                    for (const key of statsOrder) {
+                        del(stats[key].element)
+                        del(stats[key].iconElement)
+                        stats[key].iconElement = hmUI.createWidget(
+                            hmUI.widget.TEXT,
+                            {
+                                x: statsPos.x,
+                                y: statsPos.y + statsPos.gap * countStats,
+                                w: statsWidth,
+                                h: statsPos.size,
+                                text_size: statsPos.size,
+                                char_space: 0,
+                                font: 'fonts/3270NerdFontMono-Regular.ttf',
+                                color: fgColor,
+                                line_space: 0,
+                                align_v: hmUI.align.TOP,
+                                text_style: hmUI.text_style.ELLIPSIS,
+                                align_h: hmUI.align.LEFT,
+                                text: stats[key].icon,
+                                show_level: hmUI.show_level.ONLY_NORMAL,
+                            },
+                        )
+                        stats[key].element = hmUI.createWidget(
+                            hmUI.widget.TEXT,
+                            {
+                                x: statsPos.x + 25,
+                                y: statsPos.y + statsPos.gap * countStats,
+                                w: statsWidth,
+                                h: statsPos.size,
+                                text_size: statsPos.size,
+                                char_space: 0,
+                                font: 'fonts/3270NerdFontMono-Regular.ttf',
+                                color: fgColor,
+                                line_space: 0,
+                                align_v: hmUI.align.TOP,
+                                text_style: hmUI.text_style.ELLIPSIS,
+                                align_h: hmUI.align.LEFT,
+                                text: 'Err',
+                                show_level: hmUI.show_level.ONLY_NORMAL,
+                            },
+                        )
+                        countStats += 1
+                    }
                     del(normal_day_month_year_font)
                     normal_day_month_year_font = hmUI.createWidget(
                         hmUI.widget.TEXT,
                         {
-                            x: 113,
-                            y: 52,
-                            w: 230,
-                            h: 36,
-                            text_size: 36,
+                            ...dateCoords,
+                            text_size: big,
                             char_space: 0,
                             font: 'fonts/3270NerdFontMono-Regular.ttf',
                             color: fgColor,
@@ -489,33 +483,27 @@ try {
                         },
                     )
 
-                    /*
-                     * normal_battery_circle_scale = hmUI.createWidget(hmUI.widget.Circle_Scale, {
-                     * center_x: 145,
-                     * center_y: 364,
-                     * start_angle: 0,
-                     * end_angle: 360,
-                     * radius: 49,
-                     * line_width: 5,
-                     * line_cap: Flat,
-                     * color: fgColor,
-                     * mirror: False,
-                     * inversion: False,
-                     * alpha: 255,
-                     * type: hmUI.data_type.BATTERY,
-                     * show_level: hmUI.show_level.ONLY_NORMAL,
-                     * });
-                     */
-
+                    const batteryCoords = {
+                        center_x: 145,
+                        center_y: 364,
+                        radius: 47,
+                    }
+                    del(normal_battery_circle_bg)
+                    normal_battery_circle_bg = hmUI.createWidget(
+                        hmUI.widget.CIRCLE,
+                        {
+                            ...batteryCoords,
+                            color: elementBgColor,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        },
+                    )
                     del(normal_battery_circle_scale)
                     normal_battery_circle_scale = hmUI.createWidget(
                         hmUI.widget.ARC_PROGRESS,
                         {
-                            center_x: 145,
-                            center_y: 364,
+                            ...batteryCoords,
                             start_angle: 0,
                             end_angle: 360,
-                            radius: 47,
                             line_width: 5,
                             corner_flag: 3,
                             color: fgColor,
@@ -531,7 +519,7 @@ try {
                             y: 346,
                             w: 150,
                             h: 36,
-                            text_size: 36,
+                            text_size: big,
                             char_space: 0,
                             font: 'fonts/3270NerdFontMono-Regular.ttf',
                             color: fgColor,
@@ -548,9 +536,9 @@ try {
                     del(normal_weather_text)
                     normal_weather_text = hmUI.createWidget(hmUI.widget.TEXT, {
                         x: 170,
-                        y: 90,
+                        y: weatherPos - 10,
                         w: 200,
-                        h: 50,
+                        h: iconSize,
                         text_size: iconSize,
                         char_space: 0,
                         font: 'fonts/3270NerdFontMono-Regular.ttf',
@@ -568,11 +556,8 @@ try {
                     normal_city_name_text = hmUI.createWidget(
                         hmUI.widget.TEXT,
                         {
-                            x: 45,
-                            y: 254,
-                            w: 380,
-                            h: 39,
-                            text_size: 36,
+                            ...cityNameCoords,
+                            text_size: big,
                             char_space: 0,
                             font: 'fonts/3270NerdFontMono-Regular.ttf',
                             color: fgColor,
@@ -588,11 +573,11 @@ try {
                     normal_temperature_current_text_font = hmUI.createWidget(
                         hmUI.widget.TEXT_FONT,
                         {
-                            x: 65,
-                            y: 100,
+                            x: weatherStart,
+                            y: weatherPos,
                             w: 100,
-                            h: 36,
-                            text_size: 36,
+                            h: weatherHeight,
+                            text_size: big,
                             char_space: 0,
                             font: 'fonts/3270NerdFontMono-Regular.ttf',
                             color: fgColor,
@@ -610,23 +595,15 @@ try {
                     normal_time_hour_min_sec_text_font = hmUI.createWidget(
                         hmUI.widget.TEXT,
                         {
-                            x: 37,
-                            y: 157,
-                            w: 999,
-                            h: 100,
-                            text_size: 90,
+                            ...timeCoords,
+                            text_size: timeSize,
                             char_space: 0,
                             font: 'fonts/3270NerdFontMono-Regular.ttf',
                             color: fgColor,
                             line_space: 0,
-                            align_v: hmUI.align.BOTTOM,
+                            align_v: hmUI.align.CENTER_V,
                             text_style: hmUI.text_style.ELLIPSIS,
                             align_h: hmUI.align.LEFT,
-                            /*
-                             * padding: true,
-                             * unit_type: 1,
-                             * unit_end: 1,
-                             */
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
                     )
@@ -679,16 +656,13 @@ try {
                     idle_time_hour_min_text_font = hmUI.createWidget(
                         hmUI.widget.TEXT,
                         {
-                            x: 37,
-                            y: 157,
-                            w: 999,
-                            h: 100,
-                            text_size: 90,
+                            ...timeCoords,
+                            text_size: timeSize,
                             char_space: 0,
                             font: 'fonts/3270NerdFontMono-Regular.ttf',
                             color: fgColor,
                             line_space: 0,
-                            align_v: hmUI.align.BOTTOM,
+                            align_v: hmUI.align.CENTER_V,
                             text_style: hmUI.text_style.ELLIPSIS,
                             align_h: hmUI.align.LEFT,
                             /*
@@ -701,35 +675,28 @@ try {
                     )
 
                     //#endregion
-                    console.log('Watch_Face.Shortcuts')
 
-                    del(normal_step_jumpable_img_click)
-                    normal_step_jumpable_img_click = hmUI.createWidget(
-                        hmUI.widget.IMG_CLICK,
-                        {
-                            x: 319,
-                            y: 300,
-                            w: 116,
-                            h: 50,
-                            src: 'empty.png',
-                            type: hmUI.data_type.STEP,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                    )
-
-                    del(normal_heart_jumpable_img_click)
-                    normal_heart_jumpable_img_click = hmUI.createWidget(
-                        hmUI.widget.IMG_CLICK,
-                        {
-                            x: 318,
-                            y: 351,
-                            w: 100,
-                            h: 50,
-                            src: 'empty.png',
-                            type: hmUI.data_type.HEART,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                    )
+                    let countStatsButton = 0
+                    for (const key of statsOrder) {
+                        if (stats[key].button) {
+                            del(stats[key].buttonElement)
+                            stats[key].buttonElement = hmUI.createWidget(
+                                hmUI.widget.IMG_CLICK,
+                                {
+                                    x: statsPos.x,
+                                    y:
+                                        statsPos.y +
+                                        statsPos.gap * countStatsButton,
+                                    w: 200,
+                                    h: statsPos.size,
+                                    src: 'empty.png',
+                                    type: stats[key].button,
+                                    show_level: hmUI.show_level.ONLY_NORMAL,
+                                },
+                            )
+                        }
+                        countStatsButton += 1
+                    }
 
                     del(normal_sunrise_jumpable_img_click)
                     normal_sunrise_jumpable_img_click = hmUI.createWidget(
@@ -763,10 +730,7 @@ try {
                     normal_countdown_jumpable_img_click = hmUI.createWidget(
                         hmUI.widget.IMG_CLICK,
                         {
-                            x: 41,
-                            y: 157,
-                            w: 384,
-                            h: 100,
+                            ...timeCoords,
                             src: 'empty.png',
                             type: hmUI.data_type.COUNT_DOWN,
                             show_level: hmUI.show_level.ONLY_NORMAL,
@@ -782,7 +746,7 @@ try {
                         h: 999,
                         text: '',
                         color: fgColor,
-                        text_size: 25,
+                        text_size: big,
                         press_src: 'empty.png',
                         normal_src: 'empty.png',
                         click_func: (button_widget) => {
@@ -802,7 +766,7 @@ try {
                         h: 50,
                         text: '',
                         color: fgColor,
-                        text_size: 25,
+                        text_size: big,
                         press_src: 'empty.png',
                         normal_src: 'empty.png',
                         click_func: (button_widget) => {
@@ -823,8 +787,7 @@ try {
                     const minute = timeSensor.minute
                     const second = timeSensor.second
                     const format_hour = timeSensor.format_hour
-
-                    console.log('day/month/year font')
+                    const separator = second % 2 === 0 ? ':' : ' '
                     if (updateHour) {
                         let normal_DayStr = timeSensor.day.toString()
                         let normal_MonthStr = timeSensor.month.toString()
@@ -846,7 +809,7 @@ try {
                     const minuteStr = minute.toString().padStart(2, '0')
                     const secondStr = second.toString().padStart(2, '0')
 
-                    let normal_HourMinSecStr = `${hourStr}:${minuteStr}:${secondStr}`
+                    let normal_HourMinSecStr = `${hourStr}${separator}${minuteStr}${separator}${secondStr}`
 
                     if (!timeSensor.is24Hour) {
                         normal_HourMinSecStr += hour > 11 ? ' Pm' : ' Am'
@@ -858,9 +821,11 @@ try {
                     )
 
                     // Second Circle
+                    let level = (second / 60) * 100
+                    if (level === 0) level = 360
                     normal_second_circle_scale.setProperty(
                         hmUI.prop.LEVEL,
-                        (second / 60) * 100,
+                        level,
                     )
 
                     if (updateMinute) {
@@ -899,11 +864,13 @@ try {
                         cityName = 'Default City',
                         fgColorHex = 'FFFFFF',
                         bgColorHex = '000000',
+                        elementBgColorHEX = '333333',
                     ] = normal_cityNameStr.split('%%%')
 
                     normal_city_name_text.setProperty(hmUI.prop.TEXT, cityName)
                     newColorCache.push(fgColorHex)
                     newColorCache.push(bgColorHex)
+                    newColorCache.push(elementBgColorHEX)
                     const condition =
                         weatherData?.forecastData?.data?.[0]?.index ?? -1
                     normal_weather_text.setProperty(
@@ -941,6 +908,22 @@ try {
                             )
                         }
                     }
+
+                    stats.steps.element.setProperty(
+                        hmUI.prop.TEXT,
+                        step.current.toString(),
+                    )
+                    const formatDistance = (m) =>
+                        m < 1000 ? `${m} m` : `${(m / 1000).toFixed(1)} km`
+                    stats.distance.element.setProperty(
+                        hmUI.prop.TEXT,
+                        formatDistance(distance.current),
+                    )
+                    stats.heart.element.setProperty(
+                        hmUI.prop.TEXT,
+                        `${heart.last} bbm`,
+                    )
+
                     newColorCache.push(hmBle.connectStatus().toString())
                     const finalColorCache = newColorCache.join('')
                     if (colorCache !== finalColorCache) {
@@ -948,6 +931,7 @@ try {
                         render(
                             Number(`0xFF${fgColorHex}`),
                             Number(`0xFF${bgColorHex}`),
+                            Number(`0xFF${elementBgColorHEX}`),
                         )
                     }
                 }
