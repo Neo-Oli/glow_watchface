@@ -64,6 +64,7 @@ try {
             steps: '',
             heart: '󰋑',
             distance: '',
+            sleep: '󰒲 ',
         }
         const iconSize = 50
         const dayNames = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
@@ -94,9 +95,6 @@ try {
         let timeSensor = ''
         let weatherSensor = ''
         let battery = ''
-        let step = ''
-        let heart = ''
-        let distance = ''
 
         let colorCache = ''
         const cacheText = [
@@ -112,28 +110,43 @@ try {
             size: 24,
         }
 
-        const statsOrder = ['steps', 'distance', 'heart']
+        const statsOrder = ['steps', 'distance', 'sleep', 'heart']
         const stats = {
             steps: {
                 icon: icons.steps,
+                sensorId: hmSensor.id.STEP,
+                button: hmUI.data_type.STEP,
                 element: '',
                 iconElement: '',
-                button: hmUI.data_type.STEP,
                 buttonElement: '',
+                sensor: '',
             },
             distance: {
                 icon: icons.distance,
+                sensorId: hmSensor.id.DISTANCE,
+                button: hmUI.data_type.STEP,
                 element: '',
                 iconElement: '',
-                button: hmUI.data_type.STEP,
                 buttonElement: '',
+                sensor: '',
             },
             heart: {
                 icon: icons.heart,
+                sensorId: hmSensor.id.HEART,
+                button: hmUI.data_type.HEART,
                 element: '',
                 iconElement: '',
-                button: hmUI.data_type.HEART,
                 buttonElement: '',
+                sensor: '',
+            },
+            sleep: {
+                icon: icons.sleep,
+                sensorId: hmSensor.id.SLEEP,
+                button: hmUI.data_type.SLEEP,
+                element: '',
+                iconElement: '',
+                buttonElement: '',
+                sensor: '',
             },
         }
 
@@ -220,19 +233,21 @@ try {
                     hmBle.addListener(function (status) {
                         if (!status) {
                             hmUI.showToast({ text: 'connection lost' })
-                            vibro(25)
+                            vibro(28)
                         }
                         if (status) {
                             hmUI.showToast({ text: 'connection restored' })
-                            vibro(25)
+                            vibro(28)
                         }
                     })
                 }
 
-                if (!step) step = hmSensor.createSensor(hmSensor.id.STEP)
-                if (!heart) heart = hmSensor.createSensor(hmSensor.id.HEART)
-                if (!distance)
-                    distance = hmSensor.createSensor(hmSensor.id.DISTANCE)
+                for (const stat of Object.keys(stats)) {
+                    if (!stats[stat].sensor)
+                        stats[stat].sensor = hmSensor.createSensor(
+                            stats[stat].sensorId,
+                        )
+                }
 
                 /*
                  * disconnectAlert = hmUI.createWidget(hmUI.widget.DisconnectAlert, {
@@ -911,17 +926,21 @@ try {
 
                     stats.steps.element.setProperty(
                         hmUI.prop.TEXT,
-                        step.current.toString(),
+                        stats.steps.sensor.current.toString(),
                     )
                     const formatDistance = (m) =>
                         m < 1000 ? `${m} m` : `${(m / 1000).toFixed(1)} km`
                     stats.distance.element.setProperty(
                         hmUI.prop.TEXT,
-                        formatDistance(distance.current),
+                        formatDistance(stats.distance.sensor.current),
                     )
                     stats.heart.element.setProperty(
                         hmUI.prop.TEXT,
-                        `${heart.last} bbm`,
+                        `${stats.heart.sensor.last} bbm`,
+                    )
+                    stats.sleep.element.setProperty(
+                        hmUI.prop.TEXT,
+                        `${stats.sleep.sensor.getTotalTime()}`,
                     )
 
                     newColorCache.push(hmBle.connectStatus().toString())
