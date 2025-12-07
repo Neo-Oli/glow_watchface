@@ -933,6 +933,7 @@ try {
                             Number(`0xFF${bgColorHex}`),
                             Number(`0xFF${elementBgColorHEX}`),
                         )
+                        scale_call()
                     }
                 }
 
