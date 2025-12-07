@@ -938,9 +938,11 @@ try {
                         hmUI.prop.TEXT,
                         `${stats.heart.sensor.last} bbm`,
                     )
+                    const toHMM = (m) =>
+                        `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`
                     stats.sleep.element.setProperty(
                         hmUI.prop.TEXT,
-                        `${stats.sleep.sensor.getTotalTime()}`,
+                        `${toHMM(stats.sleep.sensor.getTotalTime())}`,
                     )
 
                     newColorCache.push(hmBle.connectStatus().toString())
