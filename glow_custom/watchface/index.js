@@ -806,14 +806,12 @@ try {
                     if (updateHour) {
                         let normal_DayStr = timeSensor.day.toString()
                         let normal_MonthStr = timeSensor.month.toString()
-                        const normal_YearStr = (
-                            timeSensor.year % 100
-                        ).toString()
+                        const normal_YearStr = timeSensor.year.toString()
                         const day = timeSensor.week
                         const dayString = dayNames[day - 1]
                         normal_DayStr = normal_DayStr.padStart(2, '0')
                         normal_MonthStr = normal_MonthStr.padStart(2, '0')
-                        const normal_DayMonthYearStr = `${dayString} ${normal_YearStr}.${normal_MonthStr}.${normal_DayStr}`
+                        const normal_DayMonthYearStr = `${dayString} ${normal_YearStr}-${normal_MonthStr}-${normal_DayStr}`
                         normal_day_month_year_font.setProperty(
                             hmUI.prop.TEXT,
                             normal_DayMonthYearStr,
