@@ -932,7 +932,10 @@ try {
                         }
 
                         if (count < steps) {
-                            animationTimer = setTimeout(() => step(count + 1), interval)
+                            animationTimer = setTimeout(
+                                () => step(count + 1),
+                                interval,
+                            )
                         }
                     }
 
