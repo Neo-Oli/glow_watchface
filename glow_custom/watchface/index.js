@@ -111,7 +111,7 @@ try {
 
         const big = 30
         const small = 18
-        let timer
+        let animationTimer
 
         const timeSize = 90
         const weatherPos = 108
@@ -913,11 +913,11 @@ try {
                         scale_call()
                     }
                     const duration = 500
-                    const fps = 10
+                    const fps = 30
                     const steps = Math.round(fps * (duration / 1000))
                     const interval = 1000 / fps
 
-                    if (timer) clearTimeout(timer)
+                    if (animationTimer) clearTimeout(animationTimer)
 
                     const step = (count) => {
                         for (const a of animation) {
@@ -926,14 +926,13 @@ try {
                             const value = Math.round(
                                 from + ((to - from) / steps) * count,
                             )
-                            console.log(`${prop} ${value}`)
                             const set = template
                             set[prop] = value
                             element.setProperty(type, set)
                         }
 
                         if (count < steps) {
-                            timer = setTimeout(() => step(count + 1), interval)
+                            animationTimer = setTimeout(() => step(count + 1), interval)
                         }
                     }
 
