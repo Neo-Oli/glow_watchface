@@ -931,12 +931,21 @@ try {
 
                     const step = (count) => {
                         for (const a of animation) {
-                            const { element, from, to, total, prop, type, template } =
-                                a
-                            const value = Math.min( Math.round(
-                                from + ((total - from) / steps) * count,
-                            ),to)
-                            console.log(from,to,total,value)
+                            const {
+                                element,
+                                from,
+                                to,
+                                total,
+                                prop,
+                                type,
+                                template,
+                            } = a
+                            const value = Math.min(
+                                Math.round(
+                                    from + ((total - from) / steps) * count,
+                                ),
+                                to,
+                            )
                             const set = template
                             set[prop] = value
                             element.setProperty(type, set)
