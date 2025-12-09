@@ -111,6 +111,7 @@ try {
 
         const big = 30
         const small = 18
+        let timer
 
         const timeSize = 90
         const weatherPos = 108
@@ -129,6 +130,18 @@ try {
         const e = {}
         const s = {}
         const allElements = []
+        let animation = []
+        const addAnimation = (element, from, to, prop, type, template) => {
+            animation.push({
+                element,
+                from,
+                to,
+                prop,
+                type,
+                template,
+            })
+        }
+
         let layers = []
         const bg = 0
         const widgetBg = 1
@@ -788,7 +801,7 @@ try {
                 //#endregion
                 function scale_call() {
                     console.log('scale_call()')
-
+                    animation = []
                     const newColorCache = []
                     console.log('Weather city name')
                     const weatherData = s.weather.getForecastWeather()
@@ -834,10 +847,16 @@ try {
                         if (screenType !== hmSetting.screen_type.AOD) {
                             const level = Math.round(progress * 100)
                             if (circle)
-                                circle.setProperty(hmUI.prop.MORE, {
-                                    radius: circleRadius,
+                                addAnimation(
+                                    circle,
+                                    0,
                                     level,
-                                })
+                                    'level',
+                                    hmUI.prop.MORE,
+                                    {
+                                        radius: circleRadius,
+                                    },
+                                )
                             if (text)
                                 text.setProperty(hmUI.prop.TEXT, `${value}%`)
                             if (iconElement && icon) {
@@ -893,6 +912,32 @@ try {
                         render(fgColor, bgColor, elementBgColor)
                         scale_call()
                     }
+                    const duration = 500
+                    const fps = 10
+                    const steps = Math.round(fps * (duration / 1000))
+                    const interval = 1000 / fps
+
+                    if (timer) clearTimeout(timer)
+
+                    const step = (count) => {
+                        for (const a of animation) {
+                            const { element, from, to, prop, type, template } =
+                                a
+                            const value = Math.round(
+                                from + ((to - from) / steps) * count,
+                            )
+                            console.log(`${prop} ${value}`)
+                            const set = template
+                            set[prop] = value
+                            element.setProperty(type, set)
+                        }
+
+                        if (count < steps) {
+                            timer = setTimeout(() => step(count + 1), interval)
+                        }
+                    }
+
+                    step(0)
                 }
 
                 const widgetDelegate = hmUI.createWidget(
