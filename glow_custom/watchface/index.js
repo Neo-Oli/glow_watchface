@@ -23,6 +23,8 @@ try {
         const logger = DeviceRuntimeCore.HmLogger.getLogger(
             'watchface_SashaCX75',
         )
+
+        const font = 'fonts/3270NerdFontMono-Regular.ttf'
         //end of ignored block
 
         //dynamic modify start
@@ -64,7 +66,10 @@ try {
             steps: '',
             heart: '󰋑',
             distance: '',
-            sleep: '󰒲 ',
+            sleep: '󰒲',
+            mail: '󰇮',
+            watch: '',
+            phone: '󰄜',
         }
         const iconSize = 50
         const dayNames = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
@@ -76,9 +81,6 @@ try {
         let normal_humidity_current_text_font = ''
         let normal_day_month_year_font = ''
         let normal_timerTimeUpdate = undefined
-        let normal_battery_circle_scale = ''
-        let normal_battery_circle_bg = ''
-        let normal_battery_current_text_font = ''
         let normal_city_name_text = ''
         let normal_weather_text = ''
         let normal_temperature_current_text_font = ''
@@ -90,7 +92,6 @@ try {
         let normal_sunrise_jumpable_img_click = ''
         let normal_temperature_jumpable_img_click = ''
         let normal_countdown_jumpable_img_click = ''
-        let Button_1 = ''
         let Button_2 = ''
         let timeSensor = ''
         let weatherSensor = ''
@@ -150,6 +151,39 @@ try {
             },
         }
 
+        const findPhone = (watchButton) =>
+            hmApp.startApp({
+                url: 'FindPhoneScreen',
+                native: true,
+            })
+
+        circleOrder = ['battery', 'phone_battery']
+        const circles = {
+            battery: {
+                icon: icons.watch,
+                circle: '',
+                bg: '',
+                text: '',
+                iconElement: '',
+                button: findPhone,
+                buttonElement: '',
+            },
+            phone_battery: {
+                icon: icons.phone,
+                circle: '',
+                text: '',
+                bg: '',
+                iconElement: '',
+                button: findPhone,
+                buttonElement: '',
+            },
+        }
+        const circlePos = {
+            center_x: 110,
+            center_y: 355,
+            radius: 47,
+            gap: 100,
+        }
         const big = 30
         const small = 18
 
@@ -182,7 +216,6 @@ try {
         }
 
         const fontSizes = [iconSize, statsPos.size, timeSize, big, small]
-        const rectangles = []
         const statsWidth = 120
         const drawRect = [
             timeCoords,
@@ -286,6 +319,7 @@ try {
                     bgColor = 0xff000000,
                     elementBgColor = 0xff333333,
                 ) => {
+                    console.log('render()')
                     for (const cache of fontCaches) {
                         del(cache)
                     }
@@ -299,7 +333,7 @@ try {
                                 text_size: size,
                                 char_space: 0,
                                 line_space: 0,
-                                font: 'fonts/3270NerdFontMono-Regular.ttf',
+                                font: font,
                                 color: fgColor,
                                 align_h: hmUI.align.LEFT,
                                 align_v: hmUI.align.TOP,
@@ -321,12 +355,13 @@ try {
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
                     )
-                    for (const rect of rectangles) {
-                        del(rect)
-                    }
                     for (const rect of drawRect) {
-                        rectangles.push(
-                            hmUI.createWidget(hmUI.widget.FILL_RECT, {
+                        if ('rectangleElement' in rect) {
+                            del(rect.rectangleElement)
+                        }
+                        rect.rectangleElement = hmUI.createWidget(
+                            hmUI.widget.FILL_RECT,
+                            {
                                 x: rect.x - rect.rect_gap,
                                 y: rect.y - rect.rect_gap,
                                 w: rect.w + rect.rect_gap * 2,
@@ -334,7 +369,7 @@ try {
                                 radius: 0,
                                 color: elementBgColor,
                                 show_level: hmUI.show_level.ONLY_NORMAL,
-                            }),
+                            },
                         )
                     }
                     del(normal_system_dnd_img)
@@ -362,7 +397,7 @@ try {
                             h: 50,
                             text_size: iconSize,
                             char_space: 0,
-                            font: 'fonts/3270NerdFontMono-Regular.ttf',
+                            font: font,
                             color: fgColor,
                             line_space: 0,
                             align_v: hmUI.align.CENTER_V,
@@ -382,7 +417,7 @@ try {
                             h: 30,
                             text_size: small,
                             char_space: 0,
-                            font: 'fonts/3270NerdFontMono-Regular.ttf',
+                            font: font,
                             color: fgColor,
                             line_space: 0,
                             align_v: hmUI.align.TOP,
@@ -403,7 +438,7 @@ try {
                             h: 30,
                             text_size: small,
                             char_space: 0,
-                            font: 'fonts/3270NerdFontMono-Regular.ttf',
+                            font: font,
                             color: fgColor,
                             line_space: 0,
                             align_v: hmUI.align.TOP,
@@ -424,7 +459,7 @@ try {
                             h: weatherHeight,
                             text_size: big,
                             char_space: 0,
-                            font: 'fonts/3270NerdFontMono-Regular.ttf',
+                            font: font,
                             color: fgColor,
                             line_space: 0,
                             align_v: hmUI.align.CENTER_V,
@@ -449,7 +484,7 @@ try {
                                 h: statsPos.size,
                                 text_size: statsPos.size,
                                 char_space: 0,
-                                font: 'fonts/3270NerdFontMono-Regular.ttf',
+                                font: font,
                                 color: fgColor,
                                 line_space: 0,
                                 align_v: hmUI.align.TOP,
@@ -468,7 +503,7 @@ try {
                                 h: statsPos.size,
                                 text_size: statsPos.size,
                                 char_space: 0,
-                                font: 'fonts/3270NerdFontMono-Regular.ttf',
+                                font: font,
                                 color: fgColor,
                                 line_space: 0,
                                 align_v: hmUI.align.TOP,
@@ -487,7 +522,7 @@ try {
                             ...dateCoords,
                             text_size: big,
                             char_space: 0,
-                            font: 'fonts/3270NerdFontMono-Regular.ttf',
+                            font: font,
                             color: fgColor,
                             line_space: 0,
                             align_v: hmUI.align.TOP,
@@ -498,55 +533,80 @@ try {
                         },
                     )
 
-                    const batteryCoords = {
-                        center_x: 145,
-                        center_y: 364,
-                        radius: 47,
+                    let circleCount = 0
+                    for (const key of circleOrder) {
+                        del(circles[key].circle)
+                        del(circles[key].text)
+                        del(circles[key].iconElement)
+                        del(circles[key].bg)
+                        const x =
+                            circlePos.center_x + circlePos.gap * circleCount
+                        const y = circlePos.center_y
+                        const r = circlePos.radius
+                        circles[key].bg = hmUI.createWidget(
+                            hmUI.widget.CIRCLE,
+                            {
+                                center_x: x,
+                                center_y: y,
+                                radius: circlePos.radius,
+                                color: elementBgColor,
+                                show_level: hmUI.show_level.ONLY_NORMAL,
+                            },
+                        )
+                        circles[key].circle = hmUI.createWidget(
+                            hmUI.widget.ARC_PROGRESS,
+                            {
+                                center_x: x,
+                                center_y: y,
+                                radius: r,
+                                start_angle: 0,
+                                end_angle: 360,
+                                line_width: 5,
+                                corner_flag: 3,
+                                color: fgColor,
+                                show_level: hmUI.show_level.ONLY_NORMAL,
+                            },
+                        )
+                        circles[key].text = hmUI.createWidget(
+                            hmUI.widget.TEXT,
+                            {
+                                x: x - r,
+                                y: y - big / 2,
+                                w: r * 2,
+                                h: big,
+                                text_size: big,
+                                char_space: 0,
+                                font: font,
+                                color: fgColor,
+                                line_space: 0,
+                                align_v: hmUI.align.CENTER_V,
+                                text_style: hmUI.text_style.ELLIPSIS,
+                                align_h: hmUI.align.CENTER_H,
+                                show_level: hmUI.show_level.ONLY_NORMAL,
+                                text: 'Err',
+                            },
+                        )
+                        circles[key].iconElement = hmUI.createWidget(
+                            hmUI.widget.TEXT,
+                            {
+                                x: x - r,
+                                y: y - big / 2 - big,
+                                w: r * 2,
+                                h: big,
+                                text_size: big,
+                                char_space: 0,
+                                font: font,
+                                color: fgColor,
+                                line_space: 0,
+                                align_v: hmUI.align.CENTER_V,
+                                text_style: hmUI.text_style.ELLIPSIS,
+                                align_h: hmUI.align.CENTER_H,
+                                show_level: hmUI.show_level.ONLY_NORMAL,
+                                text: circles[key].icon,
+                            },
+                        )
+                        circleCount += 1
                     }
-                    del(normal_battery_circle_bg)
-                    normal_battery_circle_bg = hmUI.createWidget(
-                        hmUI.widget.CIRCLE,
-                        {
-                            ...batteryCoords,
-                            color: elementBgColor,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                    )
-                    del(normal_battery_circle_scale)
-                    normal_battery_circle_scale = hmUI.createWidget(
-                        hmUI.widget.ARC_PROGRESS,
-                        {
-                            ...batteryCoords,
-                            start_angle: 0,
-                            end_angle: 360,
-                            line_width: 5,
-                            corner_flag: 3,
-                            color: fgColor,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                    )
-
-                    del(normal_battery_current_text_font)
-                    normal_battery_current_text_font = hmUI.createWidget(
-                        hmUI.widget.TEXT_FONT,
-                        {
-                            x: 69,
-                            y: 346,
-                            w: 150,
-                            h: 36,
-                            text_size: big,
-                            char_space: 0,
-                            font: 'fonts/3270NerdFontMono-Regular.ttf',
-                            color: fgColor,
-                            line_space: 0,
-                            align_v: hmUI.align.CENTER_V,
-                            text_style: hmUI.text_style.ELLIPSIS,
-                            align_h: hmUI.align.CENTER_H,
-                            unit_type: 1,
-                            type: hmUI.data_type.BATTERY,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                    )
 
                     del(normal_weather_text)
                     normal_weather_text = hmUI.createWidget(hmUI.widget.TEXT, {
@@ -556,7 +616,7 @@ try {
                         h: iconSize,
                         text_size: iconSize,
                         char_space: 0,
-                        font: 'fonts/3270NerdFontMono-Regular.ttf',
+                        font: font,
                         color: fgColor,
                         line_space: 0,
                         align_v: hmUI.align.CENTER_V,
@@ -574,7 +634,7 @@ try {
                             ...cityNameCoords,
                             text_size: big,
                             char_space: 0,
-                            font: 'fonts/3270NerdFontMono-Regular.ttf',
+                            font: font,
                             color: fgColor,
                             line_space: 0,
                             align_v: hmUI.align.CENTER_V,
@@ -594,7 +654,7 @@ try {
                             h: weatherHeight,
                             text_size: big,
                             char_space: 0,
-                            font: 'fonts/3270NerdFontMono-Regular.ttf',
+                            font: font,
                             color: fgColor,
                             line_space: 0,
                             align_v: hmUI.align.CENTER_V,
@@ -613,7 +673,7 @@ try {
                             ...timeCoords,
                             text_size: timeSize,
                             char_space: 0,
-                            font: 'fonts/3270NerdFontMono-Regular.ttf',
+                            font: font,
                             color: fgColor,
                             line_space: 0,
                             align_v: hmUI.align.CENTER_V,
@@ -674,7 +734,7 @@ try {
                             ...timeCoords,
                             text_size: timeSize,
                             char_space: 0,
-                            font: 'fonts/3270NerdFontMono-Regular.ttf',
+                            font: font,
                             color: fgColor,
                             line_space: 0,
                             align_v: hmUI.align.CENTER_V,
@@ -753,26 +813,6 @@ try {
                     )
 
                     console.log('Watch_Face.Buttons')
-                    del(Button_1)
-                    Button_1 = hmUI.createWidget(hmUI.widget.BUTTON, {
-                        x: 41,
-                        y: 258,
-                        w: 200,
-                        h: 999,
-                        text: '',
-                        color: fgColor,
-                        text_size: big,
-                        press_src: 'empty.png',
-                        normal_src: 'empty.png',
-                        click_func: (button_widget) => {
-                            hmApp.startApp({
-                                url: 'FindPhoneScreen',
-                                native: true,
-                            })
-                        }, // end func
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    }) // end button
-
                     del(Button_2)
                     Button_2 = hmUI.createWidget(hmUI.widget.BUTTON, {
                         x: 100,
@@ -792,6 +832,31 @@ try {
                         }, // end func
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     }) // end button
+
+                    let countCircleButton = 0
+                    for (const key of circleOrder) {
+                        if (circles[key].button) {
+                            del(circles[key].buttonElement)
+                            const x = circlePos.center_x - circlePos.radius
+                            const y = circlePos.center_y - circlePos.radius
+                            circles[key].buttonElement = hmUI.createWidget(
+                                hmUI.widget.BUTTON,
+                                {
+                                    x: x + circlePos.gap * countCircleButton,
+                                    y: y,
+                                    w: circlePos.radius * 2,
+                                    h: circlePos.radius * 2,
+                                    text: '',
+                                    color: fgColor,
+                                    click_func: circles[key].button,
+                                    press_src: 'empty.png',
+                                    normal_src: 'empty.png',
+                                    show_level: hmUI.show_level.ONLY_NORMAL,
+                                },
+                            )
+                        }
+                        countCircleButton += 1
+                    }
                 }
 
                 render()
@@ -878,9 +943,25 @@ try {
                         fgColorHex = 'FFFFFF',
                         bgColorHex = '000000',
                         elementBgColorHEX = '333333',
+                        phoneBattery = '-2',
                     ] = normal_cityNameStr.split('%%%')
+                    const fgColor = Number(`0xFF${fgColorHex}`)
+                    const bgColor = Number(`0xFF${bgColorHex}`)
+                    const elementBgColor = Number(`0xFF${elementBgColorHEX}`)
 
                     normal_city_name_text.setProperty(hmUI.prop.TEXT, cityName)
+                    if ('rectangleElement' in cityNameCoords)
+                        if (!cityName) {
+                            cityNameCoords.rectangleElement.setProperty(
+                                hmUI.prop.COLOR,
+                                bgColor,
+                            )
+                        } else {
+                            cityNameCoords.rectangleElement.setProperty(
+                                hmUI.prop.COLOR,
+                                elementBgColor,
+                            )
+                        }
                     newColorCache.push(fgColorHex)
                     newColorCache.push(bgColorHex)
                     newColorCache.push(elementBgColorHEX)
@@ -893,32 +974,35 @@ try {
 
                     console.log('update scales BATTERY')
 
-                    const valueBattery = battery.current
-                    const targetBattery = 100
-                    let progressBattery = valueBattery / targetBattery
-                    if (progressBattery > 1) progressBattery = 1
-                    const progress_cs_normal_battery = progressBattery
-
-                    if (screenType !== hmSetting.screen_type.AOD) {
-                        // normal_battery_circle_scale_circle_scale
-                        const level = Math.round(
-                            progress_cs_normal_battery * 100,
-                        )
-                        if (normal_battery_circle_scale) {
-                            normal_battery_circle_scale.setProperty(
-                                hmUI.prop.MORE,
-                                {
-                                    center_x: 145,
-                                    center_y: 364,
-                                    start_angle: 0,
-                                    end_angle: 360,
-                                    radius: 47,
-                                    line_width: 5,
-                                    corner_flag: 3,
-                                    show_level: hmUI.show_level.ONLY_NORMAL,
+                    for (const e of [
+                        {
+                            value: battery.current,
+                            target: 100,
+                            circle: circles.battery,
+                        },
+                        {
+                            value: phoneBattery,
+                            target: 100,
+                            circle: circles.phone_battery,
+                        },
+                    ]) {
+                        let progress = e.value / e.target
+                        if (progress > 1) progress = 1
+                        console.log(e)
+                        if (screenType !== hmSetting.screen_type.AOD) {
+                            const level = Math.round(progress * 100)
+                            if (e.circle.circle) {
+                                e.circle.circle.setProperty(hmUI.prop.MORE, {
+                                    radius: circlePos.radius,
                                     level: level,
-                                },
-                            )
+                                })
+                            }
+                            if (e.circle.text) {
+                                e.circle.text.setProperty(
+                                    hmUI.prop.TEXT,
+                                    `${e.value}%`,
+                                )
+                            }
                         }
                     }
 
@@ -947,11 +1031,7 @@ try {
                     const finalColorCache = newColorCache.join('')
                     if (colorCache !== finalColorCache) {
                         colorCache = finalColorCache
-                        render(
-                            Number(`0xFF${fgColorHex}`),
-                            Number(`0xFF${bgColorHex}`),
-                            Number(`0xFF${elementBgColorHEX}`),
-                        )
+                        render(fgColor, bgColor, elementBgColor)
                         scale_call()
                     }
                 }
