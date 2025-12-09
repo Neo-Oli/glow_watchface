@@ -60,6 +60,20 @@ try {
             ' ', // 27 Shower at night
             ' ', // 28 Clear night
         ]
+        const clocks = [
+            '󱑊',
+            '󱐿',
+            '󱑀',
+            '󱑁',
+            '󱑂',
+            '󱑃',
+            '󱑄',
+            '󱑅',
+            '󱑆',
+            '󱑇',
+            '󱑈',
+            '󱑉',
+        ]
 
         const icons = {
             disconnect: '󰂲',
@@ -68,88 +82,26 @@ try {
             distance: '',
             sleep: '󰒲',
             mail: '󰇮',
-            watch: '',
             phone: '󰄜',
         }
         const iconSize = 50
+        const circleRadius = 47
+        const buttonImage = 'empty.png'
+        //const buttonImage = 'debug.png'
         const dayNames = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
-        let normal_background_bg = ''
-        let normal_system_dnd_img = ''
-        let normal_system_disconnect = ''
-        let normal_sun_high_text_font = ''
-        let normal_sun_low_text_font = ''
-        let normal_humidity_current_text_font = ''
-        let normal_day_month_year_font = ''
         let normal_timerTimeUpdate = undefined
-        let normal_city_name_text = ''
-        let normal_weather_text = ''
-        let normal_temperature_current_text_font = ''
-        let normal_time_hour_min_sec_text_font = ''
-        let normal_second_circle_scale = ''
         let normal_timerUpdateSec = undefined
-        let idle_time_hour_min_text_font = ''
         let idle_timerTimeUpdate = undefined
-        let normal_sunrise_jumpable_img_click = ''
-        let normal_temperature_jumpable_img_click = ''
-        let normal_countdown_jumpable_img_click = ''
-        let Button_2 = ''
-        let timeSensor = ''
-        let weatherSensor = ''
-        let battery = ''
 
         let colorCache = ''
         const cacheText = [
             "$|^0123456789 _-.,:;`'% ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz°\\/",
             weather_icons.join(''),
+            clocks.join(''),
             Object.values(icons).join(''),
         ].join('')
 
-        const statsPos = {
-            x: 280,
-            y: 310,
-            gap: 24,
-            size: 24,
-        }
-
-        const statsOrder = ['steps', 'distance', 'sleep', 'heart']
-        const stats = {
-            steps: {
-                icon: icons.steps,
-                sensorId: hmSensor.id.STEP,
-                button: hmUI.data_type.STEP,
-                element: '',
-                iconElement: '',
-                buttonElement: '',
-                sensor: '',
-            },
-            distance: {
-                icon: icons.distance,
-                sensorId: hmSensor.id.DISTANCE,
-                button: hmUI.data_type.STEP,
-                element: '',
-                iconElement: '',
-                buttonElement: '',
-                sensor: '',
-            },
-            heart: {
-                icon: icons.heart,
-                sensorId: hmSensor.id.HEART,
-                button: hmUI.data_type.HEART,
-                element: '',
-                iconElement: '',
-                buttonElement: '',
-                sensor: '',
-            },
-            sleep: {
-                icon: icons.sleep,
-                sensorId: hmSensor.id.SLEEP,
-                button: hmUI.data_type.SLEEP,
-                element: '',
-                iconElement: '',
-                buttonElement: '',
-                sensor: '',
-            },
-        }
+        const statsSize = 24
 
         const findPhone = (watchButton) =>
             hmApp.startApp({
@@ -157,108 +109,84 @@ try {
                 native: true,
             })
 
-        circleOrder = ['battery', 'phone_battery']
-        const circles = {
-            battery: {
-                icon: icons.watch,
-                circle: '',
-                bg: '',
-                text: '',
-                iconElement: '',
-                button: findPhone,
-                buttonElement: '',
-            },
-            phone_battery: {
-                icon: icons.phone,
-                circle: '',
-                text: '',
-                bg: '',
-                iconElement: '',
-                button: findPhone,
-                buttonElement: '',
-            },
-        }
-        const circlePos = {
-            center_x: 120,
-            center_y: 355,
-            radius: 47,
-            gap: 103,
-        }
         const big = 30
         const small = 18
 
-        const fontCaches = []
         const timeSize = 90
-        const timeCoords = {
-            x: 35,
-            y: 157,
-            w: 393,
-            h: 90,
-            rect_gap: 3,
-        }
         const weatherPos = 108
         const weatherGap = 30
-        const weatherStart = timeCoords.x + weatherGap
         const weatherHeight = big
         const dateCoords = {
             x: 113,
             y: 60,
             w: 230,
             h: 36,
-            rect_gap: 3,
-        }
-        const cityNameCoords = {
-            x: timeCoords.x,
-            y: 259,
-            w: timeCoords.w,
-            h: 39,
-            rect_gap: 3,
         }
 
-        const fontSizes = [iconSize, statsPos.size, timeSize, big, small]
+        const fontSizes = [iconSize, statsSize, timeSize, big, small]
         const statsWidth = 120
-        const drawRect = [
-            timeCoords,
-            cityNameCoords,
-            dateCoords,
-            {
-                w: statsWidth,
-                h: statsPos.size * statsOrder.length,
-                x: statsPos.x,
-                y: statsPos.y,
-                rect_gap: 3,
-            },
-            {
-                w: timeCoords.w - weatherGap * 2,
-                h: weatherHeight,
-                x: weatherStart,
-                y: weatherPos,
-                rect_gap: 3,
-            },
-        ]
 
-        //dynamic modify end
+        const e = {}
+        const s = {}
+        const allElements = []
+        let layers = []
+        const bg = 0
+        const widgetBg = 1
+        const widgetContent = 2
+        const buttons = 3
+        const addSensor = (name, sensor) => {
+            if (!s.hasOwnProperty(name)) {
+                s[name] = hmSensor.createSensor(sensor)
+                return true
+            }
+            return false
+        }
+        const addElement = (layer, func, props, name) => {
+            if (!(layer in layers)) {
+                layers[layer] = []
+            }
+            layers[layer].push({
+                type: func,
+                props: props,
+                name: name,
+            })
+            if (name && !e.hasOwnProperty(name)) {
+                e[name] = ''
+            }
+        }
+        const prepareElements = () => {
+            layers = []
+        }
+        const renderElements = () => {
+            console.log('renderElements()')
+            for (widget of allElements) {
+                hmUI.deleteWidget(widget)
+            }
+            for (layer in layers) {
+                for (element of layers[layer]) {
+                    const { type, name, props } = element
+                    const widget = hmUI.createWidget(type, props)
+                    allElements.push(widget)
+                    if (name) {
+                        e[name] = widget
+                    }
+                }
+            }
+        }
 
         __$$module$$__.module = DeviceRuntimeCore.WatchFace({
             init_view() {
                 //dynamic modify start
-                const del = (widget) => {
-                    hmUI.deleteWidget(widget)
-                }
-
-                if (!weatherSensor)
-                    weatherSensor = hmSensor.createSensor(hmSensor.id.WEATHER)
-                if (!battery) {
-                    battery = hmSensor.createSensor(hmSensor.id.BATTERY)
-                    battery.addEventListener(
+                addSensor('weather', hmSensor.id.WEATHER)
+                if (addSensor('battery', hmSensor.id.BATTERY)) {
+                    s.battery.addEventListener(
                         hmSensor.event.CHANGE,
                         function () {
                             scale_call()
                         },
                     )
                 }
-                if (!timeSensor)
-                    timeSensor = hmSensor.createSensor(hmSensor.id.TIME)
+                addSensor('time', hmSensor.id.TIME)
                 const screenType = hmSetting.getScreenType()
                 function checkConnection() {
                     console.log('checkConnection()')
@@ -274,22 +202,6 @@ try {
                         }
                     })
                 }
-
-                for (const stat of Object.keys(stats)) {
-                    if (!stats[stat].sensor)
-                        stats[stat].sensor = hmSensor.createSensor(
-                            stats[stat].sensorId,
-                        )
-                }
-
-                /*
-                 * disconnectAlert = hmUI.createWidget(hmUI.widget.DisconnectAlert, {
-                 * disconneсnt_vibrate_type: 25,
-                 * disconneсnt_toast_text: connection lost,
-                 * conneсnt_vibrate_type: 25,
-                 * conneсnt_toast_text: connection restored,
-                 * });
-                 */
 
                 const vibrate = hmSensor.createSensor(hmSensor.id.VIBRATE)
                 let timer_StopVibrate = null
@@ -319,189 +231,62 @@ try {
                     bgColor = 0xff000000,
                     elementBgColor = 0xff333333,
                 ) => {
+                    prepareElements()
                     console.log('render()')
-                    for (const cache of fontCaches) {
-                        del(cache)
-                    }
-                    for (const size of fontSizes) {
-                        fontCaches.push(
-                            hmUI.createWidget(hmUI.widget.TEXT, {
-                                x: 464,
-                                y: 464,
-                                w: 10000,
-                                h: 22,
-                                text_size: size,
-                                char_space: 0,
-                                line_space: 0,
-                                font: font,
-                                color: fgColor,
-                                align_h: hmUI.align.LEFT,
-                                align_v: hmUI.align.TOP,
-                                text_style: hmUI.text_style.ELLIPSIS,
-                                text: cacheText,
-                                show_level: hmUI.show_level.ONLY_NORMAL,
-                            }),
-                        )
-                    }
-                    del(normal_background_bg)
-                    normal_background_bg = hmUI.createWidget(
-                        hmUI.widget.FILL_RECT,
-                        {
-                            x: 0,
-                            y: 0,
-                            w: 466,
-                            h: 466,
-                            color: bgColor,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                    )
-                    for (const rect of drawRect) {
-                        if ('rectangleElement' in rect) {
-                            del(rect.rectangleElement)
-                        }
-                        rect.rectangleElement = hmUI.createWidget(
+
+                    const drawRect = (coords, name) => {
+                        const { x, y, w, h } = coords
+                        const gap = 3
+                        addElement(
+                            widgetBg,
                             hmUI.widget.FILL_RECT,
                             {
-                                x: rect.x - rect.rect_gap,
-                                y: rect.y - rect.rect_gap,
-                                w: rect.w + rect.rect_gap * 2,
-                                h: rect.h + rect.rect_gap * 2,
+                                x: x - gap,
+                                y: y - gap,
+                                w: w + gap * 2,
+                                h: h + gap * 2,
                                 radius: 0,
                                 color: elementBgColor,
                                 show_level: hmUI.show_level.ONLY_NORMAL,
                             },
+                            name,
                         )
                     }
-                    del(normal_system_dnd_img)
-                    normal_system_dnd_img = hmUI.createWidget(
-                        hmUI.widget.IMG_STATUS,
-                        {
-                            x: 185,
-                            y: 10,
-                            src: 'empty.png',
-                            type: hmUI.system_status.DISTURB,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                    )
-
-                    del(normal_system_disconnect)
-                    normal_system_disconnect = hmUI.createWidget(
-                        hmUI.widget.TEXT,
-                        {
-                            x: 220,
-                            y: 10,
-                            text: hmBle.connectStatus() ? '' : icons.disconnect,
-                            type: hmUI.system_status.DISCONNECT,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                            w: 200,
-                            h: 50,
-                            text_size: iconSize,
-                            char_space: 0,
-                            font: font,
-                            color: fgColor,
-                            line_space: 0,
-                            align_v: hmUI.align.CENTER_V,
-                            align_h: hmUI.align.LEFT,
-                            text_style: hmUI.text_style.NONE,
-                            unit_type: 0,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                    )
-                    del(normal_sun_high_text_font)
-                    normal_sun_high_text_font = hmUI.createWidget(
-                        hmUI.widget.TEXT_FONT,
-                        {
-                            x: 290,
-                            y: weatherPos - 2,
-                            w: 150,
-                            h: 30,
-                            text_size: small,
-                            char_space: 0,
-                            font: font,
-                            color: fgColor,
-                            line_space: 0,
-                            align_v: hmUI.align.TOP,
-                            text_style: hmUI.text_style.ELLIPSIS,
-                            align_h: hmUI.align.LEFT,
-                            type: hmUI.data_type.SUN_RISE,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                    )
-
-                    del(normal_sun_low_text_font)
-                    normal_sun_low_text_font = hmUI.createWidget(
-                        hmUI.widget.TEXT_FONT,
-                        {
-                            x: 290,
-                            y: weatherPos + 12,
-                            w: 150,
-                            h: 30,
-                            text_size: small,
-                            char_space: 0,
-                            font: font,
-                            color: fgColor,
-                            line_space: 0,
-                            align_v: hmUI.align.TOP,
-                            text_style: hmUI.text_style.ELLIPSIS,
-                            align_h: hmUI.align.LEFT,
-                            type: hmUI.data_type.SUN_SET,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                    )
-
-                    del(normal_humidity_current_text_font)
-                    normal_humidity_current_text_font = hmUI.createWidget(
-                        hmUI.widget.TEXT_FONT,
-                        {
-                            x: 130,
-                            y: weatherPos,
-                            w: 150,
-                            h: weatherHeight,
-                            text_size: big,
-                            char_space: 0,
-                            font: font,
-                            color: fgColor,
-                            line_space: 0,
-                            align_v: hmUI.align.CENTER_V,
-                            text_style: hmUI.text_style.ELLIPSIS,
-                            align_h: hmUI.align.RIGHT,
-                            unit_type: 1,
-                            type: hmUI.data_type.HUMIDITY,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                    )
-
                     let countStats = 0
-                    for (const key of statsOrder) {
-                        del(stats[key].element)
-                        del(stats[key].iconElement)
-                        stats[key].iconElement = hmUI.createWidget(
+                    const createStat = (name, icon, button) => {
+                        const x = 280
+                        const y = 310
+                        drawRect({
+                            w: statsWidth,
+                            h: statsSize,
+                            x: x,
+                            y: y + statsSize * countStats,
+                        })
+                        addElement(widgetContent, hmUI.widget.TEXT, {
+                            x: x,
+                            y: y + statsSize * countStats,
+                            w: statsWidth,
+                            h: statsSize,
+                            text_size: statsSize,
+                            char_space: 0,
+                            font: font,
+                            color: fgColor,
+                            line_space: 0,
+                            align_v: hmUI.align.TOP,
+                            text_style: hmUI.text_style.ELLIPSIS,
+                            align_h: hmUI.align.LEFT,
+                            text: icon,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        })
+                        addElement(
+                            widgetContent,
                             hmUI.widget.TEXT,
                             {
-                                x: statsPos.x,
-                                y: statsPos.y + statsPos.gap * countStats,
+                                x: x + 25,
+                                y: y + statsSize * countStats,
                                 w: statsWidth,
-                                h: statsPos.size,
-                                text_size: statsPos.size,
-                                char_space: 0,
-                                font: font,
-                                color: fgColor,
-                                line_space: 0,
-                                align_v: hmUI.align.TOP,
-                                text_style: hmUI.text_style.ELLIPSIS,
-                                align_h: hmUI.align.LEFT,
-                                text: stats[key].icon,
-                                show_level: hmUI.show_level.ONLY_NORMAL,
-                            },
-                        )
-                        stats[key].element = hmUI.createWidget(
-                            hmUI.widget.TEXT,
-                            {
-                                x: statsPos.x + 25,
-                                y: statsPos.y + statsPos.gap * countStats,
-                                w: statsWidth,
-                                h: statsPos.size,
-                                text_size: statsPos.size,
+                                h: statsSize,
+                                text_size: statsSize,
                                 char_space: 0,
                                 font: font,
                                 color: fgColor,
@@ -512,11 +297,239 @@ try {
                                 text: 'Err',
                                 show_level: hmUI.show_level.ONLY_NORMAL,
                             },
+                            name,
                         )
+                        if (button) {
+                            addElement(widgetContent, hmUI.widget.IMG_CLICK, {
+                                x: x,
+                                y: y + statsSize * countStats,
+                                w: 200,
+                                h: statsSize,
+                                src: buttonImage,
+                                type: button,
+                                show_level: hmUI.show_level.ONLY_NORMAL,
+                            })
+                        }
                         countStats += 1
                     }
-                    del(normal_day_month_year_font)
-                    normal_day_month_year_font = hmUI.createWidget(
+
+                    createStat('steps', icons.steps, hmUI.data_type.STEP)
+                    createStat('distance', icons.distance, hmUI.data_type.STEP)
+                    createStat('heart', icons.heart, hmUI.data_type.HEART)
+                    createStat('sleep', icons.sleep, hmUI.data_type.SLEEP)
+
+                    let circleCount = 0
+                    const createCircle = (name, icon, button) => {
+                        const center_x = 120
+                        const center_y = 355
+                        const gap = 103
+                        const x = center_x + gap * circleCount
+                        const y = center_y
+                        addElement(widgetBg, hmUI.widget.CIRCLE, {
+                            center_x: x,
+                            center_y: y,
+                            radius: circleRadius,
+                            color: elementBgColor,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        })
+                        addElement(
+                            widgetContent,
+                            hmUI.widget.ARC_PROGRESS,
+                            {
+                                center_x: x,
+                                center_y: y,
+                                radius: circleRadius,
+                                start_angle: 0,
+                                end_angle: 360,
+                                line_width: 5,
+                                corner_flag: 3,
+                                color: fgColor,
+                                show_level: hmUI.show_level.ONLY_NORMAL,
+                            },
+                            `${name}Circle`,
+                        )
+                        addElement(
+                            widgetContent,
+                            hmUI.widget.TEXT,
+                            {
+                                x: x - circleRadius,
+                                y: y - big / 2 + 5,
+                                w: circleRadius * 2,
+                                h: big,
+                                text_size: big,
+                                char_space: 0,
+                                font: font,
+                                color: fgColor,
+                                line_space: 0,
+                                align_v: hmUI.align.CENTER_V,
+                                text_style: hmUI.text_style.ELLIPSIS,
+                                align_h: hmUI.align.CENTER_H,
+                                show_level: hmUI.show_level.ONLY_NORMAL,
+                                text: 'Err',
+                            },
+                            name,
+                        )
+                        addElement(
+                            widgetContent,
+                            hmUI.widget.TEXT,
+                            {
+                                x: x - circleRadius,
+                                y: y - big / 2 - big + 5,
+                                w: circleRadius * 2,
+                                h: big,
+                                text_size: big,
+                                char_space: 0,
+                                font: font,
+                                color: fgColor,
+                                line_space: 0,
+                                align_v: hmUI.align.CENTER_V,
+                                text_style: hmUI.text_style.ELLIPSIS,
+                                align_h: hmUI.align.CENTER_H,
+                                show_level: hmUI.show_level.ONLY_NORMAL,
+                                text: 'Err',
+                            },
+                            `${name}Icon`,
+                        )
+                        if (button) {
+                            const x = center_x - circleRadius
+                            const y = center_y - circleRadius
+                            addElement(buttons, hmUI.widget.BUTTON, {
+                                x: x + gap * circleCount,
+                                y: y,
+                                w: circleRadius * 2,
+                                h: circleRadius * 2,
+                                text: '',
+                                color: fgColor,
+                                click_func: button,
+                                press_src: buttonImage,
+                                normal_src: buttonImage,
+                                show_level: hmUI.show_level.ONLY_NORMAL,
+                            })
+                        }
+                        circleCount += 1
+                    }
+                    createCircle('battery', 'Err', findPhone)
+                    createCircle('phoneBattery', icons.phone, findPhone)
+
+                    for (const size of fontSizes) {
+                        addElement(bg, hmUI.widget.TEXT, {
+                            x: 464,
+                            y: 464,
+                            w: 10000,
+                            h: 22,
+                            text_size: size,
+                            char_space: 0,
+                            line_space: 0,
+                            font: font,
+                            color: fgColor,
+                            align_h: hmUI.align.LEFT,
+                            align_v: hmUI.align.TOP,
+                            text_style: hmUI.text_style.ELLIPSIS,
+                            text: cacheText,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        })
+                    }
+                    addElement(bg, hmUI.widget.FILL_RECT, {
+                        x: 0,
+                        y: 0,
+                        w: 466,
+                        h: 466,
+                        color: bgColor,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
+                    addElement(widgetContent, hmUI.widget.IMG_STATUS, {
+                        x: 185,
+                        y: 10,
+                        src: buttonImage,
+                        type: hmUI.system_status.DISTURB,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
+                    addElement(widgetContent, hmUI.widget.TEXT, {
+                        x: 220,
+                        y: 10,
+                        text: hmBle.connectStatus() ? '' : icons.disconnect,
+                        type: hmUI.system_status.DISCONNECT,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                        w: 200,
+                        h: 50,
+                        text_size: iconSize,
+                        char_space: 0,
+                        font: font,
+                        color: fgColor,
+                        line_space: 0,
+                        align_v: hmUI.align.CENTER_V,
+                        align_h: hmUI.align.LEFT,
+                        text_style: hmUI.text_style.NONE,
+                        unit_type: 0,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
+
+                    //weather
+                    addElement(widgetContent, hmUI.widget.TEXT_FONT, {
+                        x: 290,
+                        y: weatherPos - 2,
+                        w: 150,
+                        h: 30,
+                        text_size: small,
+                        char_space: 0,
+                        font: font,
+                        color: fgColor,
+                        line_space: 0,
+                        align_v: hmUI.align.TOP,
+                        text_style: hmUI.text_style.ELLIPSIS,
+                        align_h: hmUI.align.LEFT,
+                        type: hmUI.data_type.SUN_RISE,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
+                    addElement(buttons, hmUI.widget.IMG_CLICK, {
+                        x: 285,
+                        y: 90,
+                        w: 60,
+                        h: 50,
+                        src: buttonImage,
+                        type: hmUI.data_type.SUN_CURRENT,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
+
+                    addElement(widgetContent, hmUI.widget.TEXT_FONT, {
+                        x: 290,
+                        y: weatherPos + 12,
+                        w: 150,
+                        h: 30,
+                        text_size: small,
+                        char_space: 0,
+                        font: font,
+                        color: fgColor,
+                        line_space: 0,
+                        align_v: hmUI.align.TOP,
+                        text_style: hmUI.text_style.ELLIPSIS,
+                        align_h: hmUI.align.LEFT,
+                        type: hmUI.data_type.SUN_SET,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
+
+                    addElement(widgetContent, hmUI.widget.TEXT_FONT, {
+                        x: 130,
+                        y: weatherPos,
+                        w: 150,
+                        h: weatherHeight,
+                        text_size: big,
+                        char_space: 0,
+                        font: font,
+                        color: fgColor,
+                        line_space: 0,
+                        align_v: hmUI.align.CENTER_V,
+                        text_style: hmUI.text_style.ELLIPSIS,
+                        align_h: hmUI.align.RIGHT,
+                        unit_type: 1,
+                        type: hmUI.data_type.HUMIDITY,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
+
+                    //date
+                    drawRect(dateCoords)
+                    addElement(
+                        widgetContent,
                         hmUI.widget.TEXT,
                         {
                             ...dateCoords,
@@ -531,143 +544,59 @@ try {
                             // padding: true,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
+                        'date',
                     )
-
-                    let circleCount = 0
-                    for (const key of circleOrder) {
-                        del(circles[key].circle)
-                        del(circles[key].text)
-                        del(circles[key].iconElement)
-                        del(circles[key].bg)
-                        const x =
-                            circlePos.center_x + circlePos.gap * circleCount
-                        const y = circlePos.center_y
-                        const r = circlePos.radius
-                        circles[key].bg = hmUI.createWidget(
-                            hmUI.widget.CIRCLE,
-                            {
-                                center_x: x,
-                                center_y: y,
-                                radius: circlePos.radius,
-                                color: elementBgColor,
-                                show_level: hmUI.show_level.ONLY_NORMAL,
-                            },
-                        )
-                        circles[key].circle = hmUI.createWidget(
-                            hmUI.widget.ARC_PROGRESS,
-                            {
-                                center_x: x,
-                                center_y: y,
-                                radius: r,
-                                start_angle: 0,
-                                end_angle: 360,
-                                line_width: 5,
-                                corner_flag: 3,
-                                color: fgColor,
-                                show_level: hmUI.show_level.ONLY_NORMAL,
-                            },
-                        )
-                        circles[key].text = hmUI.createWidget(
-                            hmUI.widget.TEXT,
-                            {
-                                x: x - r,
-                                y: y - big / 2 + 5,
-                                w: r * 2,
-                                h: big,
-                                text_size: big,
-                                char_space: 0,
-                                font: font,
-                                color: fgColor,
-                                line_space: 0,
-                                align_v: hmUI.align.CENTER_V,
-                                text_style: hmUI.text_style.ELLIPSIS,
-                                align_h: hmUI.align.CENTER_H,
-                                show_level: hmUI.show_level.ONLY_NORMAL,
-                                text: 'Err',
-                            },
-                        )
-                        circles[key].iconElement = hmUI.createWidget(
-                            hmUI.widget.TEXT,
-                            {
-                                x: x - r,
-                                y: y - big / 2 - big + 5,
-                                w: r * 2,
-                                h: big,
-                                text_size: big,
-                                char_space: 0,
-                                font: font,
-                                color: fgColor,
-                                line_space: 0,
-                                align_v: hmUI.align.CENTER_V,
-                                text_style: hmUI.text_style.ELLIPSIS,
-                                align_h: hmUI.align.CENTER_H,
-                                show_level: hmUI.show_level.ONLY_NORMAL,
-                                text: circles[key].icon,
-                            },
-                        )
-                        circleCount += 1
-                    }
-
-                    del(normal_weather_text)
-                    normal_weather_text = hmUI.createWidget(hmUI.widget.TEXT, {
-                        x: 170,
-                        y: weatherPos - 10,
-                        w: 200,
-                        h: iconSize,
-                        text_size: iconSize,
-                        char_space: 0,
-                        font: font,
-                        color: fgColor,
-                        line_space: 0,
-                        align_v: hmUI.align.CENTER_V,
-                        align_h: hmUI.align.LEFT,
-                        text_style: hmUI.text_style.NONE,
-                        unit_type: 0,
+                    addElement(buttons, hmUI.widget.BUTTON, {
+                        x: 100,
+                        y: 40,
+                        w: 260,
+                        h: 50,
                         text: '',
+                        color: fgColor,
+                        text_size: big,
+                        press_src: buttonImage,
+                        normal_src: buttonImage,
+                        click_func: (button_widget) => {
+                            hmApp.startApp({
+                                url: 'ScheduleCalScreen',
+                                native: true,
+                            })
+                        },
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
 
-                    del(normal_city_name_text)
-                    normal_city_name_text = hmUI.createWidget(
+                    addElement(
+                        widgetContent,
                         hmUI.widget.TEXT,
                         {
-                            ...cityNameCoords,
-                            text_size: big,
+                            x: 170,
+                            y: weatherPos - 10,
+                            w: 200,
+                            h: iconSize,
+                            text_size: iconSize,
                             char_space: 0,
                             font: font,
                             color: fgColor,
                             line_space: 0,
                             align_v: hmUI.align.CENTER_V,
-                            text_style: hmUI.text_style.ELLIPSIS,
                             align_h: hmUI.align.LEFT,
+                            text_style: hmUI.text_style.NONE,
+                            unit_type: 0,
+                            text: '',
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
+                        'condition',
                     )
-
-                    del(normal_temperature_current_text_font)
-                    normal_temperature_current_text_font = hmUI.createWidget(
-                        hmUI.widget.TEXT_FONT,
-                        {
-                            x: weatherStart,
-                            y: weatherPos,
-                            w: 100,
-                            h: weatherHeight,
-                            text_size: big,
-                            char_space: 0,
-                            font: font,
-                            color: fgColor,
-                            line_space: 0,
-                            align_v: hmUI.align.CENTER_V,
-                            text_style: hmUI.text_style.ELLIPSIS,
-                            align_h: hmUI.align.RIGHT,
-                            unit_type: 1,
-                            type: hmUI.data_type.WEATHER_CURRENT,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                    )
-
-                    del(normal_time_hour_min_sec_text_font)
-                    normal_time_hour_min_sec_text_font = hmUI.createWidget(
+                    //time
+                    const timeCoords = {
+                        x: 35,
+                        y: 157,
+                        w: 393,
+                        h: 90,
+                    }
+                    drawRect(timeCoords)
+                    addElement(
+                        widgetContent,
                         hmUI.widget.TEXT,
                         {
                             ...timeCoords,
@@ -681,54 +610,10 @@ try {
                             align_h: hmUI.align.LEFT,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
+                        'time',
                     )
-
-                    /*
-                     * normal_second_circle_scale = hmUI.createWidget(hmUI.widget.Circle_Scale, {
-                     * center_x: 233,
-                     * center_y: 233,
-                     * start_angle: 0,
-                     * end_angle: 360,
-                     * radius: 233,
-                     * line_width: 5,
-                     * line_cap: Flat,
-                     * color: fgColor,
-                     * mirror: False,
-                     * inversion: False,
-                     * alpha: 255,
-                     * type: hmUI.data_type.SECOND,
-                     * show_level: hmUI.show_level.ONLY_NORMAL,
-                     * });
-                     */
-
-                    del(normal_second_circle_scale)
-                    normal_second_circle_scale = hmUI.createWidget(
-                        hmUI.widget.ARC_PROGRESS,
-                        {
-                            center_x: 233,
-                            center_y: 233,
-                            start_angle: 0,
-                            end_angle: 360,
-                            radius: 231,
-                            line_width: 5,
-                            corner_flag: 3,
-                            color: fgColor,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                    )
-
-                    /*
-                     * normal_time_circle_options = hmUI.createWidget(hmUI.widget.TIME_CIRCLE_OPTIONS, {
-                     * smooth: false,
-                     * format24h: false,
-                     * show_level: hmUI.show_level.ONLY_NORMAL,
-                     * });
-                     */
-
-                    console.log('Watch_Face.ScreenAOD')
-
-                    del(idle_time_hour_min_text_font)
-                    idle_time_hour_min_text_font = hmUI.createWidget(
+                    addElement(
+                        widgetContent,
                         hmUI.widget.TEXT,
                         {
                             ...timeCoords,
@@ -747,137 +632,116 @@ try {
                              */
                             show_level: hmUI.show_level.ONLY_AOD,
                         },
+                        'aodTime',
                     )
+                    addElement(buttons, hmUI.widget.IMG_CLICK, {
+                        ...timeCoords,
+                        src: buttonImage,
+                        type: hmUI.data_type.COUNT_DOWN,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
+
+                    addElement(
+                        widgetContent,
+                        hmUI.widget.ARC_PROGRESS,
+                        {
+                            center_x: 233,
+                            center_y: 233,
+                            start_angle: 0,
+                            end_angle: 360,
+                            radius: 231,
+                            line_width: 5,
+                            corner_flag: 3,
+                            color: fgColor,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        },
+                        'secondCircle',
+                    )
+
+                    //city name
+                    const cityNameCoords = {
+                        x: timeCoords.x,
+                        y: 259,
+                        w: timeCoords.w,
+                        h: 39,
+                    }
+                    drawRect(cityNameCoords, 'cityBG')
+                    addElement(
+                        widgetContent,
+                        hmUI.widget.TEXT,
+                        {
+                            ...cityNameCoords,
+                            text_size: big,
+                            char_space: 0,
+                            font: font,
+                            color: fgColor,
+                            line_space: 0,
+                            align_v: hmUI.align.CENTER_V,
+                            text_style: hmUI.text_style.ELLIPSIS,
+                            align_h: hmUI.align.LEFT,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        },
+                        'cityName',
+                    )
+
+                    //weather
+                    const weatherStart = timeCoords.x + weatherGap
+                    drawRect({
+                        w: timeCoords.w - weatherGap * 2,
+                        h: weatherHeight,
+                        x: weatherStart,
+                        y: weatherPos,
+                    })
+                    addElement(widgetContent, hmUI.widget.TEXT_FONT, {
+                        x: weatherStart,
+                        y: weatherPos,
+                        w: 100,
+                        h: weatherHeight,
+                        text_size: big,
+                        char_space: 0,
+                        font: font,
+                        color: fgColor,
+                        line_space: 0,
+                        align_v: hmUI.align.CENTER_V,
+                        text_style: hmUI.text_style.ELLIPSIS,
+                        align_h: hmUI.align.RIGHT,
+                        unit_type: 1,
+                        type: hmUI.data_type.WEATHER_CURRENT,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
+                    addElement(buttons, hmUI.widget.IMG_CLICK, {
+                        x: 90,
+                        y: 90,
+                        w: 194,
+                        h: 50,
+                        src: buttonImage,
+                        type: hmUI.data_type.WEATHER_CURRENT,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
 
                     //#endregion
 
-                    let countStatsButton = 0
-                    for (const key of statsOrder) {
-                        if (stats[key].button) {
-                            del(stats[key].buttonElement)
-                            stats[key].buttonElement = hmUI.createWidget(
-                                hmUI.widget.IMG_CLICK,
-                                {
-                                    x: statsPos.x,
-                                    y:
-                                        statsPos.y +
-                                        statsPos.gap * countStatsButton,
-                                    w: 200,
-                                    h: statsPos.size,
-                                    src: 'empty.png',
-                                    type: stats[key].button,
-                                    show_level: hmUI.show_level.ONLY_NORMAL,
-                                },
-                            )
-                        }
-                        countStatsButton += 1
-                    }
-
-                    del(normal_sunrise_jumpable_img_click)
-                    normal_sunrise_jumpable_img_click = hmUI.createWidget(
-                        hmUI.widget.IMG_CLICK,
-                        {
-                            x: 285,
-                            y: 90,
-                            w: 60,
-                            h: 50,
-                            src: 'empty.png',
-                            type: hmUI.data_type.SUN_CURRENT,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                    )
-
-                    del(normal_temperature_jumpable_img_click)
-                    normal_temperature_jumpable_img_click = hmUI.createWidget(
-                        hmUI.widget.IMG_CLICK,
-                        {
-                            x: 90,
-                            y: 90,
-                            w: 194,
-                            h: 50,
-                            src: 'empty.png',
-                            type: hmUI.data_type.WEATHER_CURRENT,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                    )
-
-                    del(normal_countdown_jumpable_img_click)
-                    normal_countdown_jumpable_img_click = hmUI.createWidget(
-                        hmUI.widget.IMG_CLICK,
-                        {
-                            ...timeCoords,
-                            src: 'empty.png',
-                            type: hmUI.data_type.COUNT_DOWN,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                    )
-
-                    console.log('Watch_Face.Buttons')
-                    del(Button_2)
-                    Button_2 = hmUI.createWidget(hmUI.widget.BUTTON, {
-                        x: 100,
-                        y: 40,
-                        w: 260,
-                        h: 50,
-                        text: '',
-                        color: fgColor,
-                        text_size: big,
-                        press_src: 'empty.png',
-                        normal_src: 'empty.png',
-                        click_func: (button_widget) => {
-                            hmApp.startApp({
-                                url: 'ScheduleCalScreen',
-                                native: true,
-                            })
-                        }, // end func
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    }) // end button
-
-                    let countCircleButton = 0
-                    for (const key of circleOrder) {
-                        if (circles[key].button) {
-                            del(circles[key].buttonElement)
-                            const x = circlePos.center_x - circlePos.radius
-                            const y = circlePos.center_y - circlePos.radius
-                            circles[key].buttonElement = hmUI.createWidget(
-                                hmUI.widget.BUTTON,
-                                {
-                                    x: x + circlePos.gap * countCircleButton,
-                                    y: y,
-                                    w: circlePos.radius * 2,
-                                    h: circlePos.radius * 2,
-                                    text: '',
-                                    color: fgColor,
-                                    click_func: circles[key].button,
-                                    press_src: 'empty.png',
-                                    normal_src: 'empty.png',
-                                    show_level: hmUI.show_level.ONLY_NORMAL,
-                                },
-                            )
-                        }
-                        countCircleButton += 1
-                    }
+                    renderElements()
                 }
 
                 render()
                 //#region time_update
                 function time_update(updateHour = false, updateMinute = false) {
-                    console.log('time_update()')
-                    const hour = timeSensor.hour
-                    const minute = timeSensor.minute
-                    const second = timeSensor.second
-                    const format_hour = timeSensor.format_hour
+                    const hour = s.time.hour
+                    const minute = s.time.minute
+                    const second = s.time.second
+                    const format_hour = s.time.format_hour
                     const separator = second % 2 === 0 ? ':' : ' '
                     if (updateHour) {
-                        let normal_DayStr = timeSensor.day.toString()
-                        let normal_MonthStr = timeSensor.month.toString()
-                        const normal_YearStr = timeSensor.year.toString()
-                        const day = timeSensor.week
+                        let normal_DayStr = s.time.day.toString()
+                        let normal_MonthStr = s.time.month.toString()
+                        const normal_YearStr = s.time.year.toString()
+                        const day = s.time.week
                         const dayString = dayNames[day - 1]
                         normal_DayStr = normal_DayStr.padStart(2, '0')
                         normal_MonthStr = normal_MonthStr.padStart(2, '0')
                         const normal_DayMonthYearStr = `${dayString} ${normal_YearStr}-${normal_MonthStr}-${normal_DayStr}`
-                        normal_day_month_year_font.setProperty(
+                        e.date.setProperty(
                             hmUI.prop.TEXT,
                             normal_DayMonthYearStr,
                         )
@@ -889,22 +753,16 @@ try {
 
                     let normal_HourMinSecStr = `${hourStr}${separator}${minuteStr}${separator}${secondStr}`
 
-                    if (!timeSensor.is24Hour) {
+                    if (!s.time.is24Hour) {
                         normal_HourMinSecStr += hour > 11 ? ' Pm' : ' Am'
                     }
 
-                    normal_time_hour_min_sec_text_font.setProperty(
-                        hmUI.prop.TEXT,
-                        normal_HourMinSecStr,
-                    )
+                    e.time.setProperty(hmUI.prop.TEXT, normal_HourMinSecStr)
 
                     // Second Circle
                     let level = (second / 60) * 100
                     if (level === 0) level = 360
-                    normal_second_circle_scale.setProperty(
-                        hmUI.prop.LEVEL,
-                        level,
-                    )
+                    e.secondCircle.setProperty(hmUI.prop.LEVEL, level)
 
                     if (updateMinute) {
                         const hourStr = format_hour.toString().padStart(2, '0')
@@ -912,14 +770,11 @@ try {
 
                         let idle_HourMinStr = `${hourStr}:${minuteStr}`
 
-                        if (!timeSensor.is24Hour) {
+                        if (!s.time.is24Hour) {
                             idle_HourMinStr += hour > 11 ? ' Pm' : ' Am'
                         }
 
-                        idle_time_hour_min_text_font.setProperty(
-                            hmUI.prop.TEXT,
-                            idle_HourMinStr,
-                        )
+                        e.aodTime.setProperty(hmUI.prop.TEXT, idle_HourMinStr)
                     }
                 }
 
@@ -936,7 +791,7 @@ try {
 
                     const newColorCache = []
                     console.log('Weather city name')
-                    const weatherData = weatherSensor.getForecastWeather()
+                    const weatherData = s.weather.getForecastWeather()
                     const normal_cityNameStr = weatherData.cityName
                     const [
                         cityName = 'Default City',
@@ -949,82 +804,86 @@ try {
                     const bgColor = Number(`0xFF${bgColorHex}`)
                     const elementBgColor = Number(`0xFF${elementBgColorHEX}`)
 
-                    normal_city_name_text.setProperty(hmUI.prop.TEXT, cityName)
-                    if ('rectangleElement' in cityNameCoords)
-                        if (!cityName) {
-                            cityNameCoords.rectangleElement.setProperty(
-                                hmUI.prop.COLOR,
-                                bgColor,
-                            )
-                        } else {
-                            cityNameCoords.rectangleElement.setProperty(
-                                hmUI.prop.COLOR,
-                                elementBgColor,
-                            )
-                        }
+                    e.cityName.setProperty(hmUI.prop.TEXT, cityName)
+                    if (!cityName) {
+                        e.cityBG.setProperty(hmUI.prop.COLOR, bgColor)
+                    } else {
+                        e.cityBG.setProperty(hmUI.prop.COLOR, elementBgColor)
+                    }
                     newColorCache.push(fgColorHex)
                     newColorCache.push(bgColorHex)
                     newColorCache.push(elementBgColorHEX)
                     const condition =
                         weatherData?.forecastData?.data?.[0]?.index ?? -1
-                    normal_weather_text.setProperty(
+                    e.condition.setProperty(
                         hmUI.prop.TEXT,
                         condition_icon(condition),
                     )
 
-                    console.log('update scales BATTERY')
-
-                    for (const e of [
-                        {
-                            value: battery.current,
-                            target: 100,
-                            circle: circles.battery,
-                        },
-                        {
-                            value: phoneBattery,
-                            target: 100,
-                            circle: circles.phone_battery,
-                        },
-                    ]) {
-                        let progress = e.value / e.target
+                    const updateProgress = (
+                        value,
+                        target,
+                        text,
+                        circle,
+                        iconElement,
+                        icon,
+                    ) => {
+                        let progress = value / target
                         if (progress > 1) progress = 1
-                        console.log(e)
+
                         if (screenType !== hmSetting.screen_type.AOD) {
                             const level = Math.round(progress * 100)
-                            if (e.circle.circle) {
-                                e.circle.circle.setProperty(hmUI.prop.MORE, {
-                                    radius: circlePos.radius,
-                                    level: level,
+                            if (circle)
+                                circle.setProperty(hmUI.prop.MORE, {
+                                    radius: circleRadius,
+                                    level,
                                 })
-                            }
-                            if (e.circle.text) {
-                                e.circle.text.setProperty(
-                                    hmUI.prop.TEXT,
-                                    `${e.value}%`,
-                                )
+                            if (text)
+                                text.setProperty(hmUI.prop.TEXT, `${value}%`)
+                            if (iconElement && icon) {
+                                iconElement.setProperty(hmUI.prop.TEXT, icon)
                             }
                         }
                     }
 
-                    stats.steps.element.setProperty(
+                    updateProgress(
+                        s.battery.current,
+                        100,
+                        e.battery,
+                        e.batteryCircle,
+                        e.batteryIcon,
+                        clocks[s.time.hour % 12],
+                    )
+                    updateProgress(
+                        phoneBattery,
+                        100,
+                        e.phoneBattery,
+                        e.phoneBatteryCircle,
+                        e.phoneBatteryIcon,
+                        icons.phone,
+                    )
+
+                    addSensor('heart', hmSensor.id.HEART)
+                    addSensor('sleep', hmSensor.id.SLEEP)
+                    addSensor('distance', hmSensor.id.DISTANCE)
+                    addSensor('steps', hmSensor.id.STEP)
+
+                    e.steps.setProperty(
                         hmUI.prop.TEXT,
-                        stats.steps.sensor.current.toString(),
+                        s.steps.current.toString(),
                     )
                     const formatDistance = (m) =>
                         m < 1000 ? `${m} m` : `${(m / 1000).toFixed(1)} km`
-                    stats.distance.element.setProperty(
+                    e.distance.setProperty(
                         hmUI.prop.TEXT,
-                        formatDistance(stats.distance.sensor.current),
+                        formatDistance(s.distance.current),
                     )
-                    stats.heart.element.setProperty(
-                        hmUI.prop.TEXT,
-                        `${stats.heart.sensor.last} bbm`,
-                    )
+                    e.heart.setProperty(hmUI.prop.TEXT, `${s.heart.last} bbm`)
                     const toHMM = (m) =>
                         `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`
-                    stats.sleep.element.setProperty(
+                    e.sleep.setProperty(
                         hmUI.prop.TEXT,
-                        `${toHMM(stats.sleep.sensor.getTotalTime())}`,
+                        `${toHMM(s.sleep.getTotalTime())}`,
                     )
 
                     newColorCache.push(hmBle.connectStatus().toString())
@@ -1052,9 +911,9 @@ try {
                                         1000,
                                         function (option) {
                                             const updateHour =
-                                                timeSensor.minute === 0
+                                                s.time.minute === 0
                                             const updateMinute =
-                                                timeSensor.second < 2
+                                                s.time.second < 2
                                             time_update(
                                                 updateHour,
                                                 updateMinute,
@@ -1068,7 +927,7 @@ try {
                                 screenType === hmSetting.screen_type.WATCHFACE
                             ) {
                                 if (!normal_timerUpdateSec) {
-                                    const animDelay = timeSensor.utc % 1000
+                                    const animDelay = s.time.utc % 1000
                                     const animRepeat = 1000
                                     normal_timerUpdateSec = timer.createTimer(
                                         animDelay,
@@ -1087,10 +946,10 @@ try {
                                         1000,
                                         function (option) {
                                             const updateHour =
-                                                timeSensor.minute === 0 &&
-                                                timeSensor.second < 2
+                                                s.time.minute === 0 &&
+                                                s.time.second < 2
                                             const updateMinute =
-                                                timeSensor.second < 2
+                                                s.time.second < 2
                                             time_update(
                                                 updateHour,
                                                 updateMinute,
