@@ -179,10 +179,10 @@ try {
             },
         }
         const circlePos = {
-            center_x: 110,
+            center_x: 120,
             center_y: 355,
             radius: 47,
-            gap: 100,
+            gap: 103,
         }
         const big = 30
         const small = 18
