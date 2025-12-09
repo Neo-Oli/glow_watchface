@@ -131,11 +131,20 @@ try {
         const s = {}
         const allElements = []
         let animation = []
-        const addAnimation = (element, from, to, prop, type, template) => {
+        const addAnimation = (
+            element,
+            from,
+            to,
+            total,
+            prop,
+            type,
+            template,
+        ) => {
             animation.push({
                 element,
                 from,
                 to,
+                total,
                 prop,
                 type,
                 template,
@@ -851,6 +860,7 @@ try {
                                     circle,
                                     0,
                                     level,
+                                    100,
                                     'level',
                                     hmUI.prop.MORE,
                                     {
@@ -912,8 +922,8 @@ try {
                         render(fgColor, bgColor, elementBgColor)
                         scale_call()
                     }
-                    const duration = 500
-                    const fps = 30
+                    const duration = 1000
+                    const fps = 10
                     const steps = Math.round(fps * (duration / 1000))
                     const interval = 1000 / fps
 
@@ -921,11 +931,12 @@ try {
 
                     const step = (count) => {
                         for (const a of animation) {
-                            const { element, from, to, prop, type, template } =
+                            const { element, from, to, total, prop, type, template } =
                                 a
-                            const value = Math.round(
-                                from + ((to - from) / steps) * count,
-                            )
+                            const value = Math.min( Math.round(
+                                from + ((total - from) / steps) * count,
+                            ),to)
+                            console.log(from,to,total,value)
                             const set = template
                             set[prop] = value
                             element.setProperty(type, set)
