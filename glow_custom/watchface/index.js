@@ -571,7 +571,7 @@ try {
                             hmUI.widget.TEXT,
                             {
                                 x: x - r,
-                                y: y - big / 2,
+                                y: y - big / 2 + 5,
                                 w: r * 2,
                                 h: big,
                                 text_size: big,
@@ -590,7 +590,7 @@ try {
                             hmUI.widget.TEXT,
                             {
                                 x: x - r,
-                                y: y - big / 2 - big,
+                                y: y - big / 2 - big + 5,
                                 w: r * 2,
                                 h: big,
                                 text_size: big,
