@@ -107,7 +107,7 @@ try {
 
         let colorCache = ''
         const cacheText = [
-            "$|^0123456789 _-.,:;`'% ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz°\\/",
+            "$|^0123456789 _-.,:;`'% ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzäöüÄÖÜéè°\\/",
             weather_icons.join(''),
             clocks.join(''),
             Object.values(icons).join(''),
@@ -1011,6 +1011,8 @@ try {
                         render(fgColor, bgColor, elementBgColor)
                         scale_call()
                     }
+                }
+                const runAnimations = () => {
                     const duration = 1000
                     const fps = 10
                     const steps = Math.round(fps * (duration / 1000))
@@ -1058,6 +1060,7 @@ try {
                             console.log('resume_call()')
                             scale_call()
                             time_update(true, true)
+                            runAnimations()
                             if (
                                 screenType === hmSetting.screen_type.WATCHFACE
                             ) {
