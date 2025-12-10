@@ -102,6 +102,8 @@ try {
         let normal_timerTimeUpdate = undefined
         let normal_timerUpdateSec = undefined
         let idle_timerTimeUpdate = undefined
+        let weatherData
+        let cityName
 
         let colorCache = ''
         const cacheText = [
@@ -232,6 +234,7 @@ try {
             init_view() {
                 //dynamic modify start
                 addSensor('weather', hmSensor.id.WEATHER)
+                weatherData = s.weather.getForecastWeather()
                 if (addSensor('battery', hmSensor.id.BATTERY)) {
                     s.battery.addEventListener(
                         hmSensor.event.CHANGE,
@@ -837,6 +840,14 @@ try {
 
                         e.aodTime.setProperty(hmUI.prop.TEXT, idle_HourMinStr)
                     }
+
+                    weatherData = s.weather.getForecastWeather()
+                    const newCityName = weatherData.cityName
+                    if (cityName !== newCityName) {
+                        cityName = newCityName
+                        console.log('city name update')
+                        scale_call()
+                    }
                 }
 
                 function condition_icon(condition) {
@@ -852,48 +863,67 @@ try {
                     animation = []
                     const newColorCache = []
                     console.log('Weather city name')
-                    const weatherData = s.weather.getForecastWeather()
-                    const normal_cityNameStr = weatherData.cityName
-                    const [
-                        cityName = 'Default City',
-                        colors,
-                        phoneBattery = '-2',
-                        media = '',
-                    ] = normal_cityNameStr.split('ç')
-
-                    let fgColorHex, bgColorHex, elementBgColorHex
-
-                    if (colors && colors.length === 9) {
-                        const parts = colors.match(/.{1,3}/g)
-                        ;[fgColorHex, bgColorHex, elementBgColorHex] =
-                            parts.map(expandShortHex)
-                    } else {
+                    const normal_cityNameStr = weatherData?.cityName || ''
+                    const separator = 'ç'
+                    let colors
+                    let phoneBattery = '-2'
+                    let cityName = 'Default City'
+                    let media = ''
+                    if (normal_cityNameStr.includes(separator)) {
                         ;[
-                            fgColorHex = 'FFFFFF',
-                            bgColorHex = '000000',
-                            elementBgColorHex = '333333',
-                        ] = colors.match(/.{1,6}/g)
+                            colors,
+                            phoneBattery = '-2',
+                            cityName = 'Default City',
+                            media = '',
+                        ] = normal_cityNameStr.split(separator)
                     }
 
-                    const fgColor = Number(`0xFF${fgColorHex}`)
-                    const bgColor = Number(`0xFF${bgColorHex}`)
-                    const elementBgColor = Number(`0xFF${elementBgColorHex}`)
+                    let fgColorHex,
+                        bgColorHex,
+                        elementBgColorHex,
+                        fgColor,
+                        bgColor,
+                        elementBgColor
 
                     e.cityName.setProperty(hmUI.prop.TEXT, cityName)
-                    if (!cityName) {
-                        e.cityBG.setProperty(hmUI.prop.COLOR, bgColor)
-                    } else {
-                        e.cityBG.setProperty(hmUI.prop.COLOR, elementBgColor)
+                    if (colors) {
+                        if (colors.length === 9) {
+                            const parts = colors.match(/.{1,3}/g)
+                            ;[fgColorHex, bgColorHex, elementBgColorHex] =
+                                parts.map(expandShortHex)
+                        } else {
+                            ;[
+                                fgColorHex = 'FFFFFF',
+                                bgColorHex = '000000',
+                                elementBgColorHex = '333333',
+                            ] = colors.match(/.{1,6}/g)
+                        }
+
+                        fgColor = Number(`0xFF${fgColorHex}`)
+                        bgColor = Number(`0xFF${bgColorHex}`)
+                        elementBgColor = Number(`0xFF${elementBgColorHex}`)
+
+                        if (!cityName) {
+                            e.cityBG.setProperty(hmUI.prop.COLOR, bgColor)
+                        } else {
+                            e.cityBG.setProperty(
+                                hmUI.prop.COLOR,
+                                elementBgColor,
+                            )
+                        }
+                        e.media.setProperty(hmUI.prop.TEXT, media)
+                        if (!media) {
+                            e.mediaBG.setProperty(hmUI.prop.COLOR, bgColor)
+                        } else {
+                            e.mediaBG.setProperty(
+                                hmUI.prop.COLOR,
+                                elementBgColor,
+                            )
+                        }
+                        newColorCache.push(fgColorHex)
+                        newColorCache.push(bgColorHex)
+                        newColorCache.push(elementBgColorHex)
                     }
-                    e.media.setProperty(hmUI.prop.TEXT, media)
-                    if (!media) {
-                        e.mediaBG.setProperty(hmUI.prop.COLOR, bgColor)
-                    } else {
-                        e.mediaBG.setProperty(hmUI.prop.COLOR, elementBgColor)
-                    }
-                    newColorCache.push(fgColorHex)
-                    newColorCache.push(bgColorHex)
-                    newColorCache.push(elementBgColorHex)
                     const condition =
                         weatherData?.forecastData?.data?.[0]?.index ?? -1
                     e.condition.setProperty(
