@@ -83,6 +83,10 @@ try {
             sleep: '󰒲',
             mail: '󰇮',
             phone: '󰄜',
+            /*
+             * play: '',
+             * pause: '󰏤',
+             */
         }
         const iconSize = 50
         const circleRadius = 47
@@ -112,17 +116,39 @@ try {
         const big = 30
         const small = 18
         let animationTimer
-
         const timeSize = 90
-        const weatherPos = 108
         const weatherGap = 30
         const weatherHeight = big
+
+        const ystart = 45
+        const gap = 10
+
         const dateCoords = {
             x: 113,
-            y: 60,
+            y: ystart,
             w: 230,
             h: 36,
         }
+        const weatherPos = dateCoords.y + dateCoords.h + gap
+        const timeCoords = {
+            x: 35,
+            y: weatherPos + weatherHeight + gap,
+            w: 393,
+            h: 80,
+        }
+        const cityNameCoords = {
+            x: timeCoords.x,
+            y: timeCoords.y + timeCoords.h + gap,
+            w: timeCoords.w,
+            h: 39,
+        }
+        const mediaCoords = {
+            x: cityNameCoords.x,
+            y: cityNameCoords.y + cityNameCoords.h + gap,
+            w: cityNameCoords.w,
+            h: 36,
+        }
+        const statsStart = mediaCoords.y + mediaCoords.h + gap
 
         const fontSizes = [iconSize, statsSize, timeSize, big, small]
         const statsWidth = 120
@@ -277,7 +303,7 @@ try {
                     let countStats = 0
                     const createStat = (name, icon, button) => {
                         const x = 280
-                        const y = 310
+                        const y = statsStart
                         drawRect({
                             w: statsWidth,
                             h: statsSize,
@@ -343,7 +369,7 @@ try {
                     let circleCount = 0
                     const createCircle = (name, icon, button) => {
                         const center_x = 120
-                        const center_y = 355
+                        const center_y = statsStart + circleRadius
                         const gap = 103
                         const x = center_x + gap * circleCount
                         const y = center_y
@@ -610,12 +636,6 @@ try {
                         'condition',
                     )
                     //time
-                    const timeCoords = {
-                        x: 35,
-                        y: 157,
-                        w: 393,
-                        h: 90,
-                    }
                     drawRect(timeCoords)
                     addElement(
                         widgetContent,
@@ -681,12 +701,6 @@ try {
                     )
 
                     //city name
-                    const cityNameCoords = {
-                        x: timeCoords.x,
-                        y: 259,
-                        w: timeCoords.w,
-                        h: 39,
-                    }
                     drawRect(cityNameCoords, 'cityBG')
                     addElement(
                         widgetContent,
@@ -706,6 +720,25 @@ try {
                         'cityName',
                     )
 
+                    //media
+                    drawRect(mediaCoords, 'mediaBG')
+                    addElement(
+                        widgetContent,
+                        hmUI.widget.TEXT,
+                        {
+                            ...mediaCoords,
+                            text_size: big,
+                            char_space: 0,
+                            font: font,
+                            color: fgColor,
+                            line_space: 0,
+                            align_v: hmUI.align.CENTER_V,
+                            text_style: hmUI.text_style.ELLIPSIS,
+                            align_h: hmUI.align.LEFT,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        },
+                        'media',
+                    )
                     //weather
                     const weatherStart = timeCoords.x + weatherGap
                     drawRect({
@@ -817,11 +850,15 @@ try {
                     const normal_cityNameStr = weatherData.cityName
                     const [
                         cityName = 'Default City',
+                        colors,
+                        phoneBattery = '-2',
+                        media = '',
+                    ] = normal_cityNameStr.split('ç')
+                    const [
                         fgColorHex = 'FFFFFF',
                         bgColorHex = '000000',
                         elementBgColorHEX = '333333',
-                        phoneBattery = '-2',
-                    ] = normal_cityNameStr.split('%%%')
+                    ] = colors.match(/.{1,6}/g)
                     const fgColor = Number(`0xFF${fgColorHex}`)
                     const bgColor = Number(`0xFF${bgColorHex}`)
                     const elementBgColor = Number(`0xFF${elementBgColorHEX}`)
@@ -831,6 +868,12 @@ try {
                         e.cityBG.setProperty(hmUI.prop.COLOR, bgColor)
                     } else {
                         e.cityBG.setProperty(hmUI.prop.COLOR, elementBgColor)
+                    }
+                    e.media.setProperty(hmUI.prop.TEXT, media)
+                    if (!media) {
+                        e.mediaBG.setProperty(hmUI.prop.COLOR, bgColor)
+                    } else {
+                        e.mediaBG.setProperty(hmUI.prop.COLOR, elementBgColor)
                     }
                     newColorCache.push(fgColorHex)
                     newColorCache.push(bgColorHex)
