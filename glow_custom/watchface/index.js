@@ -24,6 +24,12 @@ try {
             'watchface_SashaCX75',
         )
 
+        const expandShortHex = (short) =>
+            short
+                .split('')
+                .map((c) => c + c)
+                .join('')
+
         const font = 'fonts/3270NerdFontMono-Regular.ttf'
         //end of ignored block
 
@@ -854,14 +860,24 @@ try {
                         phoneBattery = '-2',
                         media = '',
                     ] = normal_cityNameStr.split('ç')
-                    const [
-                        fgColorHex = 'FFFFFF',
-                        bgColorHex = '000000',
-                        elementBgColorHEX = '333333',
-                    ] = colors.match(/.{1,6}/g)
+
+                    let fgColorHex, bgColorHex, elementBgColorHex
+
+                    if (colors && colors.length === 9) {
+                        const parts = colors.match(/.{1,3}/g)
+                        ;[fgColorHex, bgColorHex, elementBgColorHex] =
+                            parts.map(expandShortHex)
+                    } else {
+                        ;[
+                            fgColorHex = 'FFFFFF',
+                            bgColorHex = '000000',
+                            elementBgColorHex = '333333',
+                        ] = colors.match(/.{1,6}/g)
+                    }
+
                     const fgColor = Number(`0xFF${fgColorHex}`)
                     const bgColor = Number(`0xFF${bgColorHex}`)
-                    const elementBgColor = Number(`0xFF${elementBgColorHEX}`)
+                    const elementBgColor = Number(`0xFF${elementBgColorHex}`)
 
                     e.cityName.setProperty(hmUI.prop.TEXT, cityName)
                     if (!cityName) {
@@ -877,7 +893,7 @@ try {
                     }
                     newColorCache.push(fgColorHex)
                     newColorCache.push(bgColorHex)
-                    newColorCache.push(elementBgColorHEX)
+                    newColorCache.push(elementBgColorHex)
                     const condition =
                         weatherData?.forecastData?.data?.[0]?.index ?? -1
                     e.condition.setProperty(
