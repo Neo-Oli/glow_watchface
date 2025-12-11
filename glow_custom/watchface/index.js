@@ -89,10 +89,8 @@ try {
             sleep: '󰒲',
             mail: '󰇮',
             phone: '󰄜',
-            /*
-             * play: '',
-             * pause: '󰏤',
-             */
+            play: '󰐊',
+            pause: '󰏤',
         }
         const iconSize = 50
         const circleRadius = 47
@@ -115,12 +113,18 @@ try {
 
         const statsSize = 24
 
-        const findPhone = (watchButton) =>
-            hmApp.startApp({
-                url: 'FindPhoneScreen',
-                native: true,
-            })
-
+        const findPhone = (watchButton) => {
+            /*
+             * hmApp.startApp({
+             * url: 'FindPhoneScreen',
+             * native: true,
+             * })
+             */
+            phoneAction('press')
+        }
+        const phoneAction = (action) => {
+            console.log(`DROIDDO: ${action}`)
+        }
         const big = 30
         const small = 18
         let animationTimer
@@ -214,7 +218,6 @@ try {
             layers = []
         }
         const renderElements = () => {
-            console.log('renderElements()')
             for (widget of allElements) {
                 hmUI.deleteWidget(widget)
             }
@@ -246,7 +249,6 @@ try {
                 addSensor('time', hmSensor.id.TIME)
                 const screenType = hmSetting.getScreenType()
                 function checkConnection() {
-                    console.log('checkConnection()')
                     hmBle.removeListener()
                     hmBle.addListener(function (status) {
                         if (!status) {
@@ -289,7 +291,6 @@ try {
                     elementBgColor = 0xff333333,
                 ) => {
                     prepareElements()
-                    console.log('render()')
 
                     const drawRect = (coords, name) => {
                         const { x, y, w, h } = coords
@@ -748,6 +749,78 @@ try {
                         },
                         'media',
                     )
+                    const mediaButtonWidth = 100
+                    const mediaButtonHeight =
+                        cityNameCoords.h + gap + mediaCoords.h
+                    const mediaButtonY = cityNameCoords.y
+                    addElement(buttons, hmUI.widget.BUTTON, {
+                        x: mediaCoords.x,
+                        y: mediaButtonY,
+                        w: mediaButtonWidth,
+                        h: mediaButtonHeight,
+                        text: '',
+                        color: fgColor,
+                        click_func: (watchface) => {
+                            phoneAction('prev')
+                        },
+                        press_src: buttonImage,
+                        normal_src: buttonImage,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
+                    addElement(buttons, hmUI.widget.BUTTON, {
+                        x:
+                            mediaCoords.x +
+                            mediaCoords.w / 2 -
+                            mediaButtonWidth / 2,
+                        y: mediaButtonY,
+                        w: mediaButtonWidth,
+                        h: mediaButtonHeight,
+                        text: '',
+                        color: fgColor,
+                        click_func: (watchface) => {
+                            phoneAction('toggle')
+                        },
+                        press_src: buttonImage,
+                        normal_src: buttonImage,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
+                    addElement(
+                        widgetContent,
+                        hmUI.widget.TEXT,
+                        {
+                            x:
+                                mediaCoords.x +
+                                mediaCoords.w / 2 -
+                                mediaButtonWidth / 2,
+                            y: mediaCoords.y,
+                            w: mediaButtonWidth,
+                            h: mediaCoords.h,
+                            text_size: big,
+                            char_space: 0,
+                            font: font,
+                            color: fgColor,
+                            line_space: 0,
+                            align_v: hmUI.align.CENTER_V,
+                            text_style: hmUI.text_style.ELLIPSIS,
+                            align_h: hmUI.align.CENTER_H,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        },
+                        'playButton',
+                    )
+                    addElement(buttons, hmUI.widget.BUTTON, {
+                        x: mediaCoords.x + mediaCoords.w - mediaButtonWidth,
+                        y: mediaButtonY,
+                        w: mediaButtonWidth,
+                        h: mediaButtonHeight,
+                        text: '',
+                        color: fgColor,
+                        click_func: (watchface) => {
+                            phoneAction('next')
+                        },
+                        press_src: buttonImage,
+                        normal_src: buttonImage,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
                     //weather
                     const weatherStart = timeCoords.x + weatherGap
                     drawRect({
@@ -859,10 +932,8 @@ try {
 
                 //#endregion
                 function scale_call() {
-                    console.log('scale_call()')
                     animation = []
                     const newColorCache = []
-                    console.log('Weather city name')
                     const normal_cityNameStr = weatherData?.cityName || ''
                     const separator = 'ç'
                     let colors
@@ -914,11 +985,13 @@ try {
                         e.media.setProperty(hmUI.prop.TEXT, media)
                         if (!media) {
                             e.mediaBG.setProperty(hmUI.prop.COLOR, bgColor)
+                            e.playButton.setProperty(hmUI.prop.TEXT, icons.play)
                         } else {
                             e.mediaBG.setProperty(
                                 hmUI.prop.COLOR,
                                 elementBgColor,
                             )
+                            e.playButton.setProperty(hmUI.prop.TEXT, '')
                         }
                         newColorCache.push(fgColorHex)
                         newColorCache.push(bgColorHex)
@@ -1057,7 +1130,6 @@ try {
                     hmUI.widget.WIDGET_DELEGATE,
                     {
                         resume_call: function () {
-                            console.log('resume_call()')
                             scale_call()
                             time_update(true, true)
                             runAnimations()
@@ -1122,7 +1194,6 @@ try {
                             stopVibro()
                         },
                         pause_call: function () {
-                            console.log('pause_call()')
                             if (normal_timerTimeUpdate) {
                                 timer.stopTimer(normal_timerTimeUpdate)
                                 normal_timerTimeUpdate = undefined
