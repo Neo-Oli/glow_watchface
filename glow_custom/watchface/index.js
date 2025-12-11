@@ -436,7 +436,7 @@ try {
                                 text_size: big,
                                 char_space: 0,
                                 font: font,
-                                color: fgColor,
+                                color: importantColor,
                                 line_space: 0,
                                 align_v: hmUI.align.CENTER_V,
                                 text_style: hmUI.text_style.ELLIPSIS,
