@@ -784,29 +784,24 @@ try {
                         normal_src: buttonImage,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
-                    addElement(
-                        widgetContent,
-                        hmUI.widget.TEXT,
-                        {
-                            x:
-                                mediaCoords.x +
-                                mediaCoords.w / 2 -
-                                mediaButtonWidth / 2,
-                            y: mediaCoords.y,
-                            w: mediaButtonWidth,
-                            h: mediaCoords.h,
-                            text_size: big,
-                            char_space: 0,
-                            font: font,
-                            color: fgColor,
-                            line_space: 0,
-                            align_v: hmUI.align.CENTER_V,
-                            text_style: hmUI.text_style.ELLIPSIS,
-                            align_h: hmUI.align.CENTER_H,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                        'playButton',
-                    )
+                    addElement(widgetContent, hmUI.widget.TEXT, {
+                        x:
+                            mediaCoords.x +
+                            mediaCoords.w / 2 -
+                            mediaButtonWidth / 2,
+                        y: mediaCoords.y,
+                        w: mediaButtonWidth,
+                        h: mediaCoords.h,
+                        text_size: big,
+                        char_space: 0,
+                        font: font,
+                        color: fgColor,
+                        line_space: 0,
+                        align_v: hmUI.align.CENTER_V,
+                        text_style: hmUI.text_style.ELLIPSIS,
+                        align_h: hmUI.align.CENTER_H,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
                     addElement(buttons, hmUI.widget.BUTTON, {
                         x: mediaCoords.x + mediaCoords.w - mediaButtonWidth,
                         y: mediaButtonY,
@@ -994,10 +989,8 @@ try {
                     )
                     if (!media) {
                         e.mediaBG.setProperty(hmUI.prop.COLOR, bgColor)
-                        e.playButton.setProperty(hmUI.prop.TEXT, icons.play)
                     } else {
                         e.mediaBG.setProperty(hmUI.prop.COLOR, elementBgColor)
-                        e.playButton.setProperty(hmUI.prop.TEXT, '')
                     }
                     const condition =
                         weatherData?.forecastData?.data?.[0]?.index ?? -1
