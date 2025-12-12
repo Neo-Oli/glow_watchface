@@ -85,8 +85,11 @@ try {
             mail: '󰇮',
             phone: '󰄜',
             play: '󰐊',
+            prev: '󰒮',
+            next: '󰒭',
             pause: '󰏤',
             close: '×',
+            shuffle: '',
         }
         const iconSize = 50
         const circleRadius = 47
@@ -134,8 +137,8 @@ try {
         let fgColor = 0xffff8c00
         let bgColor = 0xff000000
         let elementBgColor = 0xff333333
-        let importantColor = 0xffff0000
-        let importantBgColor = 0xff666666
+        let accentColor = 0xffff0000
+        let accentBgColor = 0xff666666
 
         const ystart = 45
         const gap = 10
@@ -160,6 +163,7 @@ try {
             h: 39,
         }
         const cityLength = 24
+        let mediaPlaying = false
         const mediaCoords = {
             x: cityNameCoords.x,
             y: cityNameCoords.y + cityNameCoords.h + gap,
@@ -228,10 +232,10 @@ try {
             layers = []
         }
         const renderElements = () => {
-            for (widget of allElements) {
+            for (const widget of allElements) {
                 hmUI.deleteWidget(widget)
             }
-            for (layer in layers) {
+            for (const layer in layers) {
                 for (element of layers[layer]) {
                     const { type, name, props } = element
                     const widget = hmUI.createWidget(type, props)
@@ -449,7 +453,7 @@ try {
                                 text_size: big,
                                 char_space: 0,
                                 font: font,
-                                color: importantColor,
+                                color: accentColor,
                                 line_space: 0,
                                 align_v: hmUI.align.CENTER_V,
                                 text_style: hmUI.text_style.ELLIPSIS,
@@ -478,14 +482,35 @@ try {
                         circleCount += 1
                     }
 
-                    createCircle('battery', 'Err', findPhone)
+                    createCircle('battery', 'Err', () => {
+                        setOverlay('controls')
+                    })
                     createCircle('phoneBattery', icons.phone, () => {
                         setOverlay('volume')
                     })
-
+                    const createButton = (c, func) => {
+                        addElement(overlayButtons, hmUI.widget.BUTTON, {
+                            h: c.radius,
+                            w: c.radius,
+                            color: fgColor,
+                            normal_color: elementBgColor,
+                            press_color: fgColor,
+                            ...c,
+                            click_func: () => {
+                                func()
+                            },
+                        })
+                    }
                     const createArcControl = (name, initialLevel, func) => {
                         const lineWidth = 70
                         const radius = 233
+                        addElement(overlayBG, hmUI.widget.CIRCLE, {
+                            center_x: center,
+                            center_y: center,
+                            radius: radius,
+                            color: bgColor,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        })
                         addElement(
                             overlayBG,
                             hmUI.widget.ARC_PROGRESS,
@@ -497,7 +522,7 @@ try {
                                 level: 100,
                                 radius: radius - lineWidth / 2,
                                 line_width: lineWidth,
-                                color: importantBgColor,
+                                color: accentBgColor,
                                 show_level: hmUI.show_level.ONLY_NORMAL,
                             },
                             `${name}ArcBg`,
@@ -513,7 +538,7 @@ try {
                                 level: initialLevel,
                                 radius: radius - lineWidth / 2,
                                 line_width: lineWidth,
-                                color: importantColor,
+                                color: accentColor,
                                 show_level: hmUI.show_level.ONLY_NORMAL,
                             },
                             `${name}Arc`,
@@ -563,32 +588,187 @@ try {
                             )
                         }
                         const buttonRadius = 200
-                        addElement(
-                            overlayButtons,
-                            hmUI.widget.BUTTON,
+                        createButton(
                             {
+                                text_size: timeSize,
+                                text: icons.close,
+                                radius: buttonRadius,
                                 x: center - buttonRadius / 2,
                                 y: center - buttonRadius / 2,
-                                w: buttonRadius,
-                                h: buttonRadius,
-                                color: fgColor,
-                                text_size: timeSize,
-                                radius: buttonRadius,
-                                normal_color: elementBgColor,
-                                press_color: elementBgColor,
-                                text: icons.close,
-                                click_func: () => {
-                                    console.log('closing overlay')
-                                    setOverlay()
-                                },
                             },
-                            `${name}Close`,
+                            () => {
+                                console.log('closing overlay')
+                                setOverlay()
+                            },
                         )
                     }
                     if (overlay === 'volume') {
                         createArcControl('volume', volume, (level) => {
                             phoneAction(`volume ${level}`)
                         })
+                    }
+                    const createControls = (buttons) => {
+                        addElement(overlayBG, hmUI.widget.CIRCLE, {
+                            center_x: center,
+                            center_y: center,
+                            radius: 220,
+                            color: bgColor,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        })
+                        const buttonSize = circleRadius * 2
+                        let y = 35
+                        createButton(
+                            {
+                                text_size: big,
+                                text: icons.close,
+                                radius: buttonSize / 2,
+                                x: center - buttonSize / 4,
+                                y: y,
+                            },
+                            () => {
+                                console.log('closing overlay')
+                                setOverlay()
+                            },
+                        )
+                        const startX = center - buttonSize * 1.5 - gap
+                        let x = startX
+                        y += gap + buttonSize / 2
+                        let count = 0
+                        const split = 3
+                        for (const button of buttons) {
+                            createButton(
+                                {
+                                    text_size: button.icon ? timeSize : small,
+                                    text: button.text.replace(/ /g, '\n'),
+                                    radius: buttonSize,
+                                    font: font,
+                                    x: x,
+                                    y: y,
+                                },
+                                () => {
+                                    console.log('running button')
+                                    button.func()
+                                },
+                            )
+                            count += 1
+                            if (count % split === 0) {
+                                x = startX
+                                y += gap + buttonSize
+                            } else {
+                                x += gap + buttonSize
+                            }
+                        }
+                    }
+                    if (overlay === 'controls') {
+                        createControls([
+                            {
+                                text: 'clear snoozed alarms',
+                                func: () => {
+                                    phoneAction('clearSnoozedAlarms')
+                                    setOverlay()
+                                },
+                            },
+                            {
+                                text: 'dnd',
+                                func: () => {
+                                    phoneAction('dnd')
+                                    setOverlay()
+                                },
+                            },
+                            {
+                                text: 'find my device',
+                                func: () => {
+                                    phoneAction('findMyDevice')
+                                    setOverlay()
+                                },
+                            },
+                            {
+                                text: icons.prev,
+                                icon: true,
+                                func: () => {
+                                    phoneAction('prev')
+                                },
+                            },
+                            {
+                                text: mediaPlaying ? icons.pause : icons.play,
+                                icon: true,
+                                func: () => {
+                                    phoneAction('toggle')
+                                },
+                            },
+                            {
+                                text: icons.next,
+                                icon: true,
+                                func: () => {
+                                    phoneAction('next')
+                                },
+                            },
+                            {
+                                text: icons.shuffle,
+                                icon: true,
+                                func: () => {
+                                    phoneAction('random')
+                                    setOverlay()
+                                },
+                            },
+                            {
+                                text: 'volume',
+                                func: () => {
+                                    setOverlay('volume')
+                                },
+                            },
+                            {
+                                text: 'more',
+                                func: () => {
+                                    setOverlay('moreControls')
+                                },
+                            },
+                        ])
+                    }
+                    if (overlay === 'moreControls') {
+                        createControls([
+                            {
+                                text: 'back',
+                                func: () => {
+                                    setOverlay('controls')
+                                },
+                            },
+                            {
+                                text: 'fav',
+                                func: () => {
+                                    phoneAction('fav')
+                                    setOverlay()
+                                },
+                            },
+                            {
+                                text: 'search',
+                                func: () => {
+                                    phoneAction('search')
+                                    setOverlay()
+                                },
+                            },
+                            {
+                                text: 'player ctl',
+                                func: () => {
+                                    phoneAction('playerctl')
+                                    setOverlay()
+                                },
+                            },
+                            {
+                                text: 'screen share',
+                                func: () => {
+                                    phoneAction('screenshare')
+                                    setOverlay()
+                                },
+                            },
+                            {
+                                text: 'restart bt',
+                                func: () => {
+                                    phoneAction('restartBT')
+                                    setOverlay()
+                                },
+                            },
+                        ])
                     }
 
                     for (const size of fontSizes) {
@@ -756,7 +936,7 @@ try {
                             text_size: iconSize,
                             char_space: 0,
                             font: font,
-                            color: fgColor,
+                            color: accentColor,
                             line_space: 0,
                             align_v: hmUI.align.CENTER_V,
                             align_h: hmUI.align.LEFT,
@@ -877,70 +1057,54 @@ try {
                     const mediaButtonHeight =
                         cityNameCoords.h + gap + mediaCoords.h
                     const mediaButtonY = cityNameCoords.y
-                    addElement(buttons, hmUI.widget.BUTTON, {
-                        x: mediaCoords.x,
-                        y: mediaButtonY,
-                        w: mediaButtonWidth,
-                        h: mediaButtonHeight,
-                        text: '',
-                        color: fgColor,
-                        click_func: (watchface) => {
-                            phoneAction('prev')
-                        },
-                        press_src: buttonImage,
-                        normal_src: buttonImage,
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    })
-                    addElement(buttons, hmUI.widget.BUTTON, {
-                        x:
-                            mediaCoords.x +
-                            mediaCoords.w / 2 -
-                            mediaButtonWidth / 2,
-                        y: mediaButtonY,
-                        w: mediaButtonWidth,
-                        h: mediaButtonHeight,
-                        text: '',
-                        color: fgColor,
-                        click_func: (watchface) => {
-                            phoneAction('toggle')
-                        },
-                        press_src: buttonImage,
-                        normal_src: buttonImage,
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    })
-                    addElement(widgetContent, hmUI.widget.TEXT, {
-                        x:
-                            mediaCoords.x +
-                            mediaCoords.w / 2 -
-                            mediaButtonWidth / 2,
-                        y: mediaCoords.y,
-                        w: mediaButtonWidth,
-                        h: mediaCoords.h,
-                        text_size: big,
-                        char_space: 0,
-                        font: font,
-                        color: fgColor,
-                        line_space: 0,
-                        align_v: hmUI.align.CENTER_V,
-                        text_style: hmUI.text_style.ELLIPSIS,
-                        align_h: hmUI.align.CENTER_H,
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    })
-                    addElement(buttons, hmUI.widget.BUTTON, {
-                        x: mediaCoords.x + mediaCoords.w - mediaButtonWidth,
-                        y: mediaButtonY,
-                        w: mediaButtonWidth,
-                        h: mediaButtonHeight,
-                        text: '',
-                        color: fgColor,
-                        click_func: (watchface) => {
-                            phoneAction('next')
-                        },
-                        press_src: buttonImage,
-                        normal_src: buttonImage,
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    })
-                    //weather
+                    /*
+                     * addElement(buttons, hmUI.widget.BUTTON, {
+                     * x: mediaCoords.x,
+                     * y: mediaButtonY,
+                     * w: mediaButtonWidth,
+                     * h: mediaButtonHeight,
+                     * text: '',
+                     * color: fgColor,
+                     * click_func: (watchface) => {
+                     * phoneAction('prev')
+                     * },
+                     * press_src: buttonImage,
+                     * normal_src: buttonImage,
+                     * show_level: hmUI.show_level.ONLY_NORMAL,
+                     * })
+                     * addElement(buttons, hmUI.widget.BUTTON, {
+                     * x:
+                     * mediaCoords.x +
+                     * mediaCoords.w / 2 -
+                     * mediaButtonWidth / 2,
+                     * y: mediaButtonY,
+                     * w: mediaButtonWidth,
+                     * h: mediaButtonHeight,
+                     * text: '',
+                     * color: fgColor,
+                     * click_func: (watchface) => {
+                     * phoneAction('toggle')
+                     * },
+                     * press_src: buttonImage,
+                     * normal_src: buttonImage,
+                     * show_level: hmUI.show_level.ONLY_NORMAL,
+                     * })
+                     * addElement(buttons, hmUI.widget.BUTTON, {
+                     * x: mediaCoords.x + mediaCoords.w - mediaButtonWidth,
+                     * y: mediaButtonY,
+                     * w: mediaButtonWidth,
+                     * h: mediaButtonHeight,
+                     * text: '',
+                     * color: fgColor,
+                     * click_func: (watchface) => {
+                     * phoneAction('next')
+                     * },
+                     * press_src: buttonImage,
+                     * normal_src: buttonImage,
+                     * show_level: hmUI.show_level.ONLY_NORMAL,
+                     * })
+                     * weather
+                     */
                     const weatherStart = timeCoords.x + weatherGap
                     drawRect({
                         w: timeCoords.w - weatherGap * 2,
@@ -994,7 +1158,7 @@ try {
                         const dayString = dayNames[day - 1]
                         normal_DayStr = normal_DayStr.padStart(2, '0')
                         normal_MonthStr = normal_MonthStr.padStart(2, '0')
-                        const normal_DayMonthYearStr = `${dayString} ${normal_YearStr}-${normal_MonthStr}-${normal_DayStr}`
+                        const normal_DayMonthYearStr = `${normal_YearStr}-${normal_MonthStr}-${normal_DayStr} ${dayString}`
                         e.date.setProperty(
                             hmUI.prop.TEXT,
                             normal_DayMonthYearStr,
@@ -1070,31 +1234,31 @@ try {
                     let fgColorHex,
                         bgColorHex,
                         elementBgColorHex,
-                        importantColorHex,
-                        importantBgColorHex
+                        accentColorHex,
+                        accentBgColorHex
 
                     if (colors) {
                         ;[
                             bgColorHex = '000000',
                             fgColorHex = 'FFFFFF',
                             elementBgColorHex = '333333',
-                            importantColorHex = 'FF0000',
-                            importantBgColorHex = '666666',
+                            accentColorHex = 'FF0000',
+                            accentBgColorHex = '666666',
                         ] = colors.match(/.{1,6}/g)
 
                         fgColor = Number(`0xFF${fgColorHex}`)
                         bgColor = Number(`0xFF${bgColorHex}`)
                         elementBgColor = Number(`0xFF${elementBgColorHex}`)
-                        importantColor = Number(`0xFF${importantColorHex}`)
-                        importantBgColor = Number(`0xFF${importantBgColorHex}`)
+                        accentColor = Number(`0xFF${accentColorHex}`)
+                        accentBgColor = Number(`0xFF${accentBgColorHex}`)
                         init = true
                         console.log('colors set')
                     }
                     newColorCache.push(fgColor)
                     newColorCache.push(bgColor)
                     newColorCache.push(elementBgColor)
-                    newColorCache.push(importantColor)
-                    newColorCache.push(importantBgColor)
+                    newColorCache.push(accentColor)
+                    newColorCache.push(accentBgColor)
                     newColorCache.push(volume)
                     newColorCache.push(overlay)
                     if (!init) {
@@ -1113,11 +1277,16 @@ try {
                         hmUI.prop.TEXT,
                         shorten(media, cityLength),
                     )
+                    mediaPlaying = false
                     if (!media) {
                         e.mediaBG.setProperty(hmUI.prop.COLOR, bgColor)
                     } else {
                         e.mediaBG.setProperty(hmUI.prop.COLOR, elementBgColor)
+                        if (media.startsWith(icons.play)) {
+                            mediaPlaying = true
+                        }
                     }
+                    newColorCache.push(mediaPlaying.toString())
                     const condition =
                         weatherData?.forecastData?.data?.[0]?.index ?? -1
                     e.condition.setProperty(
