@@ -1055,7 +1055,7 @@ try {
                         text: '',
                         color: fgColor,
                         click_func: (watchface) => {
-                            phoneAction('toggle')
+                            setOverlay('controls')
                         },
                         press_src: buttonImage,
                         normal_src: buttonImage,
