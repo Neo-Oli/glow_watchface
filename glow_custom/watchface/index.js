@@ -89,7 +89,7 @@ try {
             next: '󰒭',
             pause: '󰏤',
             close: '×',
-            shuffle: '',
+            shuffle: '󰒟',
         }
         const iconSize = 50
         const circleRadius = 47
