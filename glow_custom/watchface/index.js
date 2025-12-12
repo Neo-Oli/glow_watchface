@@ -638,7 +638,7 @@ try {
                         for (const button of buttons) {
                             createButton(
                                 {
-                                    text_size: button.icon ? timeSize : small,
+                                    text_size: button.icon ? iconSize : small,
                                     text: button.text.replace(/ /g, '\n'),
                                     radius: buttonSize,
                                     font: font,
