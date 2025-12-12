@@ -90,6 +90,7 @@ try {
             pause: '󰏤',
             close: '×',
             shuffle: '󰒟',
+            volume: '󰕾',
         }
         const iconSize = 50
         const circleRadius = 47
@@ -115,15 +116,6 @@ try {
 
         const statsSize = 24
 
-        const findPhone = (watchButton) => {
-            /*
-             * hmApp.startApp({
-             * url: 'FindPhoneScreen',
-             * native: true,
-             * })
-             */
-            phoneAction('press')
-        }
         const phoneAction = (action) => {
             console.log(`DROIDDO: ${action}`)
         }
@@ -708,11 +700,11 @@ try {
                                 icon: true,
                                 func: () => {
                                     phoneAction('random')
-                                    setOverlay()
                                 },
                             },
                             {
-                                text: 'volume',
+                                text: icons.volume,
+                                icon: true,
                                 func: () => {
                                     setOverlay('volume')
                                 },
@@ -1053,58 +1045,22 @@ try {
                         },
                         'media',
                     )
-                    const mediaButtonWidth = 100
                     const mediaButtonHeight =
                         cityNameCoords.h + gap + mediaCoords.h
-                    const mediaButtonY = cityNameCoords.y
-                    /*
-                     * addElement(buttons, hmUI.widget.BUTTON, {
-                     * x: mediaCoords.x,
-                     * y: mediaButtonY,
-                     * w: mediaButtonWidth,
-                     * h: mediaButtonHeight,
-                     * text: '',
-                     * color: fgColor,
-                     * click_func: (watchface) => {
-                     * phoneAction('prev')
-                     * },
-                     * press_src: buttonImage,
-                     * normal_src: buttonImage,
-                     * show_level: hmUI.show_level.ONLY_NORMAL,
-                     * })
-                     * addElement(buttons, hmUI.widget.BUTTON, {
-                     * x:
-                     * mediaCoords.x +
-                     * mediaCoords.w / 2 -
-                     * mediaButtonWidth / 2,
-                     * y: mediaButtonY,
-                     * w: mediaButtonWidth,
-                     * h: mediaButtonHeight,
-                     * text: '',
-                     * color: fgColor,
-                     * click_func: (watchface) => {
-                     * phoneAction('toggle')
-                     * },
-                     * press_src: buttonImage,
-                     * normal_src: buttonImage,
-                     * show_level: hmUI.show_level.ONLY_NORMAL,
-                     * })
-                     * addElement(buttons, hmUI.widget.BUTTON, {
-                     * x: mediaCoords.x + mediaCoords.w - mediaButtonWidth,
-                     * y: mediaButtonY,
-                     * w: mediaButtonWidth,
-                     * h: mediaButtonHeight,
-                     * text: '',
-                     * color: fgColor,
-                     * click_func: (watchface) => {
-                     * phoneAction('next')
-                     * },
-                     * press_src: buttonImage,
-                     * normal_src: buttonImage,
-                     * show_level: hmUI.show_level.ONLY_NORMAL,
-                     * })
-                     * weather
-                     */
+                    addElement(buttons, hmUI.widget.BUTTON, {
+                        x: mediaCoords.x,
+                        y: cityNameCoords.y,
+                        w: mediaCoords.w,
+                        h: mediaButtonHeight,
+                        text: '',
+                        color: fgColor,
+                        click_func: (watchface) => {
+                            phoneAction('toggle')
+                        },
+                        press_src: buttonImage,
+                        normal_src: buttonImage,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
                     const weatherStart = timeCoords.x + weatherGap
                     drawRect({
                         w: timeCoords.w - weatherGap * 2,
