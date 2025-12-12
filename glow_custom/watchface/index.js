@@ -86,17 +86,21 @@ try {
             phone: '󰄜',
             play: '󰐊',
             pause: '󰏤',
+            close: '×',
         }
         const iconSize = 50
         const circleRadius = 47
         const buttonImage = 'empty.png'
-        //const buttonImage = 'debug.png'
+        const debugImage = 'debug.png'
         const dayNames = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
         let normal_timerTimeUpdate = undefined
         let normal_timerUpdateSec = undefined
         let idle_timerTimeUpdate = undefined
         let weatherData
         let cityName
+        const center = 233
+
+        let overlay = ''
 
         let colorCache = ''
         const cacheText = [
@@ -163,6 +167,7 @@ try {
             h: 36,
         }
         const statsStart = mediaCoords.y + mediaCoords.h + gap
+        let volume = 15
 
         const fontSizes = [iconSize, statsSize, timeSize, big, small]
         const statsWidth = 120
@@ -196,6 +201,9 @@ try {
         const widgetBg = 1
         const widgetContent = 2
         const buttons = 3
+        const overlayBG = 4
+        const overlayFG = 5
+        const overlayButtons = 5
         const addSensor = (name, sensor) => {
             if (!s.hasOwnProperty(name)) {
                 s[name] = hmSensor.createSensor(sensor)
@@ -286,6 +294,11 @@ try {
                 function stopVibro() {
                     vibrate.stop()
                     if (timer_StopVibrate) timer.stopTimer(timer_StopVibrate)
+                }
+                const setOverlay = (newOverlay = '') => {
+                    overlay = newOverlay
+                    scale_call()
+                    time_update(true, true)
                 }
                 const render = () => {
                     prepareElements()
@@ -464,8 +477,119 @@ try {
                         }
                         circleCount += 1
                     }
+
                     createCircle('battery', 'Err', findPhone)
-                    createCircle('phoneBattery', icons.phone, findPhone)
+                    createCircle('phoneBattery', icons.phone, () => {
+                        setOverlay('volume')
+                    })
+
+                    const createArcControl = (name, initialLevel, func) => {
+                        const lineWidth = 70
+                        const radius = 233
+                        addElement(
+                            overlayBG,
+                            hmUI.widget.ARC_PROGRESS,
+                            {
+                                center_x: center,
+                                center_y: center,
+                                start_angle: 0,
+                                end_angle: 360,
+                                level: 100,
+                                radius: radius - lineWidth / 2,
+                                line_width: lineWidth,
+                                color: importantBgColor,
+                                show_level: hmUI.show_level.ONLY_NORMAL,
+                            },
+                            `${name}ArcBg`,
+                        )
+                        addElement(
+                            overlayFG,
+                            hmUI.widget.ARC_PROGRESS,
+                            {
+                                center_x: center,
+                                center_y: center,
+                                start_angle: 0,
+                                end_angle: 360,
+                                level: initialLevel,
+                                radius: radius - lineWidth / 2,
+                                line_width: lineWidth,
+                                color: importantColor,
+                                show_level: hmUI.show_level.ONLY_NORMAL,
+                            },
+                            `${name}Arc`,
+                        )
+                        const numButtons = 15
+                        const angleStep = 360 / numButtons // degrees
+                        const offsetDeg = -80
+
+                        for (let i = 0; i < numButtons; i++) {
+                            const angleDeg = i * angleStep + offsetDeg
+                            const angleRad = (angleDeg * Math.PI) / 180 // convert to radians
+
+                            const x =
+                                center +
+                                (radius - lineWidth / 2) * Math.cos(angleRad)
+                            const y =
+                                center +
+                                (radius - lineWidth / 2) * Math.sin(angleRad)
+                            const newLevel = Math.round(
+                                (100 / (numButtons - 1)) * i,
+                            )
+                            addElement(
+                                overlayButtons,
+                                hmUI.widget.BUTTON,
+                                {
+                                    x: x - lineWidth / 2,
+                                    y: y - lineWidth / 2,
+                                    w: lineWidth,
+                                    h: lineWidth,
+                                    color: fgColor,
+                                    text_size: big,
+                                    press_src: buttonImage,
+                                    normal_src: buttonImage,
+                                    text: `${newLevel}`,
+                                    click_func: () => {
+                                        func(newLevel)
+                                        e[`${name}Arc`].setProperty(
+                                            hmUI.prop.MORE,
+                                            {
+                                                level: newLevel,
+                                                radius: radius - lineWidth / 2,
+                                            },
+                                        )
+                                    },
+                                },
+                                `${name}Button${i}`,
+                            )
+                        }
+                        const buttonRadius = 200
+                        addElement(
+                            overlayButtons,
+                            hmUI.widget.BUTTON,
+                            {
+                                x: center - buttonRadius / 2,
+                                y: center - buttonRadius / 2,
+                                w: buttonRadius,
+                                h: buttonRadius,
+                                color: fgColor,
+                                text_size: timeSize,
+                                radius: buttonRadius,
+                                normal_color: elementBgColor,
+                                press_color: elementBgColor,
+                                text: icons.close,
+                                click_func: () => {
+                                    console.log('closing overlay')
+                                    setOverlay()
+                                },
+                            },
+                            `${name}Close`,
+                        )
+                    }
+                    if (overlay === 'volume') {
+                        createArcControl('volume', volume, (level) => {
+                            phoneAction(`volume ${level}`)
+                        })
+                    }
 
                     for (const size of fontSizes) {
                         addElement(bg, hmUI.widget.TEXT, {
@@ -695,8 +819,8 @@ try {
                         widgetContent,
                         hmUI.widget.ARC_PROGRESS,
                         {
-                            center_x: 233,
-                            center_y: 233,
+                            center_x: center,
+                            center_y: center,
                             start_angle: 0,
                             end_angle: 360,
                             radius: 231,
@@ -851,8 +975,6 @@ try {
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
 
-                    //#endregion
-
                     renderElements()
                 }
 
@@ -939,6 +1061,7 @@ try {
                         ;[
                             colors,
                             phoneBattery = '-3',
+                            volume,
                             cityName = '',
                             media = '',
                         ] = normal_cityNameStr.split(separator)
@@ -965,12 +1088,15 @@ try {
                         importantColor = Number(`0xFF${importantColorHex}`)
                         importantBgColor = Number(`0xFF${importantBgColorHex}`)
                         init = true
+                        console.log('colors set')
                     }
                     newColorCache.push(fgColor)
                     newColorCache.push(bgColor)
                     newColorCache.push(elementBgColor)
                     newColorCache.push(importantColor)
                     newColorCache.push(importantBgColor)
+                    newColorCache.push(volume)
+                    newColorCache.push(overlay)
                     if (!init) {
                         phoneAction('init')
                     }
@@ -1024,6 +1150,10 @@ try {
                                         radius: circleRadius,
                                     },
                                 )
+                            circle.setProperty(hmUI.prop.MORE, {
+                                radius: circleRadius,
+                                level,
+                            })
                             if (text)
                                 text.setProperty(hmUI.prop.TEXT, `${value}%`)
                             if (iconElement && icon) {
@@ -1078,6 +1208,7 @@ try {
                         colorCache = finalColorCache
                         render()
                         scale_call()
+                        time_update(true, true)
                     }
                 }
                 const runAnimations = () => {
@@ -1202,6 +1333,7 @@ try {
                                 idle_timerTimeUpdate = undefined
                             }
                             stopVibro()
+                            overlay = ''
                         },
                     },
                 )
