@@ -626,9 +626,11 @@ try {
                             {
                                 text_size: big,
                                 text: icons.close,
-                                radius: buttonSize / 2,
-                                x: center - buttonSize / 4,
+                                radius: buttonSize,
+                                x: center - buttonSize,
                                 y: y,
+                                w: buttonSize * 2,
+                                h: buttonSize / 2,
                             },
                             () => {
                                 setOverlay()
@@ -639,8 +641,10 @@ try {
                                 {
                                     text_size: big,
                                     text: icons.prevPage,
-                                    radius: buttonSize / 2,
-                                    y: center - buttonSize / 4,
+                                    radius: buttonSize,
+                                    y: center - buttonSize,
+                                    h: buttonSize * 2,
+                                    w: buttonSize / 2,
                                     x:
                                         center -
                                         (buttonSize * 1.5 +
@@ -657,9 +661,11 @@ try {
                                 {
                                     text_size: big,
                                     text: icons.nextPage,
-                                    radius: buttonSize / 2,
-                                    y: center - buttonSize / 4,
+                                    radius: buttonSize,
                                     x: center + (buttonSize * 1.5 + gap * 2),
+                                    y: center - buttonSize,
+                                    h: buttonSize * 2,
+                                    w: buttonSize / 2,
                                 },
                                 () => {
                                     setOverlay(`${name}${num + 1}`)
@@ -784,6 +790,13 @@ try {
                             text: 'restart bt',
                             func: () => {
                                 phoneAction('restartBT')
+                                setOverlay()
+                            },
+                        },
+                        {
+                            text: 'exit mpv',
+                            func: () => {
+                                phoneAction('mpvexit')
                                 setOverlay()
                             },
                         },
