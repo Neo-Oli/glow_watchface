@@ -61,6 +61,7 @@ try {
             ' ', // 27 Shower at night
             ' ', // 28 Clear night
         ]
+
         const clocks = [
             '󱑊',
             '󱐿',
@@ -169,7 +170,15 @@ try {
 
         const fontSizes = [iconSize, statsSize, timeSize, big, small]
         const statsWidth = 120
-
+        let newTimer
+        const resetTimer = () => {
+            newTimer = {
+                hour: 0,
+                minute: 0,
+                second: 0,
+            }
+        }
+        resetTimer()
         const e = {}
         const s = {}
         const allElements = []
@@ -603,7 +612,14 @@ try {
                             phoneAction(`volume ${level}`)
                         })
                     }
-                    const createControls = (buttons, name, num, prev, next) => {
+                    const createControls = (
+                        buttons,
+                        name,
+                        num,
+                        prev = false,
+                        next = false,
+                        customElements = () => {},
+                    ) => {
                         if (overlay !== `${name}${num}`) {
                             return
                         }
@@ -675,22 +691,27 @@ try {
                         const startX = center - buttonSize * 1.5 - gap
                         let x = startX
                         y += gap + buttonSize / 2
+                        customElements(y)
                         let count = 0
                         const split = 3
                         for (const button of buttons) {
-                            createButton(
-                                {
-                                    text_size: button.icon ? iconSize : small,
-                                    text: button.text.replace(/ /g, '\n'),
-                                    radius: buttonSize,
-                                    x: x,
-                                    y: y,
-                                },
-                                () => {
-                                    console.log('running button')
-                                    button.func()
-                                },
-                            )
+                            if (button) {
+                                createButton(
+                                    {
+                                        text_size: button.icon
+                                            ? iconSize
+                                            : small,
+                                        text: button.text.replace(/ /g, '\n'),
+                                        radius: buttonSize,
+                                        x: x,
+                                        y: y,
+                                    },
+                                    () => {
+                                        console.log('running button')
+                                        button.func()
+                                    },
+                                )
+                            }
                             count += 1
                             if (count % split === 0) {
                                 x = startX
@@ -717,10 +738,9 @@ try {
                             },
                         },
                         {
-                            text: 'find my device',
+                            text: 'timer',
                             func: () => {
-                                phoneAction('findMyDevice')
-                                setOverlay()
+                                setOverlay('timer0')
                             },
                         },
                         {
@@ -800,6 +820,13 @@ try {
                                 setOverlay()
                             },
                         },
+                        {
+                            text: 'find my device',
+                            func: () => {
+                                phoneAction('findMyDevice')
+                                setOverlay()
+                            },
+                        },
                     ]
                     const perPage = 9
                     for (let i = 0; i < controls.length; i += perPage) {
@@ -811,6 +838,94 @@ try {
                             i + perPage < controls.length,
                         )
                     }
+
+                    const formatTimer = () =>
+                        [newTimer.hour, newTimer.minute, newTimer.second]
+                            .map((v) => String(v).padStart(2, '0'))
+                            .join(':')
+
+                    const displayTimerTime = () => {
+                        e.timerDisplay.setProperty(
+                            hmUI.prop.TEXT,
+                            formatTimer(),
+                        )
+                    }
+                    createControls(
+                        [
+                            null,
+                            null,
+                            null,
+                            {
+                                text: 'hour',
+                                func: () => {
+                                    newTimer.hour += 1
+                                    displayTimerTime()
+                                },
+                            },
+                            {
+                                text: 'minute',
+                                func: () => {
+                                    newTimer.minute += 1
+                                    displayTimerTime()
+                                },
+                            },
+                            {
+                                text: 'second',
+                                func: () => {
+                                    newTimer.second += 1
+                                    displayTimerTime()
+                                },
+                            },
+                            {
+                                text: 'set',
+                                func: () => {
+                                    phoneAction(
+                                        `timer ${newTimer.hour * 3600 + newTimer.minute * 60 + newTimer.second}`,
+                                    )
+                                    setOverlay()
+                                },
+                            },
+                            {
+                                text: 'reset',
+                                func: () => {
+                                    resetTimer()
+                                    displayTimerTime()
+                                },
+                            },
+                            {
+                                text: 'cancel current',
+                                func: () => {
+                                    phoneAction('cancelTimer')
+                                    setOverlay()
+                                },
+                            },
+                        ],
+                        'timer',
+                        0,
+                        false,
+                        false,
+                        (y) => {
+                            addElement(
+                                overlayFG,
+                                hmUI.widget.TEXT,
+                                {
+                                    ...timeCoords,
+                                    y: y,
+                                    text_size: iconSize,
+                                    char_space: 0,
+                                    font: font,
+                                    color: fgColor,
+                                    line_space: 0,
+                                    align_v: hmUI.align.CENTER_V,
+                                    text: formatTimer(),
+                                    text_style: hmUI.text_style.ELLIPSIS,
+                                    align_h: hmUI.align.CENTER_H,
+                                    show_level: hmUI.show_level.ONLY_NORMAL,
+                                },
+                                'timerDisplay',
+                            )
+                        },
+                    )
 
                     for (const size of fontSizes) {
                         addElement(bg, hmUI.widget.TEXT, {
@@ -1029,13 +1144,17 @@ try {
                         },
                         'aodTime',
                     )
-                    addElement(buttons, hmUI.widget.IMG_CLICK, {
+                    addElement(buttons, hmUI.widget.BUTTON, {
                         ...timeCoords,
-                        src: buttonImage,
-                        type: hmUI.data_type.COUNT_DOWN,
+                        text: '',
+                        color: fgColor,
+                        click_func: (watchface) => {
+                            setOverlay('controls0')
+                        },
+                        press_src: buttonImage,
+                        normal_src: buttonImage,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
-
                     addElement(
                         widgetContent,
                         hmUI.widget.ARC_PROGRESS,
