@@ -896,7 +896,6 @@ try {
                                 text: 'cancel current',
                                 func: () => {
                                     phoneAction('cancelTimer')
-                                    setOverlay()
                                 },
                             },
                         ],
