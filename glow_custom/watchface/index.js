@@ -91,6 +91,8 @@ try {
             close: '×',
             shuffle: '󰒟',
             volume: '󰕾',
+            prevPage: '󰅁',
+            nextPage: '󰅂',
         }
         const iconSize = 50
         const circleRadius = 47
@@ -292,6 +294,7 @@ try {
                     if (timer_StopVibrate) timer.stopTimer(timer_StopVibrate)
                 }
                 const setOverlay = (newOverlay = '') => {
+                    console.log(`Setting overlay to ${newOverlay}`)
                     overlay = newOverlay
                     scale_call()
                     time_update(true, true)
@@ -475,7 +478,7 @@ try {
                     }
 
                     createCircle('battery', 'Err', () => {
-                        setOverlay('controls')
+                        setOverlay('controls0')
                     })
                     createCircle('phoneBattery', icons.phone, () => {
                         setOverlay('volume')
@@ -484,6 +487,7 @@ try {
                         addElement(overlayButtons, hmUI.widget.BUTTON, {
                             h: c.radius,
                             w: c.radius,
+                            font: font,
                             color: fgColor,
                             normal_color: elementBgColor,
                             press_color: fgColor,
@@ -599,7 +603,10 @@ try {
                             phoneAction(`volume ${level}`)
                         })
                     }
-                    const createControls = (buttons) => {
+                    const createControls = (buttons, name, num, prev, next) => {
+                        if (overlay !== `${name}${num}`) {
+                            return
+                        }
                         addElement(overlayBG, hmUI.widget.CIRCLE, {
                             center_x: center,
                             center_y: center,
@@ -608,7 +615,13 @@ try {
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         })
                         const buttonSize = circleRadius * 2
-                        let y = 35
+                        let y =
+                            center -
+                            buttonSize / 2 -
+                            gap -
+                            buttonSize -
+                            gap -
+                            buttonSize / 2
                         createButton(
                             {
                                 text_size: big,
@@ -618,10 +631,41 @@ try {
                                 y: y,
                             },
                             () => {
-                                console.log('closing overlay')
                                 setOverlay()
                             },
                         )
+                        if (prev) {
+                            createButton(
+                                {
+                                    text_size: big,
+                                    text: icons.prevPage,
+                                    radius: buttonSize / 2,
+                                    y: center - buttonSize / 4,
+                                    x:
+                                        center -
+                                        (buttonSize * 1.5 +
+                                            gap * 2 +
+                                            buttonSize / 2),
+                                },
+                                () => {
+                                    setOverlay(`${name}${num - 1}`)
+                                },
+                            )
+                        }
+                        if (next) {
+                            createButton(
+                                {
+                                    text_size: big,
+                                    text: icons.nextPage,
+                                    radius: buttonSize / 2,
+                                    y: center - buttonSize / 4,
+                                    x: center + (buttonSize * 1.5 + gap * 2),
+                                },
+                                () => {
+                                    setOverlay(`${name}${num + 1}`)
+                                },
+                            )
+                        }
                         const startX = center - buttonSize * 1.5 - gap
                         let x = startX
                         y += gap + buttonSize / 2
@@ -633,7 +677,6 @@ try {
                                     text_size: button.icon ? iconSize : small,
                                     text: button.text.replace(/ /g, '\n'),
                                     radius: buttonSize,
-                                    font: font,
                                     x: x,
                                     y: y,
                                 },
@@ -651,116 +694,109 @@ try {
                             }
                         }
                     }
-                    if (overlay === 'controls') {
-                        createControls([
-                            {
-                                text: 'clear snoozed alarms',
-                                func: () => {
-                                    phoneAction('clearSnoozedAlarms')
-                                    setOverlay()
-                                },
+
+                    const controls = [
+                        {
+                            text: 'clear snoozed alarms',
+                            func: () => {
+                                phoneAction('clearSnoozedAlarms')
+                                setOverlay()
                             },
-                            {
-                                text: 'dnd',
-                                func: () => {
-                                    phoneAction('dnd')
-                                    setOverlay()
-                                },
+                        },
+                        {
+                            text: 'dnd',
+                            func: () => {
+                                phoneAction('dnd')
+                                setOverlay()
                             },
-                            {
-                                text: 'find my device',
-                                func: () => {
-                                    phoneAction('findMyDevice')
-                                    setOverlay()
-                                },
+                        },
+                        {
+                            text: 'find my device',
+                            func: () => {
+                                phoneAction('findMyDevice')
+                                setOverlay()
                             },
-                            {
-                                text: icons.prev,
-                                icon: true,
-                                func: () => {
-                                    phoneAction('prev')
-                                },
+                        },
+                        {
+                            text: icons.prev,
+                            icon: true,
+                            func: () => {
+                                phoneAction('prev')
                             },
-                            {
-                                text: mediaPlaying ? icons.pause : icons.play,
-                                icon: true,
-                                func: () => {
-                                    phoneAction('toggle')
-                                },
+                        },
+                        {
+                            text: mediaPlaying ? icons.pause : icons.play,
+                            icon: true,
+                            func: () => {
+                                phoneAction('toggle')
                             },
-                            {
-                                text: icons.next,
-                                icon: true,
-                                func: () => {
-                                    phoneAction('next')
-                                },
+                        },
+                        {
+                            text: icons.next,
+                            icon: true,
+                            func: () => {
+                                phoneAction('next')
                             },
-                            {
-                                text: icons.shuffle,
-                                icon: true,
-                                func: () => {
-                                    phoneAction('random')
-                                },
+                        },
+                        {
+                            text: icons.shuffle,
+                            icon: true,
+                            func: () => {
+                                phoneAction('random')
                             },
-                            {
-                                text: icons.volume,
-                                icon: true,
-                                func: () => {
-                                    setOverlay('volume')
-                                },
+                        },
+                        {
+                            text: icons.volume,
+                            icon: true,
+                            func: () => {
+                                setOverlay('volume')
                             },
-                            {
-                                text: 'more',
-                                func: () => {
-                                    setOverlay('moreControls')
-                                },
+                        },
+                        {
+                            text: 'fav',
+                            func: () => {
+                                phoneAction('fav')
+                                setOverlay()
                             },
-                        ])
-                    }
-                    if (overlay === 'moreControls') {
-                        createControls([
-                            {
-                                text: 'back',
-                                func: () => {
-                                    setOverlay('controls')
-                                },
+                        },
+                        {
+                            text: 'search',
+                            func: () => {
+                                phoneAction('search')
+                                setOverlay()
                             },
-                            {
-                                text: 'fav',
-                                func: () => {
-                                    phoneAction('fav')
-                                    setOverlay()
-                                },
+                        },
+                        {
+                            text: 'player ctl',
+                            func: () => {
+                                phoneAction('playerctl')
+                                setOverlay()
                             },
-                            {
-                                text: 'search',
-                                func: () => {
-                                    phoneAction('search')
-                                    setOverlay()
-                                },
+                        },
+                        {
+                            text: 'screen share',
+                            func: () => {
+                                phoneAction('screenshare')
+                                setOverlay()
                             },
-                            {
-                                text: 'player ctl',
-                                func: () => {
-                                    phoneAction('playerctl')
-                                    setOverlay()
-                                },
+                        },
+                        {
+                            text: 'restart bt',
+                            func: () => {
+                                phoneAction('restartBT')
+                                setOverlay()
                             },
-                            {
-                                text: 'screen share',
-                                func: () => {
-                                    phoneAction('screenshare')
-                                    setOverlay()
-                                },
-                            },
-                            {
-                                text: 'restart bt',
-                                func: () => {
-                                    phoneAction('restartBT')
-                                    setOverlay()
-                                },
-                            },
-                        ])
+                        },
+                    ]
+                    const perPage = 9
+                    for (let i = 0; i < controls.length; i += perPage) {
+                        createControls(
+                            controls.slice(i, i + perPage),
+                            'controls',
+                            Math.round(i / perPage),
+                            i !== 0,
+                            i + perPage < controls.length,
+                        )
                     }
 
                     for (const size of fontSizes) {
@@ -1055,7 +1091,7 @@ try {
                         text: '',
                         color: fgColor,
                         click_func: (watchface) => {
-                            setOverlay('controls')
+                            setOverlay('controls0')
                         },
                         press_src: buttonImage,
                         normal_src: buttonImage,
