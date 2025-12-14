@@ -501,8 +501,8 @@ try {
                             normal_color: elementBgColor,
                             press_color: fgColor,
                             ...c,
-                            click_func: () => {
-                                func()
+                            click_func: (button) => {
+                                func(button)
                             },
                         })
                     }
@@ -618,7 +618,6 @@ try {
                         num,
                         prev = false,
                         next = false,
-                        customElements = () => {},
                     ) => {
                         if (overlay !== `${name}${num}`) {
                             return
@@ -691,7 +690,6 @@ try {
                         const startX = center - buttonSize * 1.5 - gap
                         let x = startX
                         y += gap + buttonSize / 2
-                        customElements(y)
                         let count = 0
                         const split = 3
                         for (const button of buttons) {
@@ -706,9 +704,9 @@ try {
                                         x: x,
                                         y: y,
                                     },
-                                    () => {
+                                    (b) => {
                                         console.log('running button')
-                                        button.func()
+                                        button.func(b)
                                     },
                                 )
                             }
@@ -839,41 +837,49 @@ try {
                         )
                     }
 
-                    const formatTimer = () =>
-                        [newTimer.hour, newTimer.minute, newTimer.second]
-                            .map((v) => String(v).padStart(2, '0'))
-                            .join(':')
-
-                    const displayTimerTime = () => {
-                        e.timerDisplay.setProperty(
-                            hmUI.prop.TEXT,
-                            formatTimer(),
-                        )
-                    }
                     createControls(
                         [
-                            null,
-                            null,
-                            null,
                             {
-                                text: 'hour',
-                                func: () => {
+                                text: newTimer.hour.toString().padStart(2, '0'),
+                                icon: true,
+                                func: (b) => {
                                     newTimer.hour += 1
-                                    displayTimerTime()
+                                    b.setProperty(
+                                        hmUI.prop.TEXT,
+                                        newTimer.hour
+                                            .toString()
+                                            .padStart(2, '0'),
+                                    )
                                 },
                             },
                             {
-                                text: 'minute',
-                                func: () => {
+                                text: newTimer.minute
+                                    .toString()
+                                    .padStart(2, '0'),
+                                icon: true,
+                                func: (b) => {
                                     newTimer.minute += 1
-                                    displayTimerTime()
+                                    b.setProperty(
+                                        hmUI.prop.TEXT,
+                                        newTimer.minute
+                                            .toString()
+                                            .padStart(2, '0'),
+                                    )
                                 },
                             },
                             {
-                                text: 'second',
-                                func: () => {
+                                text: newTimer.second
+                                    .toString()
+                                    .padStart(2, '0'),
+                                icon: true,
+                                func: (b) => {
                                     newTimer.second += 1
-                                    displayTimerTime()
+                                    b.setProperty(
+                                        hmUI.prop.TEXT,
+                                        newTimer.second
+                                            .toString()
+                                            .padStart(2, '0'),
+                                    )
                                 },
                             },
                             {
@@ -886,10 +892,19 @@ try {
                                 },
                             },
                             {
+                                text: 'set silent',
+                                func: () => {
+                                    phoneAction(
+                                        `timerSilent ${newTimer.hour * 3600 + newTimer.minute * 60 + newTimer.second}`,
+                                    )
+                                    setOverlay()
+                                },
+                            },
+                            {
                                 text: 'reset',
                                 func: () => {
                                     resetTimer()
-                                    displayTimerTime()
+                                    render()
                                 },
                             },
                             {
@@ -903,27 +918,6 @@ try {
                         0,
                         false,
                         false,
-                        (y) => {
-                            addElement(
-                                overlayFG,
-                                hmUI.widget.TEXT,
-                                {
-                                    ...timeCoords,
-                                    y: y,
-                                    text_size: iconSize,
-                                    char_space: 0,
-                                    font: font,
-                                    color: fgColor,
-                                    line_space: 0,
-                                    align_v: hmUI.align.CENTER_V,
-                                    text: formatTimer(),
-                                    text_style: hmUI.text_style.ELLIPSIS,
-                                    align_h: hmUI.align.CENTER_H,
-                                    show_level: hmUI.show_level.ONLY_NORMAL,
-                                },
-                                'timerDisplay',
-                            )
-                        },
                     )
 
                     for (const size of fontSizes) {
