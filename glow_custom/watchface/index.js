@@ -848,7 +848,7 @@ try {
                         {
                             text: 'aod',
                             func: () => {
-                                phoneAction('AOD')
+                                phoneAction('aod')
                                 setOverlay()
                             },
                         },
