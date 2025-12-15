@@ -540,7 +540,7 @@ try {
                                 start_angle: 0,
                                 end_angle: 360,
                                 level: 100,
-                                radius: radius - lineWidth / 2,
+                                radius: radius - arcWidth / 2,
                                 line_width: arcWidth,
                                 color: accentBgColor,
                                 show_level: hmUI.show_level.ONLY_NORMAL,
@@ -556,7 +556,7 @@ try {
                                 start_angle: 0,
                                 end_angle: 360,
                                 level: initialLevel,
-                                radius: radius - lineWidth / 2,
+                                radius: radius - arcWidth / 2,
                                 line_width: arcWidth,
                                 color: accentColor,
                                 show_level: hmUI.show_level.ONLY_NORMAL,
@@ -573,10 +573,10 @@ try {
 
                             const x =
                                 center +
-                                (radius - lineWidth / 2) * Math.cos(angleRad)
+                                (radius - arcWidth / 2) * Math.cos(angleRad)
                             const y =
                                 center +
-                                (radius - lineWidth / 2) * Math.sin(angleRad)
+                                (radius - arcWidth / 2) * Math.sin(angleRad)
                             const newLevel = Math.round(
                                 (100 / (numButtons - 1)) * i,
                             )
@@ -584,10 +584,10 @@ try {
                                 overlayButtons,
                                 hmUI.widget.BUTTON,
                                 {
-                                    x: x - lineWidth / 2,
-                                    y: y - lineWidth / 2,
-                                    w: lineWidth,
-                                    h: lineWidth,
+                                    x: x - arcWidth / 2,
+                                    y: y - arcWidth / 2,
+                                    w: arcWidth,
+                                    h: arcWidth,
                                     color: fgColor,
                                     text_size: big,
                                     press_src: buttonImage,
@@ -599,7 +599,7 @@ try {
                                             hmUI.prop.MORE,
                                             {
                                                 level: newLevel,
-                                                radius: radius - lineWidth / 2,
+                                                radius: radius - arcWidth / 2,
                                             },
                                         )
                                     },
