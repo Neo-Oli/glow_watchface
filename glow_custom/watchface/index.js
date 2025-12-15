@@ -106,7 +106,9 @@ try {
         let idle_timerTimeUpdate = undefined
         let weatherData
         let cityName
-        const center = 233
+        const screensize = 466
+        const center = screensize / 2
+        const secondGap = 2
 
         let overlay = ''
 
@@ -521,7 +523,7 @@ try {
                     }
                     const createArcControl = (name, initialLevel, func) => {
                         const arcWidth = 70
-                        const radius = 233
+                        const radius = center
                         addElement(overlayBG, hmUI.widget.CIRCLE, {
                             center_x: center,
                             center_y: center,
@@ -968,8 +970,8 @@ try {
                     addElement(bg, hmUI.widget.FILL_RECT, {
                         x: 0,
                         y: 0,
-                        w: 466,
-                        h: 466,
+                        w: screensize,
+                        h: screensize,
                         color: bgColor,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
@@ -1176,29 +1178,28 @@ try {
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
                     const secondRadius = 231
-                    addElement(widgetBg, hmUI.widget.ARC_PROGRESS, {
-                        center_x: center,
-                        center_y: center,
+                    addElement(widgetBg, hmUI.widget.ARC, {
+                        x: secondGap,
+                        y: secondGap,
+                        h: screensize - secondGap,
+                        w: screensize - secondGap,
                         start_angle: 0,
                         end_angle: 360,
-                        radius: secondRadius,
                         line_width: lineWidth,
-                        level: 100,
-                        corner_flag: 3,
                         color: accentBgColor,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
                     addElement(
                         widgetContent,
-                        hmUI.widget.ARC_PROGRESS,
+                        hmUI.widget.ARC,
                         {
-                            center_x: center,
-                            center_y: center,
+                            x: secondGap,
+                            y: secondGap,
+                            h: screensize - secondGap,
+                            w: screensize - secondGap,
                             start_angle: 0,
                             end_angle: 360,
-                            radius: secondRadius,
                             line_width: lineWidth,
-                            corner_flag: 3,
                             color: accentColor,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
@@ -1335,9 +1336,13 @@ try {
                     e.time.setProperty(hmUI.prop.TEXT, normal_HourMinSecStr)
 
                     // Second Circle
-                    let level = (second / 60) * 100
-                    if (level === 0) level = 360
-                    e.secondCircle.setProperty(hmUI.prop.LEVEL, level)
+                    const level = (second / 60) * 360 - 90
+                    //if (level === 0) level = 360
+                    const pointersize = 6
+                    e.secondCircle.setProperty(hmUI.prop.MORE, {
+                        start_angle: level - pointersize / 2,
+                        end_angle: level + pointersize / 2,
+                    })
 
                     if (updateMinute) {
                         const hourStr = format_hour.toString().padStart(2, '0')
