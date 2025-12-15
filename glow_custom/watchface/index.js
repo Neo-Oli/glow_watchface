@@ -542,7 +542,7 @@ try {
                                 level: 100,
                                 radius: radius - arcWidth / 2,
                                 line_width: arcWidth,
-                                color: accentBgColor,
+                                color: bgColor,
                                 show_level: hmUI.show_level.ONLY_NORMAL,
                             },
                             `${name}ArcBg`,
@@ -558,7 +558,7 @@ try {
                                 level: initialLevel,
                                 radius: radius - arcWidth / 2,
                                 line_width: arcWidth,
-                                color: accentColor,
+                                color: fgColor,
                                 show_level: hmUI.show_level.ONLY_NORMAL,
                             },
                             `${name}Arc`,
@@ -592,7 +592,7 @@ try {
                                     text_size: big,
                                     press_src: buttonImage,
                                     normal_src: buttonImage,
-                                    text: `${newLevel}`,
+                                    //text: `${newLevel}`,
                                     click_func: () => {
                                         func(newLevel)
                                         e[`${name}Arc`].setProperty(
