@@ -97,6 +97,7 @@ try {
         }
         const iconSize = 50
         const circleRadius = 47
+        const lineWidth = 5
         const buttonImage = 'empty.png'
         const debugImage = 'debug.png'
         const dayNames = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
@@ -409,6 +410,18 @@ try {
                             color: elementBgColor,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         })
+                        addElement(widgetBg, hmUI.widget.ARC_PROGRESS, {
+                            center_x: x,
+                            center_y: y,
+                            radius: circleRadius,
+                            start_angle: 0,
+                            end_angle: 360,
+                            line_width: lineWidth,
+                            level: 100,
+                            corner_flag: 3,
+                            color: elementBgColor,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        })
                         addElement(
                             widgetContent,
                             hmUI.widget.ARC_PROGRESS,
@@ -418,7 +431,7 @@ try {
                                 radius: circleRadius,
                                 start_angle: 0,
                                 end_angle: 360,
-                                line_width: 5,
+                                line_width: lineWidth,
                                 corner_flag: 3,
                                 color: fgColor,
                                 show_level: hmUI.show_level.ONLY_NORMAL,
@@ -507,7 +520,7 @@ try {
                         })
                     }
                     const createArcControl = (name, initialLevel, func) => {
-                        const lineWidth = 70
+                        const arcWidth = 70
                         const radius = 233
                         addElement(overlayBG, hmUI.widget.CIRCLE, {
                             center_x: center,
@@ -526,7 +539,7 @@ try {
                                 end_angle: 360,
                                 level: 100,
                                 radius: radius - lineWidth / 2,
-                                line_width: lineWidth,
+                                line_width: arcWidth,
                                 color: accentBgColor,
                                 show_level: hmUI.show_level.ONLY_NORMAL,
                             },
@@ -542,7 +555,7 @@ try {
                                 end_angle: 360,
                                 level: initialLevel,
                                 radius: radius - lineWidth / 2,
-                                line_width: lineWidth,
+                                line_width: arcWidth,
                                 color: accentColor,
                                 show_level: hmUI.show_level.ONLY_NORMAL,
                             },
@@ -822,6 +835,20 @@ try {
                             text: 'find my device',
                             func: () => {
                                 phoneAction('findMyDevice')
+                                setOverlay()
+                            },
+                        },
+                        {
+                            text: 'preserve',
+                            func: () => {
+                                phoneAction('preserve')
+                                setOverlay()
+                            },
+                        },
+                        {
+                            text: 'aod',
+                            func: () => {
+                                phoneAction('AOD')
                                 setOverlay()
                             },
                         },
@@ -1148,6 +1175,19 @@ try {
                         normal_src: buttonImage,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
+                    const secondRadius = 231
+                    addElement(widgetBg, hmUI.widget.ARC_PROGRESS, {
+                        center_x: center,
+                        center_y: center,
+                        start_angle: 0,
+                        end_angle: 360,
+                        radius: secondRadius,
+                        line_width: lineWidth,
+                        level: 100,
+                        corner_flag: 3,
+                        color: accentBgColor,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
                     addElement(
                         widgetContent,
                         hmUI.widget.ARC_PROGRESS,
@@ -1156,10 +1196,10 @@ try {
                             center_y: center,
                             start_angle: 0,
                             end_angle: 360,
-                            radius: 231,
-                            line_width: 5,
+                            radius: secondRadius,
+                            line_width: lineWidth,
                             corner_flag: 3,
-                            color: fgColor,
+                            color: accentColor,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
                         'secondCircle',
