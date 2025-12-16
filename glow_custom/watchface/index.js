@@ -542,7 +542,7 @@ try {
                                 level: 100,
                                 radius: radius - arcWidth / 2,
                                 line_width: arcWidth,
-                                color: bgColor,
+                                color: elementBgColor,
                                 show_level: hmUI.show_level.ONLY_NORMAL,
                             },
                             `${name}ArcBg`,
@@ -851,6 +851,13 @@ try {
                             text: 'aod',
                             func: () => {
                                 phoneAction('aod')
+                                setOverlay()
+                            },
+                        },
+                        {
+                            text: 'light',
+                            func: () => {
+                                phoneAction('light')
                                 setOverlay()
                             },
                         },
