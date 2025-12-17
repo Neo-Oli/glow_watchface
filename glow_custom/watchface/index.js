@@ -720,7 +720,6 @@ try {
                                         y: y,
                                     },
                                     (b) => {
-                                        console.log('running button')
                                         button.func(b)
                                     },
                                 )
@@ -1421,7 +1420,6 @@ try {
                         accentColor = Number(`0xFF${accentColorHex}`)
                         accentBgColor = Number(`0xFF${accentBgColorHex}`)
                         init = true
-                        console.log('colors set')
                     }
                     newColorCache.push(fgColor)
                     newColorCache.push(bgColor)
