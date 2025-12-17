@@ -306,7 +306,6 @@ try {
                     if (timer_StopVibrate) timer.stopTimer(timer_StopVibrate)
                 }
                 const setOverlay = (newOverlay = '') => {
-                    console.log(`Setting overlay to ${newOverlay}`)
                     overlay = newOverlay
                     scale_call()
                     time_update(true, true)
@@ -617,7 +616,6 @@ try {
                                 y: center - buttonRadius / 2,
                             },
                             () => {
-                                console.log('closing overlay')
                                 setOverlay()
                             },
                         )
@@ -1367,7 +1365,6 @@ try {
                     const newCityName = weatherData.cityName
                     if (cityName !== newCityName) {
                         cityName = newCityName
-                        console.log('city name update')
                         scale_call()
                     }
                 }
