@@ -28,39 +28,30 @@ try {
 
         const font = 'fonts/3270NerdFontMono-Regular.ttf'
 
-        //dynamic modify start
+        let lastRareUpdate = 0
+        let temp = ''
+        let condition = ''
+        let humidity = ''
+        let sunrise = ''
+        let sunset = ''
 
-        const weather_icons = [
-            ' ', // 0 Cloudy
-            ' ', // 1 Shower
-            '󰖘 ', // 2 Snow shower
-            '󰖙 ', // 3 Sunny
-            ' ', // 4 Overcast
-            '󰖗 ', // 5 Light rain
-            '󰖘 ', // 6 Light snow
-            ' ', // 7 Moderate rain
-            '󰖘 ', // 8 Moderate snow
-            '󰼶 ', // 9 Heavy snow
-            ' ', // 10 Heavy rain
-            ' ', // 11 Sandstorm
-            ' ', // 12 Sleet
-            '󰖑 ', // 13 Fog
-            '󰖑 ', // 14 Haze
-            ' ', // 15 Thundershower
-            '󰖘 ', // 16 Snowstorm
-            ' ', // 17 Dust
-            ' ', // 18 Extraordinary rainstorm
-            '󰙿 ', // 19 Rain with hail
-            ' ', // 20 Thundershowers with hail
-            ' ', // 21 Heavy rainstorm
-            ' ', // 22 Sand blowing
-            ' ', // 23 Strong sandstorm
-            ' ', // 24 Rainstorm
-            ' ', // 25 Unknown weather
-            '󰼱 ', // 26 Cloudy at night
-            ' ', // 27 Shower at night
-            ' ', // 28 Clear night
-        ]
+        const weather_icons = {
+            thunderstorm: ' ',
+            light_rain: '󰖗 ',
+            rain: ' ',
+            snow: '󰖘 ',
+            heavy_snow: '󰼶 ',
+            rain_snow: '󰙿 ',
+            sleet: ' ',
+            fog: '󰖑 ',
+            sun: '󰖙 ',
+            cloud: ' ',
+            heavy_cloud: ' ',
+            cloud_sun: '󰖕 ',
+            cloud_moon: '󰼱 ',
+            clear_night: ' ',
+            wind: ' ',
+        }
 
         const clocks = [
             '󱑊',
@@ -115,7 +106,7 @@ try {
         let colorCache = ''
         const cacheText = [
             "$|^0123456789 _-.,:;`'% ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzäöüÄÖÜéè°\\/",
-            weather_icons.join(''),
+            Object.values(weather_icons).join(''),
             clocks.join(''),
             Object.values(icons).join(''),
         ].join('')
@@ -249,6 +240,42 @@ try {
                     if (name) {
                         e[name] = widget
                     }
+                }
+            }
+        }
+        const updateProgress = (
+            value,
+            target,
+            text,
+            circle,
+            iconElement,
+            icon,
+            screenType,
+        ) => {
+            let progress = value / target
+            if (progress > 1) progress = 1
+
+            if (screenType !== hmSetting.screen_type.AOD) {
+                const level = Math.round(progress * 100)
+                if (circle)
+                    addAnimation(
+                        circle,
+                        0,
+                        level,
+                        100,
+                        'level',
+                        hmUI.prop.MORE,
+                        {
+                            radius: circleRadius,
+                        },
+                    )
+                circle.setProperty(hmUI.prop.MORE, {
+                    radius: circleRadius,
+                    level,
+                })
+                if (text) text.setProperty(hmUI.prop.TEXT, `${value}%`)
+                if (iconElement && icon) {
+                    iconElement.setProperty(hmUI.prop.TEXT, icon)
                 }
             }
         }
@@ -858,6 +885,15 @@ try {
                                 setOverlay()
                             },
                         },
+                        /*
+                         * {
+                         * text: 'test function',
+                         * func: () => {
+                         * lastRareUpdate=0
+                         * setOverlay()
+                         * },
+                         * },
+                         */
                     ]
                     const perPage = 9
                     for (let i = 0; i < controls.length; i += perPage) {
@@ -1007,22 +1043,26 @@ try {
                     })
 
                     //weather
-                    addElement(widgetContent, hmUI.widget.TEXT_FONT, {
-                        x: 290,
-                        y: weatherPos - 2,
-                        w: 150,
-                        h: 30,
-                        text_size: small,
-                        char_space: 0,
-                        font: font,
-                        color: fgColor,
-                        line_space: 0,
-                        align_v: hmUI.align.TOP,
-                        text_style: hmUI.text_style.ELLIPSIS,
-                        align_h: hmUI.align.LEFT,
-                        type: hmUI.data_type.SUN_RISE,
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    })
+                    addElement(
+                        widgetContent,
+                        hmUI.widget.TEXT,
+                        {
+                            x: 290,
+                            y: weatherPos - 2,
+                            w: 150,
+                            h: 30,
+                            text_size: small,
+                            char_space: 0,
+                            font: font,
+                            color: fgColor,
+                            line_space: 0,
+                            align_v: hmUI.align.TOP,
+                            text_style: hmUI.text_style.ELLIPSIS,
+                            align_h: hmUI.align.LEFT,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        },
+                        'sunrise',
+                    )
                     addElement(buttons, hmUI.widget.IMG_CLICK, {
                         x: 285,
                         y: 90,
@@ -1033,40 +1073,47 @@ try {
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
 
-                    addElement(widgetContent, hmUI.widget.TEXT_FONT, {
-                        x: 290,
-                        y: weatherPos + 12,
-                        w: 150,
-                        h: 30,
-                        text_size: small,
-                        char_space: 0,
-                        font: font,
-                        color: fgColor,
-                        line_space: 0,
-                        align_v: hmUI.align.TOP,
-                        text_style: hmUI.text_style.ELLIPSIS,
-                        align_h: hmUI.align.LEFT,
-                        type: hmUI.data_type.SUN_SET,
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    })
+                    addElement(
+                        widgetContent,
+                        hmUI.widget.TEXT,
+                        {
+                            x: 290,
+                            y: weatherPos + 12,
+                            w: 150,
+                            h: 30,
+                            text_size: small,
+                            char_space: 0,
+                            font: font,
+                            color: fgColor,
+                            line_space: 0,
+                            align_v: hmUI.align.TOP,
+                            text_style: hmUI.text_style.ELLIPSIS,
+                            align_h: hmUI.align.LEFT,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        },
+                        'sunset',
+                    )
 
-                    addElement(widgetContent, hmUI.widget.TEXT_FONT, {
-                        x: 130,
-                        y: weatherPos,
-                        w: 150,
-                        h: weatherHeight,
-                        text_size: big,
-                        char_space: 0,
-                        font: font,
-                        color: fgColor,
-                        line_space: 0,
-                        align_v: hmUI.align.CENTER_V,
-                        text_style: hmUI.text_style.ELLIPSIS,
-                        align_h: hmUI.align.RIGHT,
-                        unit_type: 1,
-                        type: hmUI.data_type.HUMIDITY,
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    })
+                    addElement(
+                        widgetContent,
+                        hmUI.widget.TEXT,
+                        {
+                            x: 130,
+                            y: weatherPos,
+                            w: 150,
+                            h: weatherHeight,
+                            text_size: big,
+                            char_space: 0,
+                            font: font,
+                            color: fgColor,
+                            line_space: 0,
+                            align_v: hmUI.align.CENTER_V,
+                            text_style: hmUI.text_style.ELLIPSIS,
+                            align_h: hmUI.align.RIGHT,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        },
+                        'humidity',
+                    )
 
                     //date
                     drawRect(dateCoords)
@@ -1274,23 +1321,26 @@ try {
                         x: weatherStart,
                         y: weatherPos,
                     })
-                    addElement(widgetContent, hmUI.widget.TEXT_FONT, {
-                        x: weatherStart,
-                        y: weatherPos,
-                        w: 100,
-                        h: weatherHeight,
-                        text_size: big,
-                        char_space: 0,
-                        font: font,
-                        color: fgColor,
-                        line_space: 0,
-                        align_v: hmUI.align.CENTER_V,
-                        text_style: hmUI.text_style.ELLIPSIS,
-                        align_h: hmUI.align.RIGHT,
-                        unit_type: 1,
-                        type: hmUI.data_type.WEATHER_CURRENT,
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    })
+                    addElement(
+                        widgetContent,
+                        hmUI.widget.TEXT,
+                        {
+                            x: weatherStart,
+                            y: weatherPos,
+                            w: 100,
+                            h: weatherHeight,
+                            text_size: big,
+                            char_space: 0,
+                            font: font,
+                            color: fgColor,
+                            line_space: 0,
+                            align_v: hmUI.align.CENTER_V,
+                            text_style: hmUI.text_style.ELLIPSIS,
+                            align_h: hmUI.align.RIGHT,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        },
+                        'temp',
+                    )
                     addElement(buttons, hmUI.widget.IMG_CLICK, {
                         x: 90,
                         y: 90,
@@ -1380,168 +1430,147 @@ try {
                 function scale_call() {
                     animation = []
                     const newColorCache = []
-                    const normal_cityNameStr = weatherData?.cityName || ''
+                    const now = s.time.utc
                     const separator = '§'
-                    let colors
-                    let phoneBattery = '-2'
-                    let cityName = 'Default City'
-                    let media = ''
-                    if (normal_cityNameStr.includes(separator)) {
-                        ;[
-                            colors,
-                            phoneBattery = '-3',
-                            volume,
-                            cityName = '',
-                            media = '',
-                        ] = normal_cityNameStr.split(separator)
-                    }
+                    const dataStr = weatherData?.cityName || ''
 
-                    let fgColorHex,
-                        bgColorHex,
-                        elementBgColorHex,
-                        accentColorHex,
-                        accentBgColorHex
-
-                    if (colors) {
-                        ;[
+                    const first = dataStr[0] || ''
+                    const equals = dataStr[1] || ''
+                    const data = dataStr.slice(2)
+                    if (equals === '=' && first === 'i') {
+                        const [
                             bgColorHex = '000000',
                             fgColorHex = 'FFFFFF',
                             elementBgColorHex = '333333',
                             accentColorHex = 'FF0000',
                             accentBgColorHex = '666666',
-                        ] = colors.match(/.{1,6}/g)
-
+                        ] = data.split(separator)
                         fgColor = Number(`0xFF${fgColorHex}`)
                         bgColor = Number(`0xFF${bgColorHex}`)
                         elementBgColor = Number(`0xFF${elementBgColorHex}`)
                         accentColor = Number(`0xFF${accentColorHex}`)
                         accentBgColor = Number(`0xFF${accentBgColorHex}`)
                         init = true
-                    }
-                    newColorCache.push(fgColor)
-                    newColorCache.push(bgColor)
-                    newColorCache.push(elementBgColor)
-                    newColorCache.push(accentColor)
-                    newColorCache.push(accentBgColor)
-                    newColorCache.push(volume)
-                    newColorCache.push(overlay)
-                    if (!init) {
-                        phoneAction('init')
-                    }
-                    e.cityName.setProperty(
-                        hmUI.prop.TEXT,
-                        shorten(cityName, cityLength),
-                    )
-                    if (!cityName) {
-                        e.cityBG.setProperty(hmUI.prop.COLOR, bgColor)
+                    } else if (equals === '=' && first === 'r') {
+                        const [weather] = data.split(separator)
+                        ;[temp, condition, humidity, sunrise, sunset] =
+                            weather.split('£')
+                        lastRareUpdate = now
                     } else {
-                        e.cityBG.setProperty(hmUI.prop.COLOR, elementBgColor)
-                    }
-                    e.media.setProperty(
-                        hmUI.prop.TEXT,
-                        shorten(media, cityLength),
-                    )
-                    mediaPlaying = false
-                    if (!media) {
-                        e.mediaBG.setProperty(hmUI.prop.COLOR, bgColor)
-                    } else {
-                        e.mediaBG.setProperty(hmUI.prop.COLOR, elementBgColor)
-                        if (media.startsWith(icons.play)) {
-                            mediaPlaying = true
+                        const [
+                            phoneBattery = '-3',
+                            newVolume,
+                            cityName = 'No City',
+                            media = 'Loading Media',
+                        ] = dataStr.split(separator)
+                        volume = newVolume
+
+                        e.cityName.setProperty(
+                            hmUI.prop.TEXT,
+                            shorten(cityName, cityLength),
+                        )
+                        if (!cityName) {
+                            e.cityBG.setProperty(hmUI.prop.COLOR, bgColor)
+                        } else {
+                            e.cityBG.setProperty(
+                                hmUI.prop.COLOR,
+                                elementBgColor,
+                            )
                         }
-                    }
-                    newColorCache.push(mediaPlaying.toString())
-                    const condition =
-                        weatherData?.forecastData?.data?.[0]?.index ?? -1
-                    e.condition.setProperty(
-                        hmUI.prop.TEXT,
-                        condition_icon(condition),
-                    )
-
-                    const updateProgress = (
-                        value,
-                        target,
-                        text,
-                        circle,
-                        iconElement,
-                        icon,
-                    ) => {
-                        let progress = value / target
-                        if (progress > 1) progress = 1
-
-                        if (screenType !== hmSetting.screen_type.AOD) {
-                            const level = Math.round(progress * 100)
-                            if (circle)
-                                addAnimation(
-                                    circle,
-                                    0,
-                                    level,
-                                    100,
-                                    'level',
-                                    hmUI.prop.MORE,
-                                    {
-                                        radius: circleRadius,
-                                    },
-                                )
-                            circle.setProperty(hmUI.prop.MORE, {
-                                radius: circleRadius,
-                                level,
-                            })
-                            if (text)
-                                text.setProperty(hmUI.prop.TEXT, `${value}%`)
-                            if (iconElement && icon) {
-                                iconElement.setProperty(hmUI.prop.TEXT, icon)
+                        e.media.setProperty(
+                            hmUI.prop.TEXT,
+                            shorten(media, cityLength),
+                        )
+                        mediaPlaying = false
+                        if (!media) {
+                            e.mediaBG.setProperty(hmUI.prop.COLOR, bgColor)
+                        } else {
+                            e.mediaBG.setProperty(
+                                hmUI.prop.COLOR,
+                                elementBgColor,
+                            )
+                            if (media.startsWith(icons.play)) {
+                                mediaPlaying = true
                             }
                         }
-                    }
+                        e.temp.setProperty(hmUI.prop.TEXT, `${temp}°`)
+                        e.humidity.setProperty(hmUI.prop.TEXT, `${humidity}%`)
+                        e.sunrise.setProperty(hmUI.prop.TEXT, sunrise)
+                        e.sunset.setProperty(hmUI.prop.TEXT, sunset)
+                        e.condition.setProperty(
+                            hmUI.prop.TEXT,
+                            condition_icon(condition),
+                        )
+                        updateProgress(
+                            phoneBattery,
+                            100,
+                            e.phoneBattery,
+                            e.phoneBatteryCircle,
+                            e.phoneBatteryIcon,
+                            icons.phone,
+                            screenType,
+                        )
+                        if (!init) {
+                            phoneAction('init')
+                        } else if (
+                            !lastRareUpdate ||
+                            now - lastRareUpdate > 15 * 60 * 1000
+                        ) {
+                            phoneAction('rare')
+                        }
+                        newColorCache.push(fgColor)
+                        newColorCache.push(bgColor)
+                        newColorCache.push(elementBgColor)
+                        newColorCache.push(accentColor)
+                        newColorCache.push(accentBgColor)
+                        //newColorCache.push(mediaPlaying.toString())
+                        newColorCache.push(volume)
+                        newColorCache.push(overlay)
 
-                    updateProgress(
-                        s.battery.current,
-                        100,
-                        e.battery,
-                        e.batteryCircle,
-                        e.batteryIcon,
-                        clocks[s.time.hour % 12],
-                    )
-                    updateProgress(
-                        phoneBattery,
-                        100,
-                        e.phoneBattery,
-                        e.phoneBatteryCircle,
-                        e.phoneBatteryIcon,
-                        icons.phone,
-                    )
+                        updateProgress(
+                            s.battery.current,
+                            100,
+                            e.battery,
+                            e.batteryCircle,
+                            e.batteryIcon,
+                            clocks[s.time.hour % 12],
+                            screenType,
+                        )
 
-                    addSensor('heart', hmSensor.id.HEART)
-                    addSensor('sleep', hmSensor.id.SLEEP)
-                    addSensor('distance', hmSensor.id.DISTANCE)
-                    addSensor('steps', hmSensor.id.STEP)
+                        addSensor('heart', hmSensor.id.HEART)
+                        addSensor('sleep', hmSensor.id.SLEEP)
+                        addSensor('distance', hmSensor.id.DISTANCE)
+                        addSensor('steps', hmSensor.id.STEP)
 
-                    e.steps.setProperty(
-                        hmUI.prop.TEXT,
-                        s.steps.current.toString(),
-                    )
-                    const formatDistance = (m) =>
-                        m < 1000 ? `${m} m` : `${(m / 1000).toFixed(1)} km`
-                    e.distance.setProperty(
-                        hmUI.prop.TEXT,
-                        formatDistance(s.distance.current),
-                    )
-                    e.heart.setProperty(hmUI.prop.TEXT, `${s.heart.last} bbm`)
-                    const toHMM = (m) =>
-                        `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`
-                    e.sleep.setProperty(
-                        hmUI.prop.TEXT,
-                        `${toHMM(s.sleep.getTotalTime())}`,
-                    )
+                        e.steps.setProperty(
+                            hmUI.prop.TEXT,
+                            s.steps.current.toString(),
+                        )
+                        const formatDistance = (m) =>
+                            m < 1000 ? `${m} m` : `${(m / 1000).toFixed(1)} km`
+                        e.distance.setProperty(
+                            hmUI.prop.TEXT,
+                            formatDistance(s.distance.current),
+                        )
+                        e.heart.setProperty(
+                            hmUI.prop.TEXT,
+                            `${s.heart.last} bbm`,
+                        )
+                        const toHMM = (m) =>
+                            `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`
+                        e.sleep.setProperty(
+                            hmUI.prop.TEXT,
+                            `${toHMM(s.sleep.getTotalTime())}`,
+                        )
 
-                    newColorCache.push(hmBle.connectStatus().toString())
-                    const finalColorCache = newColorCache.join('')
-                    if (colorCache !== finalColorCache) {
-                        colorCache = finalColorCache
-                        render()
-                        scale_call()
-                        time_update(true, true)
+                        newColorCache.push(hmBle.connectStatus().toString())
+                        const finalColorCache = newColorCache.join('')
+                        if (colorCache !== finalColorCache) {
+                            colorCache = finalColorCache
+                            render()
+                            scale_call()
+                            time_update(true, true)
+                        }
                     }
                 }
                 const runAnimations = () => {
