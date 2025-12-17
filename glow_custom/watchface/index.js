@@ -1419,8 +1419,13 @@ try {
                     }
                 }
 
-                function condition_icon(condition) {
-                    if (condition in weather_icons) {
+                const condition_icon = (condition) => {
+                    if (
+                        Object.prototype.hasOwnProperty.call(
+                            weather_icons,
+                            condition,
+                        )
+                    ) {
                         return weather_icons[condition]
                     }
                     return condition.toString()
