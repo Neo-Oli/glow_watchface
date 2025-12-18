@@ -28,6 +28,38 @@ try {
 
         const font = 'fonts/3270NerdFontMono-Regular.ttf'
 
+        const filename = 'glow-settings.json'
+
+        const readJsonFile = (filename) => {
+            const [stat, err] = hmFS.stat(filename)
+            if (err !== 0) {
+                console.log('File does not exist')
+                return null
+            }
+
+            const buf = new Uint8Array(stat.size)
+            const fd = hmFS.open(filename, hmFS.O_RDONLY)
+            if (fd < 0) {
+                console.log('Failed to open file')
+                return null
+            }
+
+            hmFS.read(fd, buf.buffer, 0, buf.length)
+            hmFS.close(fd)
+
+            let json = ''
+            for (let i = 0; i < buf.length; i++) {
+                json += String.fromCharCode(buf[i])
+            }
+
+            try {
+                return JSON.parse(json)
+            } catch (e) {
+                console.log('JSON parse error', e)
+                return null
+            }
+        }
+
         let lastRareUpdate = 0
         let temp = ''
         let condition = ''
@@ -128,6 +160,16 @@ try {
         let elementBgColor = 0xff333333
         let accentColor = 0xffff0000
         let accentBgColor = 0xff666666
+
+        const initSettings = readJsonFile(filename)
+
+        if (initSettings) {
+            fgColor = initSettings.fgColor ?? fgColor
+            bgColor = initSettings.bgColor ?? bgColor
+            elementBgColor = initSettings.elementBgColor ?? elementBgColor
+            accentColor = initSettings.accentColor ?? accentColor
+            accentBgColor = initSettings.accentBgColor ?? accentBgColor
+        }
 
         const ystart = 45
         const gap = 10
@@ -1443,6 +1485,7 @@ try {
                     const equals = dataStr[1] || ''
                     const data = dataStr.slice(2)
                     if (equals === '=' && first === 'i') {
+                        init = true
                         const [
                             bgColorHex = '000000',
                             fgColorHex = 'FFFFFF',
@@ -1455,7 +1498,27 @@ try {
                         elementBgColor = Number(`0xFF${elementBgColorHex}`)
                         accentColor = Number(`0xFF${accentColorHex}`)
                         accentBgColor = Number(`0xFF${accentBgColorHex}`)
-                        init = true
+
+                        const obj = {
+                            fgColor: fgColor,
+                            bgColor: bgColor,
+                            elementBgColor: elementBgColor,
+                            accentColor: accentColor,
+                            accentBgColor: accentBgColor,
+                        }
+                        const json = JSON.stringify(obj)
+
+                        const bytes = new Uint8Array(json.length)
+                        for (let i = 0; i < json.length; i++) {
+                            bytes[i] = json.charCodeAt(i)
+                        }
+
+                        const fd = hmFS.open(
+                            filename,
+                            hmFS.O_RDWR | hmFS.O_CREAT | hmFS.O_TRUNC,
+                        )
+                        hmFS.write(fd, bytes.buffer, 0, bytes.length)
+                        hmFS.close(fd)
                     } else if (equals === '=' && first === 'r') {
                         const [weather] = data.split(separator)
                         ;[temp, condition, humidity, sunrise, sunset] =
@@ -1515,13 +1578,15 @@ try {
                             icons.phone,
                             screenType,
                         )
-                        if (!init) {
-                            phoneAction('init')
-                        } else if (
-                            !lastRareUpdate ||
-                            now - lastRareUpdate > 15 * 60 * 1000
-                        ) {
-                            phoneAction('rare')
+                        if (screenType === hmSetting.screen_type.WATCHFACE) {
+                            if (!init) {
+                                phoneAction('init')
+                            } else if (
+                                !lastRareUpdate ||
+                                now - lastRareUpdate > 15 * 60 * 1000
+                            ) {
+                                phoneAction('rare')
+                            }
                         }
                         newColorCache.push(fgColor)
                         newColorCache.push(bgColor)
