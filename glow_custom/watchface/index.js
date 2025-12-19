@@ -124,14 +124,13 @@ try {
         const buttonImage = 'empty.png'
         const debugImage = 'debug.png'
         const dayNames = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
-        let normal_timerTimeUpdate = undefined
-        let normal_timerUpdateSec = undefined
-        let idle_timerTimeUpdate = undefined
+        let normal_timer = undefined
         let weatherData
         let cityName
         const screensize = 466
         const center = screensize / 2
         const secondGap = 2
+        let showSeparator = null
 
         let overlay = ''
 
@@ -1399,11 +1398,16 @@ try {
                 render()
                 //#region time_update
                 function time_update(updateHour = false, updateMinute = false) {
+                    if (showSeparator === null) {
+                        //make sure it starts out exactly in the first time update
+                        showSeparator = true
+                    } else {
+                        showSeparator = !showSeparator
+                    }
                     const hour = s.time.hour
                     const minute = s.time.minute
                     const second = s.time.second
                     const format_hour = s.time.format_hour
-                    const separator = second % 2 === 0 ? ':' : ' '
                     if (updateHour) {
                         let normal_DayStr = s.time.day.toString()
                         let normal_MonthStr = s.time.month.toString()
@@ -1422,6 +1426,8 @@ try {
                     const hourStr = format_hour.toString().padStart(2, '0')
                     const minuteStr = minute.toString().padStart(2, '0')
                     const secondStr = second.toString().padStart(2, '0')
+
+                    const separator = showSeparator ? ':' : ' '
 
                     let normal_HourMinSecStr = `${hourStr}${separator}${minuteStr}${separator}${secondStr}`
 
@@ -1691,78 +1697,26 @@ try {
                             scale_call()
                             time_update(true, true)
                             runAnimations()
-                            if (
-                                screenType === hmSetting.screen_type.WATCHFACE
-                            ) {
-                                if (!normal_timerTimeUpdate) {
-                                    normal_timerTimeUpdate = timer.createTimer(
-                                        0,
-                                        1000,
-                                        function (option) {
-                                            const updateHour =
-                                                s.time.minute === 0
-                                            const updateMinute =
-                                                s.time.second < 2
-                                            time_update(
-                                                updateHour,
-                                                updateMinute,
-                                            )
-                                        },
-                                    ) // end timer
-                                } // end timer check
-                            } // end screenType
-
-                            if (
-                                screenType === hmSetting.screen_type.WATCHFACE
-                            ) {
-                                if (!normal_timerUpdateSec) {
-                                    const animDelay = s.time.utc % 1000
-                                    const animRepeat = 1000
-                                    normal_timerUpdateSec = timer.createTimer(
-                                        animDelay,
-                                        animRepeat,
-                                        function (option) {
-                                            time_update(false, false)
-                                        },
-                                    ) // end timer
-                                } // end timer check
-                            } // end screenType
-
-                            if (screenType === hmSetting.screen_type.AOD) {
-                                if (!idle_timerTimeUpdate) {
-                                    idle_timerTimeUpdate = timer.createTimer(
-                                        0,
-                                        1000,
-                                        function (option) {
-                                            const updateHour =
-                                                s.time.minute === 0 &&
-                                                s.time.second < 2
-                                            const updateMinute =
-                                                s.time.second < 2
-                                            time_update(
-                                                updateHour,
-                                                updateMinute,
-                                            )
-                                        },
-                                    ) // end timer
-                                } // end timer check
-                            } // end screenType
-
+                            const animDelay = s.time.utc % 1000
+                            const animRepeat = 1000
+                            if (!normal_timer) {
+                                normal_timer = timer.createTimer(
+                                    animDelay,
+                                    animRepeat,
+                                    function () {
+                                        const updateHour = s.time.minute === 0
+                                        const updateMinute = s.time.second < 2
+                                        time_update(updateHour, updateMinute)
+                                    },
+                                )
+                            }
                             checkConnection()
                             stopVibro()
                         },
                         pause_call: function () {
-                            if (normal_timerTimeUpdate) {
-                                timer.stopTimer(normal_timerTimeUpdate)
-                                normal_timerTimeUpdate = undefined
-                            }
-                            if (normal_timerUpdateSec) {
-                                timer.stopTimer(normal_timerUpdateSec)
-                                normal_timerUpdateSec = undefined
-                            }
-                            if (idle_timerTimeUpdate) {
-                                timer.stopTimer(idle_timerTimeUpdate)
-                                idle_timerTimeUpdate = undefined
+                            if (normal_timer) {
+                                timer.stopTimer(normal_timer)
+                                normal_timer = undefined
                             }
                             stopVibro()
                             overlay = ''
