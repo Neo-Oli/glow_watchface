@@ -1696,7 +1696,7 @@ try {
                         resume_call: function () {
                             scale_call()
                             time_update(true, true)
-                            runAnimations()
+                            //runAnimations()
                             const animDelay = s.time.utc % 1000
                             const animRepeat = 1000
                             if (!normal_timer) {
