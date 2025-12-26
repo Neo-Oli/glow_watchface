@@ -1527,8 +1527,13 @@ try {
                         hmFS.close(fd)
                     } else if (equals === '=' && first === 'r') {
                         const [weather] = data.split(separator)
-                        ;[temp, condition, humidity, sunrise, sunset] =
-                            weather.split('£')
+                        ;[
+                            temp = 'Err',
+                            condition = 'Err',
+                            humidity = 'Err',
+                            sunrise = 'Err',
+                            sunset = 'Err',
+                        ] = weather.split('£')
                         lastRareUpdate = now
                     } else {
                         const [
