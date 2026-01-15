@@ -1525,6 +1525,9 @@ try {
                         )
                         hmFS.write(fd, bytes.buffer, 0, bytes.length)
                         hmFS.close(fd)
+                    } else if (equals === '=' && first === 'I') {
+                        init = false
+                        phoneAction('init')
                     } else if (equals === '=' && first === 'r') {
                         const [weather] = data.split(separator)
                         ;[
