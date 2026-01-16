@@ -279,7 +279,8 @@ try {
         const bg = 0
         const widgetBg = 1
         const widgetContent = 2
-        const buttons = 3
+        const overlayLayer = 3
+        const buttons = 4
         const addSensor = (name, sensor) => {
             if (!s.hasOwnProperty(name)) {
                 s[name] = hmSensor.createSensor(sensor)
@@ -1383,7 +1384,7 @@ try {
                     const outerCircleWidth = 100
                     addElement(
                         base,
-                        buttons,
+                        overlayLayer,
                         hmUI.widget.ARC,
                         {
                             x: 0 - outerCircleWidth,
