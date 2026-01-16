@@ -24,6 +24,30 @@ try {
             'watchface_SashaCX75',
         )
 
+        const createGradient = (start, end, pow, length) => {
+            const r1 = (start >> 16) & 0xff,
+                g1 = (start >> 8) & 0xff,
+                b1 = start & 0xff
+            const r2 = (end >> 16) & 0xff,
+                g2 = (end >> 8) & 0xff,
+                b2 = end & 0xff
+
+            // Add 1 to length to account for the inclusive end boundary
+            return Array.from({ length: length + 1 }, (_, i) => {
+                /*
+                 * Use 'length' as the divisor so that the final index (i = length)
+                 * results in exactly 1.0 (the end color)
+                 */
+                const ratio = 1 - Math.pow(1 - i / length, pow)
+
+                const r = Math.round(r1 + (r2 - r1) * ratio)
+                const g = Math.round(g1 + (g2 - g1) * ratio)
+                const b = Math.round(b1 + (b2 - b1) * ratio)
+
+                return ((r << 16) | (g << 8) | b) >>> 0
+            })
+        }
+
         const shorten = (str, n) => Array.from(str).slice(0, n).join('')
 
         const font = 'fonts/3270NerdFontMono-Regular.ttf'
@@ -134,7 +158,8 @@ try {
 
         let overlay = ''
 
-        let colorCache = ''
+        let baseCache = ''
+        let overlayCache = ''
         const cacheText = [
             "$|^0123456789 _-.,:;`'% ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzäöüÄÖÜéè°\\/",
             Object.values(weather_icons).join(''),
@@ -159,6 +184,9 @@ try {
         let elementBgColor = 0xff333333
         let accentColor = 0xffff0000
         let accentBgColor = 0xff666666
+        let colorWallpaper = 0xff000000
+        let colorWallpaperGradientStart = 0xff000000
+        let colorWallpaperGradientPow = 1
 
         const initSettings = readJsonFile(filename)
 
@@ -168,6 +196,13 @@ try {
             elementBgColor = initSettings.elementBgColor ?? elementBgColor
             accentColor = initSettings.accentColor ?? accentColor
             accentBgColor = initSettings.accentBgColor ?? accentBgColor
+            colorWallpaper = initSettings.colorWallpaper ?? colorWallpaper
+            colorWallpaperGradientStart =
+                initSettings.colorWallpaperGradientStart ??
+                colorWallpaperGradientStart
+            colorWallpaperGradientPow =
+                initSettings.colorWallpaperGradientPow ??
+                colorWallpaperGradientPow
         }
 
         const ystart = 45
@@ -216,7 +251,6 @@ try {
         resetTimer()
         const e = {}
         const s = {}
-        const allElements = []
         let animation = []
         const addAnimation = (
             element,
@@ -238,14 +272,14 @@ try {
             })
         }
 
-        let layers = []
+        const base = 'base'
+        const over = 'over'
+        const layers = { base: [], over: [] }
+        const allElements = { base: [], over: [] }
         const bg = 0
         const widgetBg = 1
         const widgetContent = 2
         const buttons = 3
-        const overlayBG = 4
-        const overlayFG = 5
-        const overlayButtons = 5
         const addSensor = (name, sensor) => {
             if (!s.hasOwnProperty(name)) {
                 s[name] = hmSensor.createSensor(sensor)
@@ -253,11 +287,11 @@ try {
             }
             return false
         }
-        const addElement = (layer, func, props, name) => {
-            if (!(layer in layers)) {
-                layers[layer] = []
+        const addElement = (group, layer, func, props, name) => {
+            if (!(layer in layers[group])) {
+                layers[group][layer] = []
             }
-            layers[layer].push({
+            layers[group][layer].push({
                 type: func,
                 props: props,
                 name: name,
@@ -266,18 +300,18 @@ try {
                 e[name] = ''
             }
         }
-        const prepareElements = () => {
-            layers = []
+        const prepareElements = (group) => {
+            layers[group] = []
         }
-        const renderElements = () => {
-            for (const widget of allElements) {
+        const renderElements = (group) => {
+            for (const widget of allElements[group]) {
                 hmUI.deleteWidget(widget)
             }
-            for (const layer in layers) {
-                for (element of layers[layer]) {
+            for (const layer in layers[group]) {
+                for (element of layers[group][layer]) {
                     const { type, name, props } = element
                     const widget = hmUI.createWidget(type, props)
-                    allElements.push(widget)
+                    allElements[group].push(widget)
                     if (name) {
                         e[name] = widget
                     }
@@ -378,39 +412,57 @@ try {
                     scale_call()
                     time_update(true, true)
                 }
-                const render = () => {
-                    prepareElements()
 
-                    const drawRect = (coords, name) => {
-                        const { x, y, w, h } = coords
-                        const gap = 3
-                        addElement(
-                            widgetBg,
-                            hmUI.widget.FILL_RECT,
-                            {
-                                x: x - gap,
-                                y: y - gap,
-                                w: w + gap * 2,
-                                h: h + gap * 2,
-                                radius: 0,
-                                color: elementBgColor,
-                                show_level: hmUI.show_level.ONLY_NORMAL,
-                            },
-                            name,
-                        )
-                    }
-                    let countStats = 0
-                    const createStat = (name, icon, button) => {
-                        const x = 280
-                        const y = statsStart
-                        drawRect({
-                            w: statsWidth,
-                            h: statsSize,
-                            x: x,
-                            y: y + statsSize * countStats,
-                        })
-                        addElement(widgetContent, hmUI.widget.TEXT, {
-                            x: x,
+                const drawRect = (coords, name) => {
+                    const { x, y, w, h } = coords
+                    const gap = 3
+                    addElement(
+                        base,
+                        widgetBg,
+                        hmUI.widget.FILL_RECT,
+                        {
+                            x: x - gap,
+                            y: y - gap,
+                            w: w + gap * 2,
+                            h: h + gap * 2,
+                            radius: 0,
+                            color: elementBgColor,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        },
+                        name,
+                    )
+                }
+                const createStat = (name, icon, button, countStats) => {
+                    const x = 280
+                    const y = statsStart
+                    drawRect({
+                        w: statsWidth,
+                        h: statsSize,
+                        x: x,
+                        y: y + statsSize * countStats,
+                    })
+                    addElement(base, widgetContent, hmUI.widget.TEXT, {
+                        x: x,
+                        y: y + statsSize * countStats,
+                        w: statsWidth,
+                        h: statsSize,
+                        text_size: statsSize,
+                        char_space: 0,
+                        font: font,
+                        color: fgColor,
+                        line_space: 0,
+                        align_v: hmUI.align.TOP,
+                        text_style: hmUI.text_style.ELLIPSIS,
+                        align_h: hmUI.align.LEFT,
+                        text: icon,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
+                    addElement(
+                        base,
+                        widgetContent,
+                        hmUI.widget.TEXT,
+                        {
+                            x: x + 25,
                             y: y + statsSize * countStats,
                             w: statsWidth,
                             h: statsSize,
@@ -422,384 +474,359 @@ try {
                             align_v: hmUI.align.TOP,
                             text_style: hmUI.text_style.ELLIPSIS,
                             align_h: hmUI.align.LEFT,
-                            text: icon,
+                            text: 'Err',
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        },
+                        name,
+                    )
+                    if (button) {
+                        addElement(base, widgetContent, hmUI.widget.IMG_CLICK, {
+                            x: x,
+                            y: y + statsSize * countStats,
+                            w: 200,
+                            h: statsSize,
+                            src: buttonImage,
+                            type: button,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         })
-                        addElement(
-                            widgetContent,
-                            hmUI.widget.TEXT,
-                            {
-                                x: x + 25,
-                                y: y + statsSize * countStats,
-                                w: statsWidth,
-                                h: statsSize,
-                                text_size: statsSize,
-                                char_space: 0,
-                                font: font,
-                                color: fgColor,
-                                line_space: 0,
-                                align_v: hmUI.align.TOP,
-                                text_style: hmUI.text_style.ELLIPSIS,
-                                align_h: hmUI.align.LEFT,
-                                text: 'Err',
-                                show_level: hmUI.show_level.ONLY_NORMAL,
-                            },
-                            name,
-                        )
-                        if (button) {
-                            addElement(widgetContent, hmUI.widget.IMG_CLICK, {
-                                x: x,
-                                y: y + statsSize * countStats,
-                                w: 200,
-                                h: statsSize,
-                                src: buttonImage,
-                                type: button,
-                                show_level: hmUI.show_level.ONLY_NORMAL,
-                            })
-                        }
-                        countStats += 1
                     }
+                    countStats += 1
+                }
 
-                    createStat('steps', icons.steps, hmUI.data_type.STEP)
-                    createStat('distance', icons.distance, hmUI.data_type.STEP)
-                    createStat('heart', icons.heart, hmUI.data_type.HEART)
-                    createStat('sleep', icons.sleep, hmUI.data_type.SLEEP)
-
-                    let circleCount = 0
-                    const createCircle = (name, icon, button) => {
-                        const center_x = 120
-                        const center_y = statsStart + circleRadius
-                        const gap = 103
-                        const x = center_x + gap * circleCount
-                        const y = center_y
-                        addElement(widgetBg, hmUI.widget.CIRCLE, {
-                            center_x: x,
-                            center_y: y,
-                            radius: circleRadius,
-                            color: elementBgColor,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        })
-                        addElement(widgetBg, hmUI.widget.ARC_PROGRESS, {
+                const createCircle = (name, icon, button, circleCount) => {
+                    const center_x = 120
+                    const center_y = statsStart + circleRadius
+                    const gap = 103
+                    const x = center_x + gap * circleCount
+                    const y = center_y
+                    addElement(base, widgetBg, hmUI.widget.CIRCLE, {
+                        center_x: x,
+                        center_y: y,
+                        radius: circleRadius,
+                        color: elementBgColor,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
+                    addElement(base, widgetBg, hmUI.widget.ARC_PROGRESS, {
+                        center_x: x,
+                        center_y: y,
+                        radius: circleRadius,
+                        start_angle: 0,
+                        end_angle: 360,
+                        line_width: lineWidth,
+                        level: 100,
+                        corner_flag: 3,
+                        color: elementBgColor,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
+                    addElement(
+                        base,
+                        widgetContent,
+                        hmUI.widget.ARC_PROGRESS,
+                        {
                             center_x: x,
                             center_y: y,
                             radius: circleRadius,
                             start_angle: 0,
                             end_angle: 360,
                             line_width: lineWidth,
-                            level: 100,
                             corner_flag: 3,
-                            color: elementBgColor,
+                            color: fgColor,
                             show_level: hmUI.show_level.ONLY_NORMAL,
-                        })
-                        addElement(
-                            widgetContent,
-                            hmUI.widget.ARC_PROGRESS,
-                            {
-                                center_x: x,
-                                center_y: y,
-                                radius: circleRadius,
-                                start_angle: 0,
-                                end_angle: 360,
-                                line_width: lineWidth,
-                                corner_flag: 3,
-                                color: fgColor,
-                                show_level: hmUI.show_level.ONLY_NORMAL,
-                            },
-                            `${name}Circle`,
-                        )
-                        addElement(
-                            widgetContent,
-                            hmUI.widget.TEXT,
-                            {
-                                x: x - circleRadius,
-                                y: y - big / 2 + 5,
-                                w: circleRadius * 2,
-                                h: big,
-                                text_size: big,
-                                char_space: 0,
-                                font: font,
-                                color: fgColor,
-                                line_space: 0,
-                                align_v: hmUI.align.CENTER_V,
-                                text_style: hmUI.text_style.ELLIPSIS,
-                                align_h: hmUI.align.CENTER_H,
-                                show_level: hmUI.show_level.ONLY_NORMAL,
-                                text: 'Err',
-                            },
-                            name,
-                        )
-                        addElement(
-                            widgetContent,
-                            hmUI.widget.TEXT,
-                            {
-                                x: x - circleRadius,
-                                y: y - big / 2 - big + 5,
-                                w: circleRadius * 2,
-                                h: big,
-                                text_size: big,
-                                char_space: 0,
-                                font: font,
-                                color: accentColor,
-                                line_space: 0,
-                                align_v: hmUI.align.CENTER_V,
-                                text_style: hmUI.text_style.ELLIPSIS,
-                                align_h: hmUI.align.CENTER_H,
-                                show_level: hmUI.show_level.ONLY_NORMAL,
-                                text: 'Err',
-                            },
-                            `${name}Icon`,
-                        )
-                        if (button) {
-                            const x = center_x - circleRadius
-                            const y = center_y - circleRadius
-                            addElement(buttons, hmUI.widget.BUTTON, {
-                                x: x + gap * circleCount,
-                                y: y,
-                                w: circleRadius * 2,
-                                h: circleRadius * 2,
-                                text: '',
-                                color: fgColor,
-                                click_func: button,
-                                press_src: buttonImage,
-                                normal_src: buttonImage,
-                                show_level: hmUI.show_level.ONLY_NORMAL,
-                            })
-                        }
-                        circleCount += 1
-                    }
-
-                    createCircle('battery', 'Err', () => {
-                        setOverlay('controls0')
-                    })
-                    createCircle('phoneBattery', icons.phone, () => {
-                        setOverlay('volume')
-                    })
-                    const createButton = (c, func) => {
-                        addElement(overlayButtons, hmUI.widget.BUTTON, {
-                            h: c.radius,
-                            w: c.radius,
+                        },
+                        `${name}Circle`,
+                    )
+                    addElement(
+                        base,
+                        widgetContent,
+                        hmUI.widget.TEXT,
+                        {
+                            x: x - circleRadius,
+                            y: y - big / 2 + 5,
+                            w: circleRadius * 2,
+                            h: big,
+                            text_size: big,
+                            char_space: 0,
                             font: font,
                             color: fgColor,
-                            normal_color: elementBgColor,
-                            press_color: fgColor,
-                            ...c,
-                            click_func: (button) => {
-                                func(button)
-                            },
-                        })
-                    }
-                    const createArcControl = (name, initialLevel, func) => {
-                        const arcWidth = 70
-                        const radius = center
-                        addElement(overlayBG, hmUI.widget.CIRCLE, {
-                            center_x: center,
-                            center_y: center,
-                            radius: radius,
-                            color: bgColor,
+                            line_space: 0,
+                            align_v: hmUI.align.CENTER_V,
+                            text_style: hmUI.text_style.ELLIPSIS,
+                            align_h: hmUI.align.CENTER_H,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                            text: 'Err',
+                        },
+                        name,
+                    )
+                    addElement(
+                        base,
+                        widgetContent,
+                        hmUI.widget.TEXT,
+                        {
+                            x: x - circleRadius,
+                            y: y - big / 2 - big + 5,
+                            w: circleRadius * 2,
+                            h: big,
+                            text_size: big,
+                            char_space: 0,
+                            font: font,
+                            color: accentColor,
+                            line_space: 0,
+                            align_v: hmUI.align.CENTER_V,
+                            text_style: hmUI.text_style.ELLIPSIS,
+                            align_h: hmUI.align.CENTER_H,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                            text: 'Err',
+                        },
+                        `${name}Icon`,
+                    )
+                    if (button) {
+                        const x = center_x - circleRadius
+                        const y = center_y - circleRadius
+                        addElement(base, buttons, hmUI.widget.BUTTON, {
+                            x: x + gap * circleCount,
+                            y: y,
+                            w: circleRadius * 2,
+                            h: circleRadius * 2,
+                            text: '',
+                            color: fgColor,
+                            click_func: button,
+                            press_src: buttonImage,
+                            normal_src: buttonImage,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         })
-                        addElement(
-                            overlayBG,
-                            hmUI.widget.ARC_PROGRESS,
-                            {
-                                center_x: center,
-                                center_y: center,
-                                start_angle: 0,
-                                end_angle: 360,
-                                level: 100,
-                                radius: radius - arcWidth / 2,
-                                line_width: arcWidth,
-                                color: elementBgColor,
-                                show_level: hmUI.show_level.ONLY_NORMAL,
-                            },
-                            `${name}ArcBg`,
+                    }
+                    circleCount += 1
+                }
+
+                const createButton = (c, func) => {
+                    addElement(over, buttons, hmUI.widget.BUTTON, {
+                        h: c.radius,
+                        w: c.radius,
+                        font: font,
+                        color: fgColor,
+                        normal_color: elementBgColor,
+                        press_color: fgColor,
+                        ...c,
+                        click_func: (button) => {
+                            func(button)
+                        },
+                    })
+                }
+                const createArcControl = (name, initialLevel, func) => {
+                    const arcWidth = 70
+                    const radius = center
+                    addElement(over, widgetBg, hmUI.widget.CIRCLE, {
+                        center_x: center,
+                        center_y: center,
+                        radius: radius,
+                        color: bgColor,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
+                    addElement(
+                        over,
+                        widgetBg,
+                        hmUI.widget.ARC_PROGRESS,
+                        {
+                            center_x: center,
+                            center_y: center,
+                            start_angle: 0,
+                            end_angle: 360,
+                            level: 100,
+                            radius: radius - arcWidth / 2,
+                            line_width: arcWidth,
+                            color: elementBgColor,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        },
+                        `${name}ArcBg`,
+                    )
+                    addElement(
+                        over,
+                        widgetContent,
+                        hmUI.widget.ARC_PROGRESS,
+                        {
+                            center_x: center,
+                            center_y: center,
+                            start_angle: 0,
+                            end_angle: 360,
+                            level: initialLevel,
+                            radius: radius - arcWidth / 2,
+                            line_width: arcWidth,
+                            color: fgColor,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        },
+                        `${name}Arc`,
+                    )
+                    const numButtons = 15
+                    const angleStep = 360 / numButtons // degrees
+                    const offsetDeg = -80
+
+                    for (let i = 0; i < numButtons; i++) {
+                        const angleDeg = i * angleStep + offsetDeg
+                        const angleRad = (angleDeg * Math.PI) / 180 // convert to radians
+
+                        const x =
+                            center +
+                            (radius - arcWidth / 2) * Math.cos(angleRad)
+                        const y =
+                            center +
+                            (radius - arcWidth / 2) * Math.sin(angleRad)
+                        const newLevel = Math.round(
+                            (100 / (numButtons - 1)) * i,
                         )
                         addElement(
-                            overlayFG,
-                            hmUI.widget.ARC_PROGRESS,
+                            over,
+                            buttons,
+                            hmUI.widget.BUTTON,
                             {
-                                center_x: center,
-                                center_y: center,
-                                start_angle: 0,
-                                end_angle: 360,
-                                level: initialLevel,
-                                radius: radius - arcWidth / 2,
-                                line_width: arcWidth,
+                                x: x - arcWidth / 2,
+                                y: y - arcWidth / 2,
+                                w: arcWidth,
+                                h: arcWidth,
                                 color: fgColor,
-                                show_level: hmUI.show_level.ONLY_NORMAL,
-                            },
-                            `${name}Arc`,
-                        )
-                        const numButtons = 15
-                        const angleStep = 360 / numButtons // degrees
-                        const offsetDeg = -80
-
-                        for (let i = 0; i < numButtons; i++) {
-                            const angleDeg = i * angleStep + offsetDeg
-                            const angleRad = (angleDeg * Math.PI) / 180 // convert to radians
-
-                            const x =
-                                center +
-                                (radius - arcWidth / 2) * Math.cos(angleRad)
-                            const y =
-                                center +
-                                (radius - arcWidth / 2) * Math.sin(angleRad)
-                            const newLevel = Math.round(
-                                (100 / (numButtons - 1)) * i,
-                            )
-                            addElement(
-                                overlayButtons,
-                                hmUI.widget.BUTTON,
-                                {
-                                    x: x - arcWidth / 2,
-                                    y: y - arcWidth / 2,
-                                    w: arcWidth,
-                                    h: arcWidth,
-                                    color: fgColor,
-                                    text_size: big,
-                                    press_src: buttonImage,
-                                    normal_src: buttonImage,
-                                    //text: `${newLevel}`,
-                                    click_func: () => {
-                                        func(newLevel)
-                                        e[`${name}Arc`].setProperty(
-                                            hmUI.prop.MORE,
-                                            {
-                                                level: newLevel,
-                                                radius: radius - arcWidth / 2,
-                                            },
-                                        )
-                                    },
+                                text_size: big,
+                                press_src: buttonImage,
+                                normal_src: buttonImage,
+                                //text: `${newLevel}`,
+                                click_func: () => {
+                                    func(newLevel)
+                                    e[`${name}Arc`].setProperty(
+                                        hmUI.prop.MORE,
+                                        {
+                                            level: newLevel,
+                                            radius: radius - arcWidth / 2,
+                                        },
+                                    )
                                 },
-                                `${name}Button${i}`,
-                            )
-                        }
-                        const buttonRadius = 200
+                            },
+                            `${name}Button${i}`,
+                        )
+                    }
+                    const buttonRadius = 200
+                    createButton(
+                        {
+                            text_size: timeSize,
+                            text: icons.close,
+                            radius: buttonRadius,
+                            x: center - buttonRadius / 2,
+                            y: center - buttonRadius / 2,
+                        },
+                        () => {
+                            setOverlay()
+                        },
+                    )
+                }
+                const createControls = (
+                    buttons,
+                    name,
+                    num,
+                    prev = false,
+                    next = false,
+                ) => {
+                    if (overlay !== `${name}${num}`) {
+                        return
+                    }
+                    addElement(over, widgetBg, hmUI.widget.CIRCLE, {
+                        center_x: center,
+                        center_y: center,
+                        radius: 220,
+                        color: bgColor,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
+                    const buttonSize = circleRadius * 2
+                    let y =
+                        center -
+                        buttonSize / 2 -
+                        gap -
+                        buttonSize -
+                        gap -
+                        buttonSize / 2
+                    createButton(
+                        {
+                            text_size: big,
+                            text: icons.close,
+                            radius: buttonSize,
+                            x: center - buttonSize,
+                            y: y,
+                            w: buttonSize * 2,
+                            h: buttonSize / 2,
+                        },
+                        () => {
+                            setOverlay()
+                        },
+                    )
+                    if (prev) {
                         createButton(
                             {
-                                text_size: timeSize,
-                                text: icons.close,
-                                radius: buttonRadius,
-                                x: center - buttonRadius / 2,
-                                y: center - buttonRadius / 2,
+                                text_size: big,
+                                text: icons.prevPage,
+                                radius: buttonSize,
+                                y: center - buttonSize,
+                                h: buttonSize * 2,
+                                w: buttonSize / 2,
+                                x:
+                                    center -
+                                    (buttonSize * 1.5 +
+                                        gap * 2 +
+                                        buttonSize / 2),
                             },
                             () => {
-                                setOverlay()
+                                setOverlay(`${name}${num - 1}`)
                             },
                         )
                     }
+                    if (next) {
+                        createButton(
+                            {
+                                text_size: big,
+                                text: icons.nextPage,
+                                radius: buttonSize,
+                                x: center + (buttonSize * 1.5 + gap * 2),
+                                y: center - buttonSize,
+                                h: buttonSize * 2,
+                                w: buttonSize / 2,
+                            },
+                            () => {
+                                setOverlay(`${name}${num + 1}`)
+                            },
+                        )
+                    }
+                    const startX = center - buttonSize * 1.5 - gap
+                    let x = startX
+                    y += gap + buttonSize / 2
+                    let count = 0
+                    const split = 3
+                    for (const button of buttons) {
+                        if (button) {
+                            createButton(
+                                {
+                                    text_size: button.icon ? iconSize : small,
+                                    text: button.text.replace(/ /g, '\n'),
+                                    radius: buttonSize,
+                                    x: x,
+                                    y: y,
+                                },
+                                (b) => {
+                                    button.func(b)
+                                },
+                            )
+                        }
+                        count += 1
+                        if (count % split === 0) {
+                            x = startX
+                            y += gap + buttonSize
+                        } else {
+                            x += gap + buttonSize
+                        }
+                    }
+                }
+
+                const renderOver = () => {
+                    prepareElements(over)
                     if (overlay === 'volume') {
                         createArcControl('volume', volume, (level) => {
                             phoneAction(`volume ${level}`)
                         })
                     }
-                    const createControls = (
-                        buttons,
-                        name,
-                        num,
-                        prev = false,
-                        next = false,
-                    ) => {
-                        if (overlay !== `${name}${num}`) {
-                            return
-                        }
-                        addElement(overlayBG, hmUI.widget.CIRCLE, {
-                            center_x: center,
-                            center_y: center,
-                            radius: 220,
-                            color: bgColor,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        })
-                        const buttonSize = circleRadius * 2
-                        let y =
-                            center -
-                            buttonSize / 2 -
-                            gap -
-                            buttonSize -
-                            gap -
-                            buttonSize / 2
-                        createButton(
-                            {
-                                text_size: big,
-                                text: icons.close,
-                                radius: buttonSize,
-                                x: center - buttonSize,
-                                y: y,
-                                w: buttonSize * 2,
-                                h: buttonSize / 2,
-                            },
-                            () => {
-                                setOverlay()
-                            },
-                        )
-                        if (prev) {
-                            createButton(
-                                {
-                                    text_size: big,
-                                    text: icons.prevPage,
-                                    radius: buttonSize,
-                                    y: center - buttonSize,
-                                    h: buttonSize * 2,
-                                    w: buttonSize / 2,
-                                    x:
-                                        center -
-                                        (buttonSize * 1.5 +
-                                            gap * 2 +
-                                            buttonSize / 2),
-                                },
-                                () => {
-                                    setOverlay(`${name}${num - 1}`)
-                                },
-                            )
-                        }
-                        if (next) {
-                            createButton(
-                                {
-                                    text_size: big,
-                                    text: icons.nextPage,
-                                    radius: buttonSize,
-                                    x: center + (buttonSize * 1.5 + gap * 2),
-                                    y: center - buttonSize,
-                                    h: buttonSize * 2,
-                                    w: buttonSize / 2,
-                                },
-                                () => {
-                                    setOverlay(`${name}${num + 1}`)
-                                },
-                            )
-                        }
-                        const startX = center - buttonSize * 1.5 - gap
-                        let x = startX
-                        y += gap + buttonSize / 2
-                        let count = 0
-                        const split = 3
-                        for (const button of buttons) {
-                            if (button) {
-                                createButton(
-                                    {
-                                        text_size: button.icon
-                                            ? iconSize
-                                            : small,
-                                        text: button.text.replace(/ /g, '\n'),
-                                        radius: buttonSize,
-                                        x: x,
-                                        y: y,
-                                    },
-                                    (b) => {
-                                        button.func(b)
-                                    },
-                                )
-                            }
-                            count += 1
-                            if (count % split === 0) {
-                                x = startX
-                                y += gap + buttonSize
-                            } else {
-                                x += gap + buttonSize
-                            }
-                        }
-                    }
-
                     const controls = [
                         {
                             text: 'clear snoozed alarms',
@@ -1014,7 +1041,7 @@ try {
                                 text: 'reset',
                                 func: () => {
                                     resetTimer()
-                                    render()
+                                    renderOver()
                                 },
                             },
                             {
@@ -1029,9 +1056,37 @@ try {
                         false,
                         false,
                     )
-
+                    renderElements(over)
+                }
+                const renderBase = () => {
+                    prepareElements(base)
+                    createCircle(
+                        'battery',
+                        'Err',
+                        () => {
+                            setOverlay('controls0')
+                        },
+                        0,
+                    )
+                    createCircle(
+                        'phoneBattery',
+                        icons.phone,
+                        () => {
+                            setOverlay('volume')
+                        },
+                        1,
+                    )
+                    createStat('steps', icons.steps, hmUI.data_type.STEP, 0)
+                    createStat(
+                        'distance',
+                        icons.distance,
+                        hmUI.data_type.STEP,
+                        1,
+                    )
+                    createStat('heart', icons.heart, hmUI.data_type.HEART, 2)
+                    createStat('sleep', icons.sleep, hmUI.data_type.SLEEP, 3)
                     for (const size of fontSizes) {
-                        addElement(bg, hmUI.widget.TEXT, {
+                        addElement(base, bg, hmUI.widget.TEXT, {
                             x: 464,
                             y: 464,
                             w: 10000,
@@ -1048,7 +1103,7 @@ try {
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         })
                     }
-                    addElement(bg, hmUI.widget.FILL_RECT, {
+                    addElement(base, bg, hmUI.widget.FILL_RECT, {
                         x: 0,
                         y: 0,
                         w: screensize,
@@ -1056,14 +1111,33 @@ try {
                         color: bgColor,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
-                    addElement(widgetContent, hmUI.widget.IMG_STATUS, {
+                    //optimize the gradient to reduce the number of elements. Each color will be `opimize` high.
+                    const optimize = 10
+                    const gradientColors = createGradient(
+                        colorWallpaperGradientStart,
+                        colorWallpaper,
+                        colorWallpaperGradientPow,
+                        screensize / optimize,
+                    )
+                    gradientColors.forEach((color, i) => {
+                        addElement(base, bg, hmUI.widget.FILL_RECT, {
+                            x: 0,
+                            y: i * optimize,
+                            w: screensize,
+                            h: optimize,
+                            color: color,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        })
+                    })
+
+                    addElement(base, widgetContent, hmUI.widget.IMG_STATUS, {
                         x: 185,
                         y: 10,
                         src: buttonImage,
                         type: hmUI.system_status.DISTURB,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
-                    addElement(widgetContent, hmUI.widget.TEXT, {
+                    addElement(base, widgetContent, hmUI.widget.TEXT, {
                         x: 220,
                         y: 10,
                         text: hmBle.connectStatus() ? '' : icons.disconnect,
@@ -1085,6 +1159,7 @@ try {
 
                     //weather
                     addElement(
+                        base,
                         widgetContent,
                         hmUI.widget.TEXT,
                         {
@@ -1104,7 +1179,7 @@ try {
                         },
                         'sunrise',
                     )
-                    addElement(buttons, hmUI.widget.IMG_CLICK, {
+                    addElement(base, buttons, hmUI.widget.IMG_CLICK, {
                         x: 285,
                         y: 90,
                         w: 60,
@@ -1115,6 +1190,7 @@ try {
                     })
 
                     addElement(
+                        base,
                         widgetContent,
                         hmUI.widget.TEXT,
                         {
@@ -1136,6 +1212,7 @@ try {
                     )
 
                     addElement(
+                        base,
                         widgetContent,
                         hmUI.widget.TEXT,
                         {
@@ -1159,6 +1236,7 @@ try {
                     //date
                     drawRect(dateCoords)
                     addElement(
+                        base,
                         widgetContent,
                         hmUI.widget.TEXT,
                         {
@@ -1176,7 +1254,7 @@ try {
                         },
                         'date',
                     )
-                    addElement(buttons, hmUI.widget.BUTTON, {
+                    addElement(base, buttons, hmUI.widget.BUTTON, {
                         x: 100,
                         y: 40,
                         w: 260,
@@ -1196,6 +1274,7 @@ try {
                     })
 
                     addElement(
+                        base,
                         widgetContent,
                         hmUI.widget.TEXT,
                         {
@@ -1220,6 +1299,7 @@ try {
                     //time
                     drawRect(timeCoords)
                     addElement(
+                        base,
                         widgetContent,
                         hmUI.widget.TEXT,
                         {
@@ -1237,6 +1317,7 @@ try {
                         'time',
                     )
                     addElement(
+                        base,
                         widgetContent,
                         hmUI.widget.TEXT,
                         {
@@ -1258,7 +1339,7 @@ try {
                         },
                         'aodTime',
                     )
-                    addElement(buttons, hmUI.widget.BUTTON, {
+                    addElement(base, buttons, hmUI.widget.BUTTON, {
                         ...timeCoords,
                         text: '',
                         color: fgColor,
@@ -1270,7 +1351,7 @@ try {
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
                     const secondRadius = 231
-                    addElement(widgetBg, hmUI.widget.ARC, {
+                    addElement(base, widgetBg, hmUI.widget.ARC, {
                         x: secondGap,
                         y: secondGap,
                         h: screensize - secondGap,
@@ -1282,6 +1363,7 @@ try {
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
                     addElement(
+                        base,
                         widgetContent,
                         hmUI.widget.ARC,
                         {
@@ -1301,6 +1383,7 @@ try {
                     //city name
                     drawRect(cityNameCoords, 'cityBG')
                     addElement(
+                        base,
                         widgetContent,
                         hmUI.widget.TEXT,
                         {
@@ -1322,6 +1405,7 @@ try {
                     //media
                     drawRect(mediaCoords, 'mediaBG')
                     addElement(
+                        base,
                         widgetContent,
                         hmUI.widget.TEXT,
                         {
@@ -1341,7 +1425,7 @@ try {
                     )
                     const mediaButtonHeight =
                         cityNameCoords.h + gap + mediaCoords.h
-                    addElement(buttons, hmUI.widget.BUTTON, {
+                    addElement(base, buttons, hmUI.widget.BUTTON, {
                         x: mediaCoords.x,
                         y: cityNameCoords.y,
                         w: mediaCoords.w,
@@ -1363,6 +1447,7 @@ try {
                         y: weatherPos,
                     })
                     addElement(
+                        base,
                         widgetContent,
                         hmUI.widget.TEXT,
                         {
@@ -1382,7 +1467,7 @@ try {
                         },
                         'temp',
                     )
-                    addElement(buttons, hmUI.widget.IMG_CLICK, {
+                    addElement(base, buttons, hmUI.widget.IMG_CLICK, {
                         x: 90,
                         y: 90,
                         w: 194,
@@ -1391,11 +1476,10 @@ try {
                         type: hmUI.data_type.WEATHER_CURRENT,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
-
-                    renderElements()
+                    renderElements(base)
                 }
 
-                render()
+                renderBase()
                 //#region time_update
                 function time_update(updateHour = false, updateMinute = false) {
                     if (showSeparator === null) {
@@ -1482,7 +1566,8 @@ try {
                 //#endregion
                 function scale_call() {
                     animation = []
-                    const newColorCache = []
+                    const newBaseCache = []
+                    const newOverlayCache = []
                     const now = s.time.utc
                     const separator = '§'
                     const dataStr = weatherData?.cityName || ''
@@ -1491,6 +1576,7 @@ try {
                     const equals = dataStr[1] || ''
                     const data = dataStr.slice(2)
                     if (equals === '=' && first === 'i') {
+                        console.log('init received')
                         init = true
                         const [
                             bgColorHex = '000000',
@@ -1498,12 +1584,22 @@ try {
                             elementBgColorHex = '333333',
                             accentColorHex = 'FF0000',
                             accentBgColorHex = '666666',
+                            colorWallpaperHex = '000000',
+                            colorWallpaperGradientStartHex = '000000',
+                            colorWallpaperGradientPow_ = '1',
                         ] = data.split(separator)
                         fgColor = Number(`0xFF${fgColorHex}`)
                         bgColor = Number(`0xFF${bgColorHex}`)
                         elementBgColor = Number(`0xFF${elementBgColorHex}`)
                         accentColor = Number(`0xFF${accentColorHex}`)
                         accentBgColor = Number(`0xFF${accentBgColorHex}`)
+                        colorWallpaper = Number(`0xFF${colorWallpaperHex}`)
+                        colorWallpaperGradientStart = Number(
+                            `0xFF${colorWallpaperGradientStartHex}`,
+                        )
+                        colorWallpaperGradientPow = Number(
+                            colorWallpaperGradientPow_,
+                        )
 
                         const obj = {
                             fgColor: fgColor,
@@ -1511,6 +1607,11 @@ try {
                             elementBgColor: elementBgColor,
                             accentColor: accentColor,
                             accentBgColor: accentBgColor,
+                            colorWallpaper: colorWallpaper,
+                            colorWallpaperGradientStart:
+                                colorWallpaperGradientStart,
+                            colorWallpaperGradientPow:
+                                colorWallpaperGradientPow,
                         }
                         const json = JSON.stringify(obj)
 
@@ -1526,9 +1627,11 @@ try {
                         hmFS.write(fd, bytes.buffer, 0, bytes.length)
                         hmFS.close(fd)
                     } else if (equals === '=' && first === 'I') {
+                        console.log('force init received')
                         init = false
                         phoneAction('init')
                     } else if (equals === '=' && first === 'r') {
+                        console.log('rare received')
                         const [weather] = data.split(separator)
                         ;[
                             temp = 'Err',
@@ -1552,12 +1655,9 @@ try {
                             shorten(cityName, cityLength),
                         )
                         if (!cityName) {
-                            e.cityBG.setProperty(hmUI.prop.COLOR, bgColor)
+                            e.cityBG.setProperty(hmUI.prop.VISIBLE, false)
                         } else {
-                            e.cityBG.setProperty(
-                                hmUI.prop.COLOR,
-                                elementBgColor,
-                            )
+                            e.cityBG.setProperty(hmUI.prop.VISIBLE, true)
                         }
                         e.media.setProperty(
                             hmUI.prop.TEXT,
@@ -1565,12 +1665,9 @@ try {
                         )
                         mediaPlaying = false
                         if (!media) {
-                            e.mediaBG.setProperty(hmUI.prop.COLOR, bgColor)
+                            e.mediaBG.setProperty(hmUI.prop.VISIBLE, false)
                         } else {
-                            e.mediaBG.setProperty(
-                                hmUI.prop.COLOR,
-                                elementBgColor,
-                            )
+                            e.mediaBG.setProperty(hmUI.prop.VISIBLE, true)
                             if (media.startsWith(icons.play)) {
                                 mediaPlaying = true
                             }
@@ -1602,14 +1699,16 @@ try {
                                 phoneAction('rare')
                             }
                         }
-                        newColorCache.push(fgColor)
-                        newColorCache.push(bgColor)
-                        newColorCache.push(elementBgColor)
-                        newColorCache.push(accentColor)
-                        newColorCache.push(accentBgColor)
-                        //newColorCache.push(mediaPlaying.toString())
-                        newColorCache.push(volume)
-                        newColorCache.push(overlay)
+                        newBaseCache.push(fgColor)
+                        newBaseCache.push(bgColor)
+                        newBaseCache.push(elementBgColor)
+                        newBaseCache.push(accentColor)
+                        newBaseCache.push(accentBgColor)
+                        newBaseCache.push(colorWallpaper)
+                        newBaseCache.push(colorWallpaperGradientStart)
+                        newBaseCache.push(colorWallpaperGradientPow)
+                        //newBaseCache.push(mediaPlaying.toString())
+                        newOverlayCache.push(volume)
 
                         updateProgress(
                             s.battery.current,
@@ -1647,13 +1746,20 @@ try {
                             `${toHMM(s.sleep.getTotalTime())}`,
                         )
 
-                        newColorCache.push(hmBle.connectStatus().toString())
-                        const finalColorCache = newColorCache.join('')
-                        if (colorCache !== finalColorCache) {
-                            colorCache = finalColorCache
-                            render()
+                        newOverlayCache.push(overlay)
+
+                        newBaseCache.push(hmBle.connectStatus().toString())
+                        const finalBaseCache = newBaseCache.join('')
+                        if (baseCache !== finalBaseCache) {
+                            baseCache = finalBaseCache
+                            renderBase()
                             scale_call()
                             time_update(true, true)
+                        }
+                        const finalOverlayCache = newOverlayCache.join('')
+                        if (overlayCache !== finalOverlayCache) {
+                            overlayCache = finalOverlayCache
+                            renderOver()
                         }
                     }
                 }
