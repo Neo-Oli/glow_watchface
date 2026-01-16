@@ -1380,6 +1380,25 @@ try {
                         'secondCircle',
                     )
 
+                    const outerCircleWidth = 100
+                    addElement(
+                        base,
+                        buttons,
+                        hmUI.widget.ARC,
+                        {
+                            x: 0 - outerCircleWidth,
+                            y: 0 - outerCircleWidth,
+                            h: screensize + outerCircleWidth * 2,
+                            w: screensize + outerCircleWidth * 2,
+                            start_angle: 0,
+                            end_angle: 360,
+                            line_width: outerCircleWidth,
+                            color: 0x000000,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        },
+                        'outerCircle',
+                    )
+
                     //city name
                     drawRect(cityNameCoords, 'cityBG')
                     addElement(
