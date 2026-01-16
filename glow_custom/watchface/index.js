@@ -153,7 +153,7 @@ try {
         let cityName
         const screensize = 466
         const center = screensize / 2
-        const secondGap = 2
+        const secondGap = 0
         let showSeparator = null
 
         let overlay = ''
