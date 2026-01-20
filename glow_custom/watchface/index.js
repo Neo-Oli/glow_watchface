@@ -141,6 +141,7 @@ try {
             volume: '󰕾',
             prevPage: '󰅁',
             nextPage: '󰅂',
+            playlist: '󰲸',
         }
         const iconSize = 50
         const circleRadius = 47
@@ -885,6 +886,14 @@ try {
                             },
                         },
                         {
+                            text: icons.playlist,
+                            icon: true,
+                            func: () => {
+                                phoneAction('playlist')
+                                setOverlay()
+                            },
+                        },
+                        {
                             text: 'fav',
                             func: () => {
                                 phoneAction('fav')
@@ -941,16 +950,16 @@ try {
                             },
                         },
                         {
-                            text: 'aod',
+                            text: 'light',
                             func: () => {
-                                phoneAction('aod')
+                                phoneAction('light')
                                 setOverlay()
                             },
                         },
                         {
-                            text: 'light',
+                            text: 'aod',
                             func: () => {
-                                phoneAction('light')
+                                phoneAction('aod')
                                 setOverlay()
                             },
                         },
