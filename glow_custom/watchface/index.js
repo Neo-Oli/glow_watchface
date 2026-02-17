@@ -144,13 +144,9 @@ try {
         let firstUpdate = true
         let requestingTry = 0
         let chunk = 0
-        let lastRequest = ''
         const requestData = (action) => {
             const request = `${action}/${chunk}`
-            if (lastRequest !== request) {
-                lastRequest = request
-                console.log(`DROIDDATA:${request}`)
-            }
+            console.log(`DROIDDATA:${request}`)
         }
 
         const api = {
@@ -1808,7 +1804,21 @@ try {
                     }
                 }
                 const apiUpdate = () => {
-                    setRequesting = (value) => {
+                    const fastTimer = () => {
+                        const animDelay = s.time.utc % 100
+                        const animRepeat = 100
+                        if (!fast_timer) {
+                            console.log('Creating fast timer')
+                            fast_timer = timer.createTimer(
+                                animDelay,
+                                animRepeat,
+                                function () {
+                                    apiUpdate()
+                                },
+                            )
+                        }
+                    }
+                    const setRequesting = (value) => {
                         requesting = value
                         requestingTry = 0
                         if (requesting) {
@@ -1837,14 +1847,13 @@ try {
                             timer.stopTimer(fast_timer)
                             fast_timer = undefined
                         }
-                        lastRequest = ''
                         return
                     } else if (requesting) {
+                        fastTimer()
                         requestingTry += 1
                         if (requestingTry >= 100) {
                             setRequesting('')
                             console.log('timeout')
-                            lastRequest = ''
                             return
                         }
                         if (data.includes(':')) {
@@ -1879,7 +1888,6 @@ try {
                             } else {
                                 if (!value) {
                                     setRequesting('')
-                                    lastRequest = ''
                                     return
                                 }
                                 chunk += 1
@@ -1887,6 +1895,7 @@ try {
                                 return
                             }
                         }
+                        return
                     } else if (data.startsWith('°')) {
                         updateThese = data.slice(1).split('')
                     }
@@ -1894,18 +1903,7 @@ try {
                     if (updateThese.length > 0) {
                         setRequesting(updateThese[0])
                         chunk = 0
-                        const animDelay = s.time.utc % 100
-                        const animRepeat = 100
-                        if (!fast_timer) {
-                            console.log('Creating fast timer')
-                            fast_timer = timer.createTimer(
-                                animDelay,
-                                animRepeat,
-                                function () {
-                                    apiUpdate()
-                                },
-                            )
-                        }
+                        fastTimer()
                         requestData(requesting)
                     }
                 }
