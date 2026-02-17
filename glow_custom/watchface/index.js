@@ -48,6 +48,90 @@ try {
             })
         }
 
+        const apiGetData = () => {
+            return hmSetting.getUserData().region
+        }
+        let requesting = ''
+        let updateThese = ''
+        let requestTemp = ''
+        let firstUpdate = true
+        let requestingTry = 0
+        let chunk = 0
+        let lastRequest = ''
+        const requestData = (action) => {
+            const request = `${action}/${chunk}`
+            if (lastRequest !== request) {
+                lastRequest = request
+                console.log(`DROIDDATA:${request}`)
+            }
+        }
+
+        const api = {
+            fgColor: {
+                value: 0xffff8c00,
+                key: '0',
+                type: 'color',
+            },
+            bgColor: {
+                value: 0xff000000,
+                key: '1',
+                type: 'color',
+            },
+            elementBgColor: {
+                value: 0xff333333,
+                key: '2',
+                type: 'color',
+            },
+            accentColor: {
+                value: 0xffff0000,
+                key: '3',
+                type: 'color',
+            },
+            accentBgColor: {
+                value: 0xff666666,
+                key: '4',
+                type: 'color',
+            },
+            colorWallpaper: {
+                value: 0xff000000,
+                key: '5',
+                type: 'color',
+            },
+            colorWallpaperGradientStart: {
+                value: 0xffffffff,
+                key: '6',
+                type: 'color',
+            },
+            colorWallpaperGradientPow: {
+                value: 1,
+                key: '7',
+                type: 'number',
+            },
+            volume: { value: 50, key: '8', type: 'number' },
+            phoneBattery: { value: 50, key: '9', type: 'number' },
+            infoText: { value: 'No info text', key: 'a', type: 'string' },
+            media: { value: 'Loading media', key: 'b', type: 'string' },
+            weather: { value: '', key: 'c', type: 'string' },
+        }
+        const updateApiValue = (key, value) => {
+            const apiKey = Object.keys(api).find((k) => api[k].key === key)
+            if (!apiKey) {
+                console.warn(`No element found with key "${key}"`)
+                return
+            }
+
+            const type = api[apiKey].type
+            if (type === 'number') {
+                api[apiKey].value = Number(value)
+            } else if (type === 'color') {
+                api[apiKey].value = Number(`0xFF${value}`)
+            } else if (type === 'string') {
+                api[apiKey].value = value
+            } else {
+                console.warn(`Unknown type: ${type}`)
+            }
+            console.log(`Set ${apiKey} to ${api[apiKey].value}`)
+        }
         const shorten = (str, n) => Array.from(str).slice(0, n).join('')
 
         const font = 'fonts/3270NerdFontMono-Regular.ttf'
@@ -83,13 +167,6 @@ try {
                 return null
             }
         }
-
-        let lastRareUpdate = 0
-        let temp = ''
-        let condition = ''
-        let humidity = ''
-        let sunrise = ''
-        let sunset = ''
 
         const weather_icons = {
             thunderstorm: ' ',
@@ -150,8 +227,7 @@ try {
         const debugImage = 'debug.png'
         const dayNames = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
         let normal_timer = undefined
-        let weatherData
-        let cityName
+        let fast_timer = undefined
         const screensize = 466
         const center = screensize / 2
         const secondGap = 0
@@ -175,36 +251,28 @@ try {
         }
         const big = 30
         const small = 18
-        let animationTimer
         const timeSize = 90
         const weatherGap = 30
         const weatherHeight = big
-        let init = false
-        let fgColor = 0xffff8c00
-        let bgColor = 0xff000000
-        let elementBgColor = 0xff333333
-        let accentColor = 0xffff0000
-        let accentBgColor = 0xff666666
-        let colorWallpaper = 0xff000000
-        let colorWallpaperGradientStart = 0xff000000
-        let colorWallpaperGradientPow = 1
 
-        const initSettings = readJsonFile(filename)
+        //const initSettings = readJsonFile(filename)
 
-        if (initSettings) {
-            fgColor = initSettings.fgColor ?? fgColor
-            bgColor = initSettings.bgColor ?? bgColor
-            elementBgColor = initSettings.elementBgColor ?? elementBgColor
-            accentColor = initSettings.accentColor ?? accentColor
-            accentBgColor = initSettings.accentBgColor ?? accentBgColor
-            colorWallpaper = initSettings.colorWallpaper ?? colorWallpaper
-            colorWallpaperGradientStart =
-                initSettings.colorWallpaperGradientStart ??
-                colorWallpaperGradientStart
-            colorWallpaperGradientPow =
-                initSettings.colorWallpaperGradientPow ??
-                colorWallpaperGradientPow
-        }
+        /*
+         * if (initSettings) {
+         * fgColor = initSettings.fgColor ?? fgColor
+         * bgColor = initSettings.bgColor ?? bgColor
+         * elementBgColor = initSettings.elementBgColor ?? elementBgColor
+         * accentColor = initSettings.accentColor ?? accentColor
+         * accentBgColor = initSettings.accentBgColor ?? accentBgColor
+         * colorWallpaper = initSettings.colorWallpaper ?? colorWallpaper
+         * colorWallpaperGradientStart =
+         * initSettings.colorWallpaperGradientStart ??
+         * colorWallpaperGradientStart
+         * colorWallpaperGradientPow =
+         * initSettings.colorWallpaperGradientPow ??
+         * colorWallpaperGradientPow
+         * }
+         */
 
         const ystart = 45
         const gap = 10
@@ -237,7 +305,6 @@ try {
             h: 36,
         }
         const statsStart = mediaCoords.y + mediaCoords.h + gap
-        let volume = 15
 
         const fontSizes = [iconSize, statsSize, timeSize, big, small]
         const statsWidth = 120
@@ -252,26 +319,6 @@ try {
         resetTimer()
         const e = {}
         const s = {}
-        let animation = []
-        const addAnimation = (
-            element,
-            from,
-            to,
-            total,
-            prop,
-            type,
-            template,
-        ) => {
-            animation.push({
-                element,
-                from,
-                to,
-                total,
-                prop,
-                type,
-                template,
-            })
-        }
 
         const base = 'base'
         const over = 'over'
@@ -334,18 +381,6 @@ try {
 
             if (screenType !== hmSetting.screen_type.AOD) {
                 const level = Math.round(progress * 100)
-                if (circle)
-                    addAnimation(
-                        circle,
-                        0,
-                        level,
-                        100,
-                        'level',
-                        hmUI.prop.MORE,
-                        {
-                            radius: circleRadius,
-                        },
-                    )
                 circle.setProperty(hmUI.prop.MORE, {
                     radius: circleRadius,
                     level,
@@ -360,8 +395,6 @@ try {
         __$$module$$__.module = DeviceRuntimeCore.WatchFace({
             init_view() {
                 //dynamic modify start
-                addSensor('weather', hmSensor.id.WEATHER)
-                weatherData = s.weather.getForecastWeather()
                 if (addSensor('battery', hmSensor.id.BATTERY)) {
                     s.battery.addEventListener(
                         hmSensor.event.CHANGE,
@@ -428,7 +461,7 @@ try {
                             w: w + gap * 2,
                             h: h + gap * 2,
                             radius: 0,
-                            color: elementBgColor,
+                            color: api.elementBgColor.value,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
                         name,
@@ -451,7 +484,7 @@ try {
                         text_size: statsSize,
                         char_space: 0,
                         font: font,
-                        color: fgColor,
+                        color: api.fgColor.value,
                         line_space: 0,
                         align_v: hmUI.align.TOP,
                         text_style: hmUI.text_style.ELLIPSIS,
@@ -471,7 +504,7 @@ try {
                             text_size: statsSize,
                             char_space: 0,
                             font: font,
-                            color: fgColor,
+                            color: api.fgColor.value,
                             line_space: 0,
                             align_v: hmUI.align.TOP,
                             text_style: hmUI.text_style.ELLIPSIS,
@@ -505,7 +538,7 @@ try {
                         center_x: x,
                         center_y: y,
                         radius: circleRadius,
-                        color: elementBgColor,
+                        color: api.elementBgColor.value,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
                     addElement(base, widgetBg, hmUI.widget.ARC_PROGRESS, {
@@ -517,7 +550,7 @@ try {
                         line_width: lineWidth,
                         level: 100,
                         corner_flag: 3,
-                        color: elementBgColor,
+                        color: api.elementBgColor.value,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
                     addElement(
@@ -532,7 +565,7 @@ try {
                             end_angle: 360,
                             line_width: lineWidth,
                             corner_flag: 3,
-                            color: fgColor,
+                            color: api.fgColor.value,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
                         `${name}Circle`,
@@ -549,7 +582,7 @@ try {
                             text_size: big,
                             char_space: 0,
                             font: font,
-                            color: fgColor,
+                            color: api.fgColor.value,
                             line_space: 0,
                             align_v: hmUI.align.CENTER_V,
                             text_style: hmUI.text_style.ELLIPSIS,
@@ -571,7 +604,7 @@ try {
                             text_size: big,
                             char_space: 0,
                             font: font,
-                            color: accentColor,
+                            color: api.accentColor.value,
                             line_space: 0,
                             align_v: hmUI.align.CENTER_V,
                             text_style: hmUI.text_style.ELLIPSIS,
@@ -590,7 +623,7 @@ try {
                             w: circleRadius * 2,
                             h: circleRadius * 2,
                             text: '',
-                            color: fgColor,
+                            color: api.fgColor.value,
                             click_func: button,
                             press_src: buttonImage,
                             normal_src: buttonImage,
@@ -605,9 +638,9 @@ try {
                         h: c.radius,
                         w: c.radius,
                         font: font,
-                        color: fgColor,
-                        normal_color: elementBgColor,
-                        press_color: fgColor,
+                        color: api.fgColor.value,
+                        normal_color: api.elementBgColor.value,
+                        press_color: api.fgColor.value,
                         ...c,
                         click_func: (button) => {
                             func(button)
@@ -621,7 +654,7 @@ try {
                         center_x: center,
                         center_y: center,
                         radius: radius,
-                        color: bgColor,
+                        color: api.bgColor.value,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
                     addElement(
@@ -636,7 +669,7 @@ try {
                             level: 100,
                             radius: radius - arcWidth / 2,
                             line_width: arcWidth,
-                            color: elementBgColor,
+                            color: api.elementBgColor.value,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
                         `${name}ArcBg`,
@@ -653,7 +686,7 @@ try {
                             level: initialLevel,
                             radius: radius - arcWidth / 2,
                             line_width: arcWidth,
-                            color: fgColor,
+                            color: api.fgColor.value,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
                         `${name}Arc`,
@@ -684,7 +717,7 @@ try {
                                 y: y - arcWidth / 2,
                                 w: arcWidth,
                                 h: arcWidth,
-                                color: fgColor,
+                                color: api.fgColor.value,
                                 text_size: big,
                                 press_src: buttonImage,
                                 normal_src: buttonImage,
@@ -731,7 +764,7 @@ try {
                         center_x: center,
                         center_y: center,
                         radius: 220,
-                        color: bgColor,
+                        color: api.bgColor.value,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
                     const buttonSize = circleRadius * 2
@@ -825,9 +858,13 @@ try {
                 const renderOver = () => {
                     prepareElements(over)
                     if (overlay === 'volume') {
-                        createArcControl('volume', volume, (level) => {
-                            phoneAction(`volume ${level}`)
-                        })
+                        createArcControl(
+                            'volume',
+                            api.volume.value,
+                            (level) => {
+                                phoneAction(`volume ${level}`)
+                            },
+                        )
                     }
                     const controls = [
                         {
@@ -1105,7 +1142,7 @@ try {
                             char_space: 0,
                             line_space: 0,
                             font: font,
-                            color: fgColor,
+                            color: api.fgColor.value,
                             align_h: hmUI.align.LEFT,
                             align_v: hmUI.align.TOP,
                             text_style: hmUI.text_style.ELLIPSIS,
@@ -1118,15 +1155,15 @@ try {
                         y: 0,
                         w: screensize,
                         h: screensize,
-                        color: bgColor,
+                        color: api.bgColor.value,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
                     //optimize the gradient to reduce the number of elements. Each color will be `opimize` high.
                     const optimize = 10
                     const gradientColors = createGradient(
-                        colorWallpaperGradientStart,
-                        colorWallpaper,
-                        colorWallpaperGradientPow,
+                        api.colorWallpaperGradientStart.value,
+                        api.colorWallpaper.value,
+                        api.colorWallpaperGradientPow.value,
                         screensize / optimize,
                     )
                     gradientColors.forEach((color, i) => {
@@ -1158,7 +1195,7 @@ try {
                         text_size: iconSize,
                         char_space: 0,
                         font: font,
-                        color: fgColor,
+                        color: api.fgColor.value,
                         line_space: 0,
                         align_v: hmUI.align.CENTER_V,
                         align_h: hmUI.align.LEFT,
@@ -1167,7 +1204,6 @@ try {
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
 
-                    //weather
                     addElement(
                         base,
                         widgetContent,
@@ -1180,7 +1216,7 @@ try {
                             text_size: small,
                             char_space: 0,
                             font: font,
-                            color: fgColor,
+                            color: api.fgColor.value,
                             line_space: 0,
                             align_v: hmUI.align.TOP,
                             text_style: hmUI.text_style.ELLIPSIS,
@@ -1211,7 +1247,7 @@ try {
                             text_size: small,
                             char_space: 0,
                             font: font,
-                            color: fgColor,
+                            color: api.fgColor.value,
                             line_space: 0,
                             align_v: hmUI.align.TOP,
                             text_style: hmUI.text_style.ELLIPSIS,
@@ -1233,7 +1269,7 @@ try {
                             text_size: big,
                             char_space: 0,
                             font: font,
-                            color: fgColor,
+                            color: api.fgColor.value,
                             line_space: 0,
                             align_v: hmUI.align.CENTER_V,
                             text_style: hmUI.text_style.ELLIPSIS,
@@ -1254,7 +1290,7 @@ try {
                             text_size: big,
                             char_space: 0,
                             font: font,
-                            color: fgColor,
+                            color: api.fgColor.value,
                             line_space: 0,
                             align_v: hmUI.align.TOP,
                             text_style: hmUI.text_style.ELLIPSIS,
@@ -1270,7 +1306,7 @@ try {
                         w: 260,
                         h: 50,
                         text: '',
-                        color: fgColor,
+                        color: api.fgColor.value,
                         text_size: big,
                         press_src: buttonImage,
                         normal_src: buttonImage,
@@ -1295,7 +1331,7 @@ try {
                             text_size: iconSize,
                             char_space: 0,
                             font: font,
-                            color: accentColor,
+                            color: api.accentColor.value,
                             line_space: 0,
                             align_v: hmUI.align.CENTER_V,
                             align_h: hmUI.align.LEFT,
@@ -1317,7 +1353,7 @@ try {
                             text_size: timeSize,
                             char_space: 0,
                             font: font,
-                            color: fgColor,
+                            color: api.fgColor.value,
                             line_space: 0,
                             align_v: hmUI.align.CENTER_V,
                             text_style: hmUI.text_style.ELLIPSIS,
@@ -1335,7 +1371,7 @@ try {
                             text_size: timeSize,
                             char_space: 0,
                             font: font,
-                            color: fgColor,
+                            color: api.fgColor.value,
                             line_space: 0,
                             align_v: hmUI.align.CENTER_V,
                             text_style: hmUI.text_style.ELLIPSIS,
@@ -1352,7 +1388,7 @@ try {
                     addElement(base, buttons, hmUI.widget.BUTTON, {
                         ...timeCoords,
                         text: '',
-                        color: fgColor,
+                        color: api.fgColor.value,
                         click_func: (watchface) => {
                             setOverlay('controls0')
                         },
@@ -1369,7 +1405,7 @@ try {
                         start_angle: 0,
                         end_angle: 360,
                         line_width: lineWidth,
-                        color: accentBgColor,
+                        color: api.accentBgColor.value,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
                     addElement(
@@ -1384,7 +1420,7 @@ try {
                             start_angle: 0,
                             end_angle: 360,
                             line_width: lineWidth,
-                            color: accentColor,
+                            color: api.accentColor.value,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
                         'secondCircle',
@@ -1421,7 +1457,7 @@ try {
                             text_size: big,
                             char_space: 0,
                             font: font,
-                            color: fgColor,
+                            color: api.fgColor.value,
                             line_space: 0,
                             align_v: hmUI.align.CENTER_V,
                             text_style: hmUI.text_style.ELLIPSIS,
@@ -1443,7 +1479,7 @@ try {
                             text_size: big,
                             char_space: 0,
                             font: font,
-                            color: fgColor,
+                            color: api.fgColor.value,
                             line_space: 0,
                             align_v: hmUI.align.CENTER_V,
                             text_style: hmUI.text_style.ELLIPSIS,
@@ -1460,7 +1496,7 @@ try {
                         w: mediaCoords.w,
                         h: mediaButtonHeight,
                         text: '',
-                        color: fgColor,
+                        color: api.fgColor.value,
                         click_func: (watchface) => {
                             setOverlay('controls0')
                         },
@@ -1487,7 +1523,7 @@ try {
                             text_size: big,
                             char_space: 0,
                             font: font,
-                            color: fgColor,
+                            color: api.fgColor.value,
                             line_space: 0,
                             align_v: hmUI.align.CENTER_V,
                             text_style: hmUI.text_style.ELLIPSIS,
@@ -1572,12 +1608,7 @@ try {
                         e.aodTime.setProperty(hmUI.prop.TEXT, idle_HourMinStr)
                     }
 
-                    weatherData = s.weather.getForecastWeather()
-                    const newCityName = weatherData.cityName
-                    if (cityName !== newCityName) {
-                        cityName = newCityName
-                        scale_call()
-                    }
+                    apiUpdate()
                 }
 
                 const condition_icon = (condition) => {
@@ -1594,252 +1625,282 @@ try {
 
                 //#endregion
                 function scale_call() {
-                    animation = []
+                    console.log('scale_call')
                     const newBaseCache = []
                     const newOverlayCache = []
                     const now = s.time.utc
-                    const separator = '§'
-                    const dataStr = weatherData?.cityName || ''
 
-                    const first = dataStr[0] || ''
-                    const equals = dataStr[1] || ''
-                    const data = dataStr.slice(2)
-                    if (equals === '=' && first === 'i') {
-                        console.log('init received')
-                        init = true
-                        const [
-                            bgColorHex = '000000',
-                            fgColorHex = 'FFFFFF',
-                            elementBgColorHex = '333333',
-                            accentColorHex = 'FF0000',
-                            accentBgColorHex = '666666',
-                            colorWallpaperHex = '000000',
-                            colorWallpaperGradientStartHex = '000000',
-                            colorWallpaperGradientPow_ = '1',
-                        ] = data.split(separator)
-                        fgColor = Number(`0xFF${fgColorHex}`)
-                        bgColor = Number(`0xFF${bgColorHex}`)
-                        elementBgColor = Number(`0xFF${elementBgColorHex}`)
-                        accentColor = Number(`0xFF${accentColorHex}`)
-                        accentBgColor = Number(`0xFF${accentBgColorHex}`)
-                        colorWallpaper = Number(`0xFF${colorWallpaperHex}`)
-                        colorWallpaperGradientStart = Number(
-                            `0xFF${colorWallpaperGradientStartHex}`,
-                        )
-                        colorWallpaperGradientPow = Number(
-                            colorWallpaperGradientPow_,
-                        )
+                    //if (equals === '=' && first === 'i') {
+                    /*
+                     * console.log('init received')
+                     * init = true
+                     * const [
+                     * bgColorHex = '000000',
+                     * fgColorHex = 'FFFFFF',
+                     * elementBgColorHex = '333333',
+                     * accentColorHex = 'FF0000',
+                     * accentBgColorHex = '666666',
+                     * colorWallpaperHex = '000000',
+                     * colorWallpaperGradientStartHex = '000000',
+                     * colorWallpaperGradientPow_ = '1',
+                     * ] = data.split(separator)
+                     * fgColor = Number(`0xFF${fgColorHex}`)
+                     * bgColor = Number(`0xFF${bgColorHex}`)
+                     * elementBgColor = Number(`0xFF${elementBgColorHex}`)
+                     * accentColor = Number(`0xFF${accentColorHex}`)
+                     * accentBgColor = Number(`0xFF${accentBgColorHex}`)
+                     * colorWallpaper = Number(`0xFF${colorWallpaperHex}`)
+                     * colorWallpaperGradientStart = Number(
+                     * `0xFF${colorWallpaperGradientStartHex}`,
+                     * )
+                     * colorWallpaperGradientPow = Number(
+                     * colorWallpaperGradientPow_,
+                     * )
+                     */
+                    /*
+                     * const obj = {
+                     * fgColor: fgColor,
+                     * bgColor: bgColor,
+                     * elementBgColor: elementBgColor,
+                     * accentColor: accentColor,
+                     * accentBgColor: accentBgColor,
+                     * colorWallpaper: colorWallpaper,
+                     * colorWallpaperGradientStart:
+                     * colorWallpaperGradientStart,
+                     * colorWallpaperGradientPow:
+                     * colorWallpaperGradientPow,
+                     * }
+                     * const json = JSON.stringify(obj)
+                     */
+                    /*
+                     * const bytes = new Uint8Array(json.length)
+                     * for (let i = 0; i < json.length; i++) {
+                     * bytes[i] = json.charCodeAt(i)
+                     * }
+                     */
+                    /*
+                     * const fd = hmFS.open(
+                     * filename,
+                     * hmFS.O_RDWR | hmFS.O_CREAT | hmFS.O_TRUNC,
+                     * )
+                     * hmFS.write(fd, bytes.buffer, 0, bytes.length)
+                     * hmFS.close(fd)
+                     */
+                    //} else if (equals === '=' && first === 'I') {
+                    /*
+                     * console.log('force init received')
+                     * init = false
+                     * phoneAction('init')
+                     */
+                    /*
+                     * } else if (equals === '=' && first === 'r') {
+                     * lastRareUpdate = now
+                     * } else {
+                     */
+                    /*
+                     * const [
+                     * phoneBattery = '-3',
+                     * newVolume,
+                     * cityName = 'No City',
+                     * media = 'Loading Media',
+                     * ] = dataStr.split(separator)
+                     * volume = newVolume
+                     */
 
-                        const obj = {
-                            fgColor: fgColor,
-                            bgColor: bgColor,
-                            elementBgColor: elementBgColor,
-                            accentColor: accentColor,
-                            accentBgColor: accentBgColor,
-                            colorWallpaper: colorWallpaper,
-                            colorWallpaperGradientStart:
-                                colorWallpaperGradientStart,
-                            colorWallpaperGradientPow:
-                                colorWallpaperGradientPow,
-                        }
-                        const json = JSON.stringify(obj)
-
-                        const bytes = new Uint8Array(json.length)
-                        for (let i = 0; i < json.length; i++) {
-                            bytes[i] = json.charCodeAt(i)
-                        }
-
-                        const fd = hmFS.open(
-                            filename,
-                            hmFS.O_RDWR | hmFS.O_CREAT | hmFS.O_TRUNC,
-                        )
-                        hmFS.write(fd, bytes.buffer, 0, bytes.length)
-                        hmFS.close(fd)
-                    } else if (equals === '=' && first === 'I') {
-                        console.log('force init received')
-                        init = false
-                        phoneAction('init')
-                    } else if (equals === '=' && first === 'r') {
-                        console.log('rare received')
-                        const [weather] = data.split(separator)
-                        ;[
-                            temp = 'Err',
-                            condition = 'Err',
-                            humidity = 'Err',
-                            sunrise = 'Err',
-                            sunset = 'Err',
-                        ] = weather.split('£')
-                        lastRareUpdate = now
+                    ;[
+                        temp = 'Err',
+                        condition = 'Err',
+                        humidity = 'Err',
+                        sunrise = 'Err',
+                        sunset = 'Err',
+                    ] = api.weather.value.split('£')
+                    e.cityName.setProperty(
+                        hmUI.prop.TEXT,
+                        shorten(api.infoText.value, cityLength),
+                    )
+                    if (!api.infoText.value) {
+                        e.cityBG.setProperty(hmUI.prop.VISIBLE, false)
                     } else {
-                        const [
-                            phoneBattery = '-3',
-                            newVolume,
-                            cityName = 'No City',
-                            media = 'Loading Media',
-                        ] = dataStr.split(separator)
-                        volume = newVolume
-
-                        e.cityName.setProperty(
-                            hmUI.prop.TEXT,
-                            shorten(cityName, cityLength),
-                        )
-                        if (!cityName) {
-                            e.cityBG.setProperty(hmUI.prop.VISIBLE, false)
-                        } else {
-                            e.cityBG.setProperty(hmUI.prop.VISIBLE, true)
-                        }
-                        e.media.setProperty(
-                            hmUI.prop.TEXT,
-                            shorten(media, cityLength),
-                        )
-                        mediaPlaying = false
-                        if (!media) {
-                            e.mediaBG.setProperty(hmUI.prop.VISIBLE, false)
-                        } else {
-                            e.mediaBG.setProperty(hmUI.prop.VISIBLE, true)
-                            if (media.startsWith(icons.play)) {
-                                mediaPlaying = true
-                            }
-                        }
-                        e.temp.setProperty(hmUI.prop.TEXT, `${temp}°`)
-                        e.humidity.setProperty(hmUI.prop.TEXT, `${humidity}%`)
-                        e.sunrise.setProperty(hmUI.prop.TEXT, sunrise)
-                        e.sunset.setProperty(hmUI.prop.TEXT, sunset)
-                        e.condition.setProperty(
-                            hmUI.prop.TEXT,
-                            condition_icon(condition),
-                        )
-                        updateProgress(
-                            phoneBattery,
-                            100,
-                            e.phoneBattery,
-                            e.phoneBatteryCircle,
-                            e.phoneBatteryIcon,
-                            icons.phone,
-                            screenType,
-                        )
-                        if (screenType === hmSetting.screen_type.WATCHFACE) {
-                            if (!init) {
-                                phoneAction('init')
-                            } else if (
-                                !lastRareUpdate ||
-                                now - lastRareUpdate > 15 * 60 * 1000
-                            ) {
-                                phoneAction('rare')
-                            }
-                        }
-                        newBaseCache.push(fgColor)
-                        newBaseCache.push(bgColor)
-                        newBaseCache.push(elementBgColor)
-                        newBaseCache.push(accentColor)
-                        newBaseCache.push(accentBgColor)
-                        newBaseCache.push(colorWallpaper)
-                        newBaseCache.push(colorWallpaperGradientStart)
-                        newBaseCache.push(colorWallpaperGradientPow)
-                        //newBaseCache.push(mediaPlaying.toString())
-                        newOverlayCache.push(volume)
-
-                        updateProgress(
-                            s.battery.current,
-                            100,
-                            e.battery,
-                            e.batteryCircle,
-                            e.batteryIcon,
-                            clocks[s.time.hour % 12],
-                            screenType,
-                        )
-
-                        addSensor('heart', hmSensor.id.HEART)
-                        addSensor('sleep', hmSensor.id.SLEEP)
-                        addSensor('distance', hmSensor.id.DISTANCE)
-                        addSensor('steps', hmSensor.id.STEP)
-
-                        e.steps.setProperty(
-                            hmUI.prop.TEXT,
-                            s.steps.current.toString(),
-                        )
-                        const formatDistance = (m) =>
-                            m < 1000 ? `${m} m` : `${(m / 1000).toFixed(1)} km`
-                        e.distance.setProperty(
-                            hmUI.prop.TEXT,
-                            formatDistance(s.distance.current),
-                        )
-                        e.heart.setProperty(
-                            hmUI.prop.TEXT,
-                            `${s.heart.last} bbm`,
-                        )
-                        const toHMM = (m) =>
-                            `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`
-                        e.sleep.setProperty(
-                            hmUI.prop.TEXT,
-                            `${toHMM(s.sleep.getTotalTime())}`,
-                        )
-
-                        newOverlayCache.push(overlay)
-
-                        newBaseCache.push(hmBle.connectStatus().toString())
-                        const finalBaseCache = newBaseCache.join('')
-                        if (baseCache !== finalBaseCache) {
-                            baseCache = finalBaseCache
-                            renderBase()
-                            scale_call()
-                            time_update(true, true)
-                        }
-                        const finalOverlayCache = newOverlayCache.join('')
-                        if (overlayCache !== finalOverlayCache) {
-                            overlayCache = finalOverlayCache
-                            renderOver()
+                        e.cityBG.setProperty(hmUI.prop.VISIBLE, true)
+                    }
+                    e.media.setProperty(
+                        hmUI.prop.TEXT,
+                        shorten(api.media.value, cityLength),
+                    )
+                    mediaPlaying = false
+                    if (!api.media.value) {
+                        e.mediaBG.setProperty(hmUI.prop.VISIBLE, false)
+                    } else {
+                        e.mediaBG.setProperty(hmUI.prop.VISIBLE, true)
+                        if (api.media.value.startsWith(icons.play)) {
+                            mediaPlaying = true
                         }
                     }
+                    e.temp.setProperty(hmUI.prop.TEXT, `${temp}°`)
+                    e.humidity.setProperty(hmUI.prop.TEXT, `${humidity}%`)
+                    e.sunrise.setProperty(hmUI.prop.TEXT, sunrise)
+                    e.sunset.setProperty(hmUI.prop.TEXT, sunset)
+                    e.condition.setProperty(
+                        hmUI.prop.TEXT,
+                        condition_icon(condition),
+                    )
+                    updateProgress(
+                        api.phoneBattery.value,
+                        100,
+                        e.phoneBattery,
+                        e.phoneBatteryCircle,
+                        e.phoneBatteryIcon,
+                        icons.phone,
+                        screenType,
+                    )
+                    newBaseCache.push(api.fgColor.value)
+                    newBaseCache.push(api.bgColor.value)
+                    newBaseCache.push(api.elementBgColor.value)
+                    newBaseCache.push(api.accentColor.value)
+                    newBaseCache.push(api.accentBgColor.value)
+                    newBaseCache.push(api.colorWallpaper.value)
+                    newBaseCache.push(api.colorWallpaperGradientStart.value)
+                    newBaseCache.push(api.colorWallpaperGradientPow.value)
+                    newOverlayCache.push(api.volume.value)
+
+                    updateProgress(
+                        s.battery.current,
+                        100,
+                        e.battery,
+                        e.batteryCircle,
+                        e.batteryIcon,
+                        clocks[s.time.hour % 12],
+                        screenType,
+                    )
+
+                    addSensor('heart', hmSensor.id.HEART)
+                    addSensor('sleep', hmSensor.id.SLEEP)
+                    addSensor('distance', hmSensor.id.DISTANCE)
+                    addSensor('steps', hmSensor.id.STEP)
+
+                    e.steps.setProperty(
+                        hmUI.prop.TEXT,
+                        s.steps.current.toString(),
+                    )
+                    const formatDistance = (m) =>
+                        m < 1000 ? `${m} m` : `${(m / 1000).toFixed(1)} km`
+                    e.distance.setProperty(
+                        hmUI.prop.TEXT,
+                        formatDistance(s.distance.current),
+                    )
+                    e.heart.setProperty(hmUI.prop.TEXT, `${s.heart.last} bbm`)
+                    const toHMM = (m) =>
+                        `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`
+                    e.sleep.setProperty(
+                        hmUI.prop.TEXT,
+                        `${toHMM(s.sleep.getTotalTime())}`,
+                    )
+
+                    newOverlayCache.push(overlay)
+
+                    newBaseCache.push(hmBle.connectStatus().toString())
+                    const finalBaseCache = newBaseCache.join('')
+                    if (baseCache !== finalBaseCache) {
+                        baseCache = finalBaseCache
+                        renderBase()
+                        scale_call()
+                        time_update(true, true)
+                    }
+                    const finalOverlayCache = newOverlayCache.join('')
+                    if (overlayCache !== finalOverlayCache) {
+                        overlayCache = finalOverlayCache
+                        renderOver()
+                    }
                 }
-                const runAnimations = () => {
-                    const duration = 1000
-                    const fps = 10
-                    const steps = Math.round(fps * (duration / 1000))
-                    const interval = 1000 / fps
-
-                    if (animationTimer) clearTimeout(animationTimer)
-
-                    const step = (count) => {
-                        for (const a of animation) {
-                            const {
-                                element,
-                                from,
-                                to,
-                                total,
-                                prop,
-                                type,
-                                template,
-                            } = a
-                            const value = Math.min(
-                                Math.round(
-                                    from + ((total - from) / steps) * count,
-                                ),
-                                to,
-                            )
-                            const set = template
-                            set[prop] = value
-                            element.setProperty(type, set)
+                const apiUpdate = () => {
+                    const data = apiGetData()
+                    if (data === 'idle') {
+                        if (firstUpdate) {
+                            firstUpdate = false
+                            phoneAction('dataClear')
+                            return
                         }
-
-                        if (count < steps) {
-                            animationTimer = setTimeout(
-                                () => step(count + 1),
-                                interval,
-                            )
+                        if (fast_timer) {
+                            console.log('Stopping fast timer')
+                            timer.stopTimer(fast_timer)
+                            fast_timer = undefined
                         }
+                        lastRequest = ''
+                        return
+                    } else if (requesting) {
+                        if (data.includes(':')) {
+                            const s = data.split(':')
+                            const key = s[0]
+                            const thischunk = parseInt(s[1])
+                            const value = s[2]
+                            if (key !== requesting) {
+                                requesting = ''
+                                return
+                            }
+                            if (thischunk === chunk - 1) {
+                                return
+                            }
+                            if (thischunk !== chunk) {
+                                return
+                            }
+                            requestTemp += value
+                            if (requestTemp.endsWith('§')) {
+                                const finalData = requestTemp.slice(0, -1)
+                                requestTemp = ''
+                                const decoded = Buffer.from(
+                                    finalData,
+                                    'base64',
+                                ).toString('utf-8')
+                                updateApiValue(requesting, decoded)
+                                phoneAction(`ack:${requesting}`)
+                                updateThese = updateThese.filter(
+                                    (item) => item !== requesting,
+                                )
+                                requesting = ''
+                                scale_call()
+                            } else {
+                                chunk += 1
+                                requestData(requesting)
+                                return
+                            }
+                        } else {
+                            requestingTry += 1
+                            if (requestingTry >= 100) {
+                                requesting = ''
+                                requestingTry = 0
+                                console.log('timeout')
+                                return
+                            }
+                        }
+                    } else if (data.startsWith('°')) {
+                        firstUpdate = false
+                        updateThese = data.slice(1).split('')
                     }
 
-                    step(0)
+                    if (updateThese.length > 0) {
+                        requesting = updateThese[0]
+                        chunk = 0
+                        const animDelay = s.time.utc % 100
+                        const animRepeat = 100
+                        if (!fast_timer) {
+                            console.log('Creating fast timer')
+                            fast_timer = timer.createTimer(
+                                animDelay,
+                                animRepeat,
+                                function () {
+                                    apiUpdate()
+                                },
+                            )
+                        }
+                        requestData(requesting)
+                    }
                 }
-
                 const widgetDelegate = hmUI.createWidget(
                     hmUI.widget.WIDGET_DELEGATE,
                     {
                         resume_call: function () {
                             scale_call()
                             time_update(true, true)
-                            //runAnimations()
                             const animDelay = s.time.utc % 1000
                             const animRepeat = 1000
                             if (!normal_timer) {
@@ -1860,6 +1921,12 @@ try {
                             if (normal_timer) {
                                 timer.stopTimer(normal_timer)
                                 normal_timer = undefined
+                            }
+
+                            if (fast_timer) {
+                                console.log('Stopping fast timer')
+                                timer.stopTimer(fast_timer)
+                                fast_timer = undefined
                             }
                             stopVibro()
                             overlay = ''
