@@ -1869,6 +1869,7 @@ try {
                                 requesting = ''
                                 requestingTry = 0
                                 console.log('timeout')
+                                lastRequest = ''
                                 return
                             }
                         }
