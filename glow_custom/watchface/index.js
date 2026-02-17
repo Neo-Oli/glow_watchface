@@ -166,37 +166,37 @@ try {
                 type: 'color',
                 store: true,
             },
-            elementBgColor: {
+            eBgColor: {
                 value: 0xff333333,
                 key: '2',
                 type: 'color',
                 store: true,
             },
-            accentColor: {
+            accColor: {
                 value: 0xffff0000,
                 key: '3',
                 type: 'color',
                 store: true,
             },
-            accentBgColor: {
+            accBgColor: {
                 value: 0xff666666,
                 key: '4',
                 type: 'color',
                 store: true,
             },
-            colorWallpaper: {
+            gradientEnd: {
                 value: 0xff000000,
                 key: '5',
                 type: 'color',
                 store: true,
             },
-            colorWallpaperGradientStart: {
+            gradientTop: {
                 value: 0xffffffff,
                 key: '6',
                 type: 'color',
                 store: true,
             },
-            colorWallpaperGradientPow: {
+            pow: {
                 value: 1,
                 key: '7',
                 type: 'number',
@@ -494,11 +494,7 @@ try {
                     time_update(true, true)
                 }
 
-                const drawRect = (
-                    coords,
-                    name,
-                    color = api.elementBgColor.value,
-                ) => {
+                const drawRect = (coords, name, color = api.eBgColor.value) => {
                     const { x, y, w, h } = coords
                     const gap = 3
                     addElement(
@@ -588,7 +584,7 @@ try {
                         center_x: x,
                         center_y: y,
                         radius: circleRadius,
-                        color: api.elementBgColor.value,
+                        color: api.eBgColor.value,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
                     addElement(base, widgetBg, hmUI.widget.ARC_PROGRESS, {
@@ -600,7 +596,7 @@ try {
                         line_width: lineWidth,
                         level: 100,
                         corner_flag: 3,
-                        color: api.elementBgColor.value,
+                        color: api.eBgColor.value,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
                     addElement(
@@ -654,7 +650,7 @@ try {
                             text_size: big,
                             char_space: 0,
                             font: font,
-                            color: api.accentColor.value,
+                            color: api.accColor.value,
                             line_space: 0,
                             align_v: hmUI.align.CENTER_V,
                             text_style: hmUI.text_style.ELLIPSIS,
@@ -689,7 +685,7 @@ try {
                         w: c.radius,
                         font: font,
                         color: api.fgColor.value,
-                        normal_color: api.elementBgColor.value,
+                        normal_color: api.eBgColor.value,
                         press_color: api.fgColor.value,
                         ...c,
                         click_func: (button) => {
@@ -719,7 +715,7 @@ try {
                             level: 100,
                             radius: radius - arcWidth / 2,
                             line_width: arcWidth,
-                            color: api.elementBgColor.value,
+                            color: api.eBgColor.value,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
                         `${name}ArcBg`,
@@ -1211,9 +1207,9 @@ try {
                     //optimize the gradient to reduce the number of elements. Each color will be `opimize` high.
                     const optimize = 10
                     const gradientColors = createGradient(
-                        api.colorWallpaperGradientStart.value,
-                        api.colorWallpaper.value,
-                        api.colorWallpaperGradientPow.value,
+                        api.gradientTop.value,
+                        api.gradientEnd.value,
+                        api.pow.value,
                         screensize / optimize,
                     )
                     gradientColors.forEach((color, i) => {
@@ -1384,7 +1380,7 @@ try {
                             text_size: iconSize,
                             char_space: 0,
                             font: font,
-                            color: api.accentColor.value,
+                            color: api.accColor.value,
                             line_space: 0,
                             align_v: hmUI.align.CENTER_V,
                             align_h: hmUI.align.LEFT,
@@ -1458,7 +1454,7 @@ try {
                         start_angle: 0,
                         end_angle: 360,
                         line_width: lineWidth,
-                        color: api.accentBgColor.value,
+                        color: api.accBgColor.value,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
                     addElement(
@@ -1473,7 +1469,7 @@ try {
                             start_angle: 0,
                             end_angle: 360,
                             line_width: lineWidth,
-                            color: api.accentColor.value,
+                            color: api.accColor.value,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
                         'secondCircle',
@@ -1545,7 +1541,7 @@ try {
                     drawRect(
                         requestingCoords,
                         'requestingBG',
-                        api.accentBgColor.value,
+                        api.accBgColor.value,
                     )
                     addElement(
                         base,
@@ -1557,7 +1553,7 @@ try {
                             text_size: statsSize,
                             char_space: 0,
                             font: font,
-                            color: api.accentColor.value,
+                            color: api.accColor.value,
                             line_space: 0,
                             align_v: hmUI.align.CENTER_V,
                             text_style: hmUI.text_style.ELLIPSIS,
@@ -1755,12 +1751,12 @@ try {
                     )
                     newBaseCache.push(api.fgColor.value)
                     newBaseCache.push(api.bgColor.value)
-                    newBaseCache.push(api.elementBgColor.value)
-                    newBaseCache.push(api.accentColor.value)
-                    newBaseCache.push(api.accentBgColor.value)
-                    newBaseCache.push(api.colorWallpaper.value)
-                    newBaseCache.push(api.colorWallpaperGradientStart.value)
-                    newBaseCache.push(api.colorWallpaperGradientPow.value)
+                    newBaseCache.push(api.eBgColor.value)
+                    newBaseCache.push(api.accColor.value)
+                    newBaseCache.push(api.accBgColor.value)
+                    newBaseCache.push(api.gradientEnd.value)
+                    newBaseCache.push(api.gradientTop.value)
+                    newBaseCache.push(api.pow.value)
                     newOverlayCache.push(api.volume.value)
 
                     updateProgress(
