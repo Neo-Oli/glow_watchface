@@ -131,7 +131,7 @@ try {
             prevPage: '󰅁',
             nextPage: '󰅂',
             playlist: '󰲸',
-            error: ' ',
+            error: '',
         }
         const errText = icons.error
 
@@ -346,6 +346,14 @@ try {
         }
         const statsStart = mediaCoords.y + mediaCoords.h + gap
 
+        const requestingWidth = 150
+        const requestingCoords = {
+            x: center - requestingWidth / 2,
+            y: statsStart + circleRadius * 2 + gap,
+            w: requestingWidth,
+            h: statsSize,
+        }
+
         const fontSizes = [iconSize, statsSize, timeSize, big, small]
         const statsWidth = 120
         let newTimer
@@ -486,7 +494,11 @@ try {
                     time_update(true, true)
                 }
 
-                const drawRect = (coords, name) => {
+                const drawRect = (
+                    coords,
+                    name,
+                    color = api.elementBgColor.value,
+                ) => {
                     const { x, y, w, h } = coords
                     const gap = 3
                     addElement(
@@ -499,7 +511,7 @@ try {
                             w: w + gap * 2,
                             h: h + gap * 2,
                             radius: 0,
-                            color: api.elementBgColor.value,
+                            color: color,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
                         name,
@@ -1529,6 +1541,32 @@ try {
                         },
                         'media',
                     )
+
+                    drawRect(
+                        requestingCoords,
+                        'requestingBG',
+                        api.accentBgColor.value,
+                    )
+                    addElement(
+                        base,
+                        widgetContent,
+                        hmUI.widget.TEXT,
+                        {
+                            ...requestingCoords,
+                            w: 1000,
+                            text_size: statsSize,
+                            char_space: 0,
+                            font: font,
+                            color: api.accentColor.value,
+                            line_space: 0,
+                            align_v: hmUI.align.CENTER_V,
+                            text_style: hmUI.text_style.ELLIPSIS,
+                            align_h: hmUI.align.LEFT,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        },
+                        'requesting',
+                    )
+
                     const mediaButtonHeight =
                         cityNameCoords.h + gap + mediaCoords.h
                     addElement(base, buttons, hmUI.widget.BUTTON, {
@@ -1774,6 +1812,19 @@ try {
                     }
                 }
                 const apiUpdate = () => {
+                    setRequesting = (value) => {
+                        requesting = value
+                        if (requesting) {
+                            e.requestingBG.setProperty(hmUI.prop.VISIBLE, true)
+                            const apiKey = Object.keys(api).find(
+                                (k) => api[k].key === requesting,
+                            )
+                            e.requesting.setProperty(hmUI.prop.TEXT, apiKey)
+                        } else {
+                            e.requestingBG.setProperty(hmUI.prop.VISIBLE, false)
+                            e.requesting.setProperty(hmUI.prop.TEXT, '')
+                        }
+                    }
                     if (is_aod()) {
                         return
                     }
@@ -1798,7 +1849,7 @@ try {
                             const thischunk = parseInt(s[1])
                             const value = s[2]
                             if (key !== requesting) {
-                                requesting = ''
+                                setRequesting('')
                                 lastRequest = ''
                                 return
                             }
@@ -1821,11 +1872,11 @@ try {
                                 updateThese = updateThese.filter(
                                     (item) => item !== requesting,
                                 )
-                                requesting = ''
+                                setRequesting('')
                                 scale_call()
                             } else {
                                 if (!value) {
-                                    requesting = ''
+                                    setRequesting('')
                                     requestingTry = 0
                                     lastRequest = ''
                                     return
@@ -1837,7 +1888,7 @@ try {
                         } else {
                             requestingTry += 1
                             if (requestingTry >= 100) {
-                                requesting = ''
+                                setRequesting('')
                                 requestingTry = 0
                                 console.log('timeout')
                                 lastRequest = ''
@@ -1849,7 +1900,7 @@ try {
                     }
 
                     if (updateThese.length > 0) {
-                        requesting = updateThese[0]
+                        setRequesting(updateThese[0])
                         chunk = 0
                         const animDelay = s.time.utc % 100
                         const animRepeat = 100
