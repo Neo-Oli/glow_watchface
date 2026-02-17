@@ -1810,6 +1810,7 @@ try {
                 const apiUpdate = () => {
                     setRequesting = (value) => {
                         requesting = value
+                        requestingTry = 0
                         if (requesting) {
                             e.requestingBG.setProperty(hmUI.prop.VISIBLE, true)
                             const apiKey = Object.keys(api).find(
@@ -1839,14 +1840,19 @@ try {
                         lastRequest = ''
                         return
                     } else if (requesting) {
+                        requestingTry += 1
+                        if (requestingTry >= 100) {
+                            setRequesting('')
+                            console.log('timeout')
+                            lastRequest = ''
+                            return
+                        }
                         if (data.includes(':')) {
                             const s = data.split(':')
                             const key = s[0]
                             const thischunk = parseInt(s[1])
                             const value = s[2]
                             if (key !== requesting) {
-                                setRequesting('')
-                                lastRequest = ''
                                 return
                             }
                             if (thischunk === chunk - 1) {
@@ -1873,21 +1879,11 @@ try {
                             } else {
                                 if (!value) {
                                     setRequesting('')
-                                    requestingTry = 0
                                     lastRequest = ''
                                     return
                                 }
                                 chunk += 1
                                 requestData(requesting)
-                                return
-                            }
-                        } else {
-                            requestingTry += 1
-                            if (requestingTry >= 100) {
-                                setRequesting('')
-                                requestingTry = 0
-                                console.log('timeout')
-                                lastRequest = ''
                                 return
                             }
                         }
