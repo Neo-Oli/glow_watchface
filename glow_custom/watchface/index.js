@@ -23,6 +23,10 @@ try {
         const logger = DeviceRuntimeCore.HmLogger.getLogger(
             'watchface_SashaCX75',
         )
+        const is_aod = () => {
+            const screenType = hmSetting.getScreenType()
+            return screenType === hmSetting.screen_type.AOD
+        }
 
         const createGradient = (start, end, pow, length) => {
             const r1 = (start >> 16) & 0xff,
@@ -68,12 +72,12 @@ try {
 
         const api = {
             fgColor: {
-                value: 0xffff8c00,
+                value: 0xff0000ff,
                 key: '0',
                 type: 'color',
             },
             bgColor: {
-                value: 0xff000000,
+                value: 0xff777777,
                 key: '1',
                 type: 'color',
             },
@@ -323,12 +327,11 @@ try {
             circle,
             iconElement,
             icon,
-            screenType,
         ) => {
             let progress = value / target
             if (progress > 1) progress = 1
 
-            if (screenType !== hmSetting.screen_type.AOD) {
+            if (!is_aod()) {
                 const level = Math.round(progress * 100)
                 circle.setProperty(hmUI.prop.MORE, {
                     radius: circleRadius,
@@ -353,7 +356,6 @@ try {
                     )
                 }
                 addSensor('time', hmSensor.id.TIME)
-                const screenType = hmSetting.getScreenType()
                 function checkConnection() {
                     hmBle.removeListener()
                     hmBle.addListener(function (status) {
@@ -1621,7 +1623,6 @@ try {
                         e.phoneBatteryCircle,
                         e.phoneBatteryIcon,
                         icons.phone,
-                        screenType,
                     )
                     newBaseCache.push(api.fgColor.value)
                     newBaseCache.push(api.bgColor.value)
@@ -1640,7 +1641,6 @@ try {
                         e.batteryCircle,
                         e.batteryIcon,
                         clocks[s.time.hour % 12],
-                        screenType,
                     )
 
                     addSensor('heart', hmSensor.id.HEART)
@@ -1683,6 +1683,9 @@ try {
                     }
                 }
                 const apiUpdate = () => {
+                    if (is_aod()) {
+                        return
+                    }
                     const data = apiGetData()
                     if (data === 'idle') {
                         if (firstUpdate) {
