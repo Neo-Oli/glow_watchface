@@ -136,38 +136,6 @@ try {
 
         const font = 'fonts/3270NerdFontMono-Regular.ttf'
 
-        const filename = 'glow-settings.json'
-
-        const readJsonFile = (filename) => {
-            const [stat, err] = hmFS.stat(filename)
-            if (err !== 0) {
-                console.log('File does not exist')
-                return null
-            }
-
-            const buf = new Uint8Array(stat.size)
-            const fd = hmFS.open(filename, hmFS.O_RDONLY)
-            if (fd < 0) {
-                console.log('Failed to open file')
-                return null
-            }
-
-            hmFS.read(fd, buf.buffer, 0, buf.length)
-            hmFS.close(fd)
-
-            let json = ''
-            for (let i = 0; i < buf.length; i++) {
-                json += String.fromCharCode(buf[i])
-            }
-
-            try {
-                return JSON.parse(json)
-            } catch (e) {
-                console.log('JSON parse error', e)
-                return null
-            }
-        }
-
         const weather_icons = {
             thunderstorm: ' ',
             light_rain: '󰖗 ',
@@ -254,25 +222,6 @@ try {
         const timeSize = 90
         const weatherGap = 30
         const weatherHeight = big
-
-        //const initSettings = readJsonFile(filename)
-
-        /*
-         * if (initSettings) {
-         * fgColor = initSettings.fgColor ?? fgColor
-         * bgColor = initSettings.bgColor ?? bgColor
-         * elementBgColor = initSettings.elementBgColor ?? elementBgColor
-         * accentColor = initSettings.accentColor ?? accentColor
-         * accentBgColor = initSettings.accentBgColor ?? accentBgColor
-         * colorWallpaper = initSettings.colorWallpaper ?? colorWallpaper
-         * colorWallpaperGradientStart =
-         * initSettings.colorWallpaperGradientStart ??
-         * colorWallpaperGradientStart
-         * colorWallpaperGradientPow =
-         * initSettings.colorWallpaperGradientPow ??
-         * colorWallpaperGradientPow
-         * }
-         */
 
         const ystart = 45
         const gap = 10
