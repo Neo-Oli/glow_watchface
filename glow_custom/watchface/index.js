@@ -139,6 +139,20 @@ try {
             return hmSetting.getUserData().region
         }
         let requesting = ''
+        const setRequesting = (value) => {
+            requesting = value
+            requestingTry = 0
+            if (requesting) {
+                e.requestingBG.setProperty(hmUI.prop.VISIBLE, true)
+                const apiKey = Object.keys(api).find(
+                    (k) => api[k].key === requesting,
+                )
+                e.requesting.setProperty(hmUI.prop.TEXT, apiKey)
+            } else {
+                e.requestingBG.setProperty(hmUI.prop.VISIBLE, false)
+                e.requesting.setProperty(hmUI.prop.TEXT, '')
+            }
+        }
         let updateThese = ''
         let requestTemp = ''
         let firstUpdate = true
@@ -1818,20 +1832,6 @@ try {
                             )
                         }
                     }
-                    const setRequesting = (value) => {
-                        requesting = value
-                        requestingTry = 0
-                        if (requesting) {
-                            e.requestingBG.setProperty(hmUI.prop.VISIBLE, true)
-                            const apiKey = Object.keys(api).find(
-                                (k) => api[k].key === requesting,
-                            )
-                            e.requesting.setProperty(hmUI.prop.TEXT, apiKey)
-                        } else {
-                            e.requestingBG.setProperty(hmUI.prop.VISIBLE, false)
-                            e.requesting.setProperty(hmUI.prop.TEXT, '')
-                        }
-                    }
                     if (is_aod()) {
                         return
                     }
@@ -1938,6 +1938,7 @@ try {
                             if (fast_timer) {
                                 console.log('Stopping fast timer')
                                 timer.stopTimer(fast_timer)
+                                setRequesting('')
                                 fast_timer = undefined
                             }
                             stopVibro()
