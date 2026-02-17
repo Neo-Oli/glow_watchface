@@ -1941,7 +1941,6 @@ try {
                                 fast_timer = undefined
                             }
                             stopVibro()
-                            overlay = ''
                         },
                     },
                 )
