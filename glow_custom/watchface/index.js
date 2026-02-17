@@ -361,7 +361,7 @@ try {
             x: center - requestingWidth / 2,
             y: statsStart + circleRadius * 2 + gap,
             w: requestingWidth,
-            h: statsSize,
+            h: small,
         }
 
         const fontSizes = [iconSize, statsSize, timeSize, big, small]
@@ -1560,7 +1560,7 @@ try {
                         {
                             ...requestingCoords,
                             w: 1000,
-                            text_size: statsSize,
+                            text_size: small,
                             char_space: 0,
                             font: font,
                             color: api.accColor.value,
