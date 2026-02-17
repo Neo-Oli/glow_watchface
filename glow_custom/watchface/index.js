@@ -271,7 +271,9 @@ try {
             prevPage: '󰅁',
             nextPage: '󰅂',
             playlist: '󰲸',
+            error: ' ',
         }
+        const errText = icons.error
         const iconSize = 50
         const circleRadius = 47
         const lineWidth = 5
@@ -540,7 +542,7 @@ try {
                             align_v: hmUI.align.TOP,
                             text_style: hmUI.text_style.ELLIPSIS,
                             align_h: hmUI.align.LEFT,
-                            text: 'Err',
+                            text: errText,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
                         name,
@@ -619,7 +621,7 @@ try {
                             text_style: hmUI.text_style.ELLIPSIS,
                             align_h: hmUI.align.CENTER_H,
                             show_level: hmUI.show_level.ONLY_NORMAL,
-                            text: 'Err',
+                            text: errText,
                         },
                         name,
                     )
@@ -641,7 +643,7 @@ try {
                             text_style: hmUI.text_style.ELLIPSIS,
                             align_h: hmUI.align.CENTER_H,
                             show_level: hmUI.show_level.ONLY_NORMAL,
-                            text: 'Err',
+                            text: errText,
                         },
                         `${name}Icon`,
                     )
@@ -1140,7 +1142,7 @@ try {
                     prepareElements(base)
                     createCircle(
                         'battery',
-                        'Err',
+                        errText,
                         () => {
                             setOverlay('controls0')
                         },
@@ -1368,7 +1370,7 @@ try {
                             align_h: hmUI.align.LEFT,
                             text_style: hmUI.text_style.NONE,
                             unit_type: 0,
-                            text: '',
+                            text: errText,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
                         'condition',
@@ -1660,11 +1662,11 @@ try {
                     const newBaseCache = []
                     const newOverlayCache = []
                     ;[
-                        temp = 'Err',
-                        condition = 'Err',
-                        humidity = 'Err',
-                        sunrise = 'Err',
-                        sunset = 'Err',
+                        temp = errText,
+                        condition = errText,
+                        humidity = errText,
+                        sunrise = errText,
+                        sunset = errText,
                     ] = api.weather.value.split('£')
                     e.cityName.setProperty(
                         hmUI.prop.TEXT,
