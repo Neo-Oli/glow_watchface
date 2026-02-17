@@ -27,6 +27,35 @@ try {
             const screenType = hmSetting.getScreenType()
             return screenType === hmSetting.screen_type.AOD
         }
+        const readJsonFile = (filename) => {
+            const [stat, err] = hmFS.stat(filename)
+            if (err !== 0) {
+                console.log('File does not exist')
+                return null
+            }
+
+            const buf = new Uint8Array(stat.size)
+            const fd = hmFS.open(filename, hmFS.O_RDONLY)
+            if (fd < 0) {
+                console.log('Failed to open file')
+                return null
+            }
+
+            hmFS.read(fd, buf.buffer, 0, buf.length)
+            hmFS.close(fd)
+
+            let json = ''
+            for (let i = 0; i < buf.length; i++) {
+                json += String.fromCharCode(buf[i])
+            }
+
+            try {
+                return JSON.parse(json)
+            } catch (e) {
+                console.log('JSON parse error', e)
+                return null
+            }
+        }
 
         const createGradient = (start, end, pow, length) => {
             const r1 = (start >> 16) & 0xff,
@@ -75,47 +104,95 @@ try {
                 value: 0xff0000ff,
                 key: '0',
                 type: 'color',
+                store: true,
             },
             bgColor: {
                 value: 0xff777777,
                 key: '1',
                 type: 'color',
+                store: true,
             },
             elementBgColor: {
                 value: 0xff333333,
                 key: '2',
                 type: 'color',
+                store: true,
             },
             accentColor: {
                 value: 0xffff0000,
                 key: '3',
                 type: 'color',
+                store: true,
             },
             accentBgColor: {
                 value: 0xff666666,
                 key: '4',
                 type: 'color',
+                store: true,
             },
             colorWallpaper: {
                 value: 0xff000000,
                 key: '5',
                 type: 'color',
+                store: true,
             },
             colorWallpaperGradientStart: {
                 value: 0xffffffff,
                 key: '6',
                 type: 'color',
+                store: true,
             },
             colorWallpaperGradientPow: {
                 value: 1,
                 key: '7',
                 type: 'number',
+                store: true,
             },
-            volume: { value: 50, key: '8', type: 'number' },
-            phoneBattery: { value: 50, key: '9', type: 'number' },
-            infoText: { value: 'No info text', key: 'a', type: 'string' },
-            media: { value: 'Loading media', key: 'b', type: 'string' },
-            weather: { value: '', key: 'c', type: 'string' },
+            volume: { value: 50, key: '8', type: 'number', store: false },
+            phoneBattery: { value: 50, key: '9', type: 'number', store: false },
+            infoText: {
+                value: 'No info text',
+                key: 'a',
+                type: 'string',
+                store: false,
+            },
+            media: {
+                value: 'Loading media',
+                key: 'b',
+                type: 'string',
+                store: false,
+            },
+            weather: { value: '', key: 'c', type: 'string', store: false },
+        }
+        const filename = 'glow-settings.json'
+
+        const initSettings = readJsonFile(filename)
+
+        if (initSettings) {
+            Object.entries(initSettings).forEach(([key, value]) => {
+                if (api[key]) {
+                    api[key].value = value
+                }
+            })
+        }
+        const saveApi = () => {
+            const obj = Object.fromEntries(
+                Object.entries(api)
+                    .filter(([_, item]) => item.store)
+                    .map(([key, item]) => [key, item.value]),
+            )
+            const json = JSON.stringify(obj)
+            console.log(`saving ${json}`)
+            const bytes = new Uint8Array(json.length)
+            for (let i = 0; i < json.length; i++) {
+                bytes[i] = json.charCodeAt(i)
+            }
+            const fd = hmFS.open(
+                filename,
+                hmFS.O_RDWR | hmFS.O_CREAT | hmFS.O_TRUNC,
+            )
+            hmFS.write(fd, bytes.buffer, 0, bytes.length)
+            hmFS.close(fd)
         }
         const updateApiValue = (key, value) => {
             const apiKey = Object.keys(api).find((k) => api[k].key === key)
@@ -135,6 +212,9 @@ try {
                 console.warn(`Unknown type: ${type}`)
             }
             console.log(`Set ${apiKey} to ${api[apiKey].value}`)
+            if (api[apiKey].store) {
+                saveApi()
+            }
         }
         const shorten = (str, n) => Array.from(str).slice(0, n).join('')
 
@@ -1754,7 +1834,6 @@ try {
                             }
                         }
                     } else if (data.startsWith('°')) {
-                        firstUpdate = false
                         updateThese = data.slice(1).split('')
                     }
 
