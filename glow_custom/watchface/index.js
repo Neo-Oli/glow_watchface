@@ -1705,6 +1705,7 @@ try {
                             const value = s[2]
                             if (key !== requesting) {
                                 requesting = ''
+                                lastRequest = ''
                                 return
                             }
                             if (thischunk === chunk - 1) {
