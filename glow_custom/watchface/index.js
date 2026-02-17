@@ -80,6 +80,60 @@ try {
                 return ((r << 16) | (g << 8) | b) >>> 0
             })
         }
+        const weather_icons = {
+            thunderstorm: ' ',
+            light_rain: '󰖗 ',
+            rain: ' ',
+            snow: '󰖘 ',
+            heavy_snow: '󰼶 ',
+            rain_snow: '󰙿 ',
+            sleet: ' ',
+            fog: '󰖑 ',
+            sun: '󰖙 ',
+            cloud: ' ',
+            heavy_cloud: ' ',
+            cloud_sun: '󰖕 ',
+            cloud_moon: '󰼱 ',
+            clear_night: ' ',
+            wind: ' ',
+        }
+
+        const clocks = [
+            '󱑊',
+            '󱐿',
+            '󱑀',
+            '󱑁',
+            '󱑂',
+            '󱑃',
+            '󱑄',
+            '󱑅',
+            '󱑆',
+            '󱑇',
+            '󱑈',
+            '󱑉',
+        ]
+
+        const icons = {
+            disconnect: '󰂲',
+            steps: '',
+            heart: '󰋑',
+            distance: '',
+            sleep: '󰒲',
+            mail: '󰇮',
+            phone: '󰄜',
+            play: '󰐊',
+            prev: '󰒮',
+            next: '󰒭',
+            pause: '󰏤',
+            close: '×',
+            shuffle: '󰒟',
+            volume: '󰕾',
+            prevPage: '󰅁',
+            nextPage: '󰅂',
+            playlist: '󰲸',
+            error: ' ',
+        }
+        const errText = icons.error
 
         const apiGetData = () => {
             return hmSetting.getUserData().region
@@ -162,7 +216,12 @@ try {
                 type: 'string',
                 store: false,
             },
-            weather: { value: '', key: 'c', type: 'string', store: false },
+            weather: {
+                value: `${errText}£`.repeat(20),
+                key: 'c',
+                type: 'string',
+                store: false,
+            },
         }
         const filename = 'glow-settings.json'
 
@@ -220,60 +279,6 @@ try {
 
         const font = 'fonts/3270NerdFontMono-Regular.ttf'
 
-        const weather_icons = {
-            thunderstorm: ' ',
-            light_rain: '󰖗 ',
-            rain: ' ',
-            snow: '󰖘 ',
-            heavy_snow: '󰼶 ',
-            rain_snow: '󰙿 ',
-            sleet: ' ',
-            fog: '󰖑 ',
-            sun: '󰖙 ',
-            cloud: ' ',
-            heavy_cloud: ' ',
-            cloud_sun: '󰖕 ',
-            cloud_moon: '󰼱 ',
-            clear_night: ' ',
-            wind: ' ',
-        }
-
-        const clocks = [
-            '󱑊',
-            '󱐿',
-            '󱑀',
-            '󱑁',
-            '󱑂',
-            '󱑃',
-            '󱑄',
-            '󱑅',
-            '󱑆',
-            '󱑇',
-            '󱑈',
-            '󱑉',
-        ]
-
-        const icons = {
-            disconnect: '󰂲',
-            steps: '',
-            heart: '󰋑',
-            distance: '',
-            sleep: '󰒲',
-            mail: '󰇮',
-            phone: '󰄜',
-            play: '󰐊',
-            prev: '󰒮',
-            next: '󰒭',
-            pause: '󰏤',
-            close: '×',
-            shuffle: '󰒟',
-            volume: '󰕾',
-            prevPage: '󰅁',
-            nextPage: '󰅂',
-            playlist: '󰲸',
-            error: ' ',
-        }
-        const errText = icons.error
         const iconSize = 50
         const circleRadius = 47
         const lineWidth = 5
@@ -1255,6 +1260,7 @@ try {
                             text_style: hmUI.text_style.ELLIPSIS,
                             align_h: hmUI.align.LEFT,
                             show_level: hmUI.show_level.ONLY_NORMAL,
+                            text: errText,
                         },
                         'sunrise',
                     )
@@ -1286,6 +1292,7 @@ try {
                             text_style: hmUI.text_style.ELLIPSIS,
                             align_h: hmUI.align.LEFT,
                             show_level: hmUI.show_level.ONLY_NORMAL,
+                            text: errText,
                         },
                         'sunset',
                     )
@@ -1308,6 +1315,7 @@ try {
                             text_style: hmUI.text_style.ELLIPSIS,
                             align_h: hmUI.align.RIGHT,
                             show_level: hmUI.show_level.ONLY_NORMAL,
+                            text: errText,
                         },
                         'humidity',
                     )
@@ -1562,6 +1570,7 @@ try {
                             text_style: hmUI.text_style.ELLIPSIS,
                             align_h: hmUI.align.RIGHT,
                             show_level: hmUI.show_level.ONLY_NORMAL,
+                            text: errText,
                         },
                         'temp',
                     )
