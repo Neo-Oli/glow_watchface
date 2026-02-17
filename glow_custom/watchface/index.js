@@ -1729,6 +1729,12 @@ try {
                                 requesting = ''
                                 scale_call()
                             } else {
+                                if (!value) {
+                                    requesting = ''
+                                    requestingTry = 0
+                                    lastRequest = ''
+                                    return
+                                }
                                 chunk += 1
                                 requestData(requesting)
                                 return
