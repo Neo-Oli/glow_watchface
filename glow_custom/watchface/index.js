@@ -1853,14 +1853,19 @@ try {
                         requestingTry += 1
                         if (requestingTry >= 100) {
                             setRequesting('')
-                            console.log('timeout')
+                            console.log(`timeout. Data ${data}`)
                             return
                         }
                         if (data.includes(':')) {
-                            const s = data.split(':')
-                            const key = s[0]
-                            const thischunk = parseInt(s[1])
-                            const value = s[2]
+                            const parts = data.split(':')
+                            const head = parts[0].split('')
+                            const key = head[0]
+                            const thischunk = parseInt(
+                                head.slice(1).join(''),
+                                10,
+                            )
+                            const value = parts.slice(1).join(':')
+
                             if (key !== requesting) {
                                 return
                             }
