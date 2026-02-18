@@ -128,6 +128,7 @@ try {
             sleep: '󰒲',
             mail: '󰇮',
             phone: '󰄜',
+            headphones: '󰋋',
             play: '󰐊',
             prev: '󰒮',
             next: '󰒭',
@@ -249,6 +250,11 @@ try {
                 key: 'g',
                 type: 'string',
             },
+            headphones: {
+                value: '',
+                key: 'h',
+                type: 'number',
+            },
         }
         const api = {}
         const filename = 'glow-settings.json'
@@ -279,7 +285,11 @@ try {
 
             const type = api[apiKey].type
             if (type === 'number') {
-                api[apiKey].value = Number(value)
+                if (value === '') {
+                    api[apiKey].value = null
+                } else {
+                    api[apiKey].value = Number(value)
+                }
             } else if (type === 'color') {
                 api[apiKey].value = Number(`0xFF${value}`)
             } else if (type === 'string') {
@@ -294,7 +304,6 @@ try {
         }
         const restore = () => {
             Object.entries(defaultApi).forEach(([key, value]) => {
-                console.log(`restoring ${key} = ${value.value}`)
                 api[key] = { ...value }
             })
             if (initSettings) {
@@ -309,7 +318,9 @@ try {
         const font = 'fonts/3270NerdFontMono-Regular.ttf'
 
         const iconSize = 50
-        const circleRadius = 47
+        const circleButtonRadius = 47
+        const circleRadius = 32
+        const circlex = 85
         const lineWidth = 5
         const buttonImage = 'empty.png'
         const debugImage = 'debug.png'
@@ -332,11 +343,10 @@ try {
             Object.values(icons).join(''),
         ].join('')
 
-        const statsSize = 24
-
         const phoneAction = (action) => {
             console.log(`DROIDDO: ${action}`)
         }
+        const statsSize = 24
         const big = 30
         const small = 18
         const timeSize = 90
@@ -377,7 +387,7 @@ try {
 
         const requestingWidth = 150
         const requestingCoords = {
-            x: center - requestingWidth / 2,
+            x: circlex,
             y: statsStart + circleRadius * 2 + gap,
             w: requestingWidth,
             h: small,
@@ -444,26 +454,35 @@ try {
                 }
             }
         }
-        const updateProgress = (
-            value,
-            target,
-            text,
-            circle,
-            iconElement,
-            icon,
-        ) => {
-            let progress = value / target
-            if (progress > 1) progress = 1
-
+        const updateProgress = (value, target, key, icon) => {
             if (!is_aod()) {
-                const level = Math.round(progress * 100)
-                circle.setProperty(hmUI.prop.MORE, {
-                    radius: circleRadius,
-                    level,
-                })
-                if (text) text.setProperty(hmUI.prop.TEXT, `${value}%`)
-                if (iconElement && icon) {
-                    iconElement.setProperty(hmUI.prop.TEXT, icon)
+                let progress = value / target
+                if (progress > 1) progress = 1
+                const text = e[key]
+                const circle = e[`${key}Circle`]
+                const iconElement = e[`${key}Icon`]
+                const bg = e[`${key}Bg`]
+                const bgCircle = e[`${key}BgCircle`]
+                const elements = [text, circle, iconElement, bg, bgCircle]
+                if (value !== null) {
+                    elements.forEach((element) =>
+                        element.setProperty(hmUI.prop.VISIBLE, true),
+                    )
+                    const level = Math.round(progress * 100)
+                    circle.setProperty(hmUI.prop.MORE, {
+                        radius: circleRadius,
+                        level,
+                    })
+                    if (text) {
+                        text.setProperty(hmUI.prop.TEXT, `${value}%`)
+                    }
+                    if (iconElement && icon) {
+                        iconElement.setProperty(hmUI.prop.TEXT, icon)
+                    }
+                } else {
+                    elements.forEach((element) =>
+                        element.setProperty(hmUI.prop.VISIBLE, false),
+                    )
                 }
             }
         }
@@ -604,30 +623,41 @@ try {
                 }
 
                 const createCircle = (name, icon, button, circleCount) => {
-                    const center_x = 120
                     const center_y = statsStart + circleRadius
-                    const gap = 103
-                    const x = center_x + gap * circleCount
+                    const circleGap = circleRadius * 2 + gap
+                    const x = circlex + circleGap * circleCount
                     const y = center_y
-                    addElement(base, widgetBg, hmUI.widget.CIRCLE, {
-                        center_x: x,
-                        center_y: y,
-                        radius: circleRadius,
-                        color: api.eBgColor.value,
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    })
-                    addElement(base, widgetBg, hmUI.widget.ARC_PROGRESS, {
-                        center_x: x,
-                        center_y: y,
-                        radius: circleRadius,
-                        start_angle: 0,
-                        end_angle: 360,
-                        line_width: lineWidth,
-                        level: 100,
-                        corner_flag: 3,
-                        color: api.eBgColor.value,
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    })
+                    addElement(
+                        base,
+                        widgetBg,
+                        hmUI.widget.CIRCLE,
+                        {
+                            center_x: x,
+                            center_y: y,
+                            radius: circleRadius,
+                            color: api.eBgColor.value,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        },
+                        `${name}Bg`,
+                    )
+                    addElement(
+                        base,
+                        widgetBg,
+                        hmUI.widget.ARC_PROGRESS,
+                        {
+                            center_x: x,
+                            center_y: y,
+                            radius: circleRadius,
+                            start_angle: 0,
+                            end_angle: 360,
+                            line_width: lineWidth,
+                            level: 100,
+                            corner_flag: 3,
+                            color: api.eBgColor.value,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        },
+                        `${name}BgCircle`,
+                    )
                     addElement(
                         base,
                         widgetContent,
@@ -645,16 +675,17 @@ try {
                         },
                         `${name}Circle`,
                     )
+                    const circleTextSize = small
                     addElement(
                         base,
                         widgetContent,
                         hmUI.widget.TEXT,
                         {
                             x: x - circleRadius,
-                            y: y - big / 2 + 5,
+                            y: y - circleTextSize / 2 + 5,
                             w: circleRadius * 2,
-                            h: big,
-                            text_size: big,
+                            h: circleTextSize,
+                            text_size: circleTextSize,
                             char_space: 0,
                             font: font,
                             color: api.fgColor.value,
@@ -667,16 +698,17 @@ try {
                         },
                         name,
                     )
+                    const circleIconSize = small
                     addElement(
                         base,
                         widgetContent,
                         hmUI.widget.TEXT,
                         {
                             x: x - circleRadius,
-                            y: y - big / 2 - big + 5,
+                            y: y - circleTextSize / 2 - circleIconSize + 5,
                             w: circleRadius * 2,
-                            h: big,
-                            text_size: big,
+                            h: circleIconSize,
+                            text_size: circleIconSize,
                             char_space: 0,
                             font: font,
                             color: api.accColor.value,
@@ -690,10 +722,10 @@ try {
                         `${name}Icon`,
                     )
                     if (button) {
-                        const x = center_x - circleRadius
+                        const x = circlex - circleRadius
                         const y = center_y - circleRadius
                         addElement(base, buttons, hmUI.widget.BUTTON, {
-                            x: x + gap * circleCount,
+                            x: x + circleGap * circleCount,
                             y: y,
                             w: circleRadius * 2,
                             h: circleRadius * 2,
@@ -842,7 +874,7 @@ try {
                         color: api.bgColor.value,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
-                    const buttonSize = circleRadius * 2
+                    const buttonSize = circleButtonRadius * 2
                     let y =
                         center -
                         buttonSize / 2 -
@@ -1209,6 +1241,14 @@ try {
                             setOverlay('volume')
                         },
                         1,
+                    )
+                    createCircle(
+                        'headphonesBattery',
+                        errText,
+                        () => {
+                            setOverlay('volume')
+                        },
+                        2,
                     )
                     createStat('steps', icons.steps, hmUI.data_type.STEP, 0)
                     createStat(
@@ -1787,10 +1827,14 @@ try {
                     updateProgress(
                         api.phoneBattery.value,
                         100,
-                        e.phoneBattery,
-                        e.phoneBatteryCircle,
-                        e.phoneBatteryIcon,
+                        'phoneBattery',
                         icons.phone,
+                    )
+                    updateProgress(
+                        api.headphones.value,
+                        100,
+                        'headphonesBattery',
+                        icons.headphones,
                     )
                     newBaseCache.push(api.fgColor.value)
                     newBaseCache.push(api.bgColor.value)
@@ -1805,9 +1849,7 @@ try {
                     updateProgress(
                         s.battery.current,
                         100,
-                        e.battery,
-                        e.batteryCircle,
-                        e.batteryIcon,
+                        'battery',
                         clocks[s.time.hour % 12],
                     )
 
