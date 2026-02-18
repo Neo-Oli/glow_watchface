@@ -155,7 +155,6 @@ try {
         }
         let updateThese = ''
         let requestTemp = ''
-        let firstUpdate = true
         let requestingTry = 0
         let chunk = 0
         const requestData = (action) => {
@@ -1837,11 +1836,6 @@ try {
                     }
                     const data = apiGetData()
                     if (data === 'idle') {
-                        if (firstUpdate) {
-                            firstUpdate = false
-                            phoneAction('dataClear')
-                            return
-                        }
                         if (fast_timer) {
                             console.log('Stopping fast timer')
                             timer.stopTimer(fast_timer)
