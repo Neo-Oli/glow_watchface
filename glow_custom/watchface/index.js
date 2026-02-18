@@ -146,8 +146,14 @@ try {
             return hmSetting.getUserData().region
         }
         let requesting = ''
+        let updateThese = ''
+        let requestTemp = ''
+        let requestingTry = 0
+        let chunk = 0
         const setRequesting = (value) => {
             requesting = value
+            requestTemp = ''
+            chunk = 0
             requestingTry = 0
             if (requesting) {
                 e.requestingBG.setProperty(hmUI.prop.VISIBLE, true)
@@ -160,10 +166,6 @@ try {
                 e.requesting.setProperty(hmUI.prop.TEXT, '')
             }
         }
-        let updateThese = ''
-        let requestTemp = ''
-        let requestingTry = 0
-        let chunk = 0
         const requestData = (action) => {
             const request = `${action}/${chunk}`
             console.log(`DROIDDATA:${request}`)
@@ -222,9 +224,29 @@ try {
                 key: 'b',
                 type: 'string',
             },
-            weather: {
-                value: `${errText}£`.repeat(20),
+            temperature: {
+                value: -273,
                 key: 'c',
+                type: 'number',
+            },
+            condition: {
+                value: errText,
+                key: 'd',
+                type: 'string',
+            },
+            humidity: {
+                value: -1,
+                key: 'e',
+                type: 'number',
+            },
+            sunrise: {
+                value: '00:00',
+                key: 'f',
+                type: 'string',
+            },
+            sunset: {
+                value: '00:00',
+                key: 'g',
                 type: 'string',
             },
         }
@@ -1059,6 +1081,7 @@ try {
                                 Object.keys(initSettings).forEach(
                                     (key) => delete initSettings[key],
                                 )
+                                hmFS.remove(filename)
                                 restore()
                                 phoneAction('dataClear')
                                 setOverlay()
@@ -1722,13 +1745,6 @@ try {
                     console.log('scale_call')
                     const newBaseCache = []
                     const newOverlayCache = []
-                    ;[
-                        temp = errText,
-                        condition = errText,
-                        humidity = errText,
-                        sunrise = errText,
-                        sunset = errText,
-                    ] = api.weather.value.split('£')
                     e.cityName.setProperty(
                         hmUI.prop.TEXT,
                         shorten(api.infoText.value, cityLength),
@@ -1754,13 +1770,19 @@ try {
                             mediaPlaying = true
                         }
                     }
-                    e.temp.setProperty(hmUI.prop.TEXT, `${temp}°`)
-                    e.humidity.setProperty(hmUI.prop.TEXT, `${humidity}%`)
-                    e.sunrise.setProperty(hmUI.prop.TEXT, sunrise)
-                    e.sunset.setProperty(hmUI.prop.TEXT, sunset)
+                    e.temp.setProperty(
+                        hmUI.prop.TEXT,
+                        `${api.temperature.value}°`,
+                    )
+                    e.humidity.setProperty(
+                        hmUI.prop.TEXT,
+                        `${api.humidity.value}%`,
+                    )
+                    e.sunrise.setProperty(hmUI.prop.TEXT, api.sunrise.value)
+                    e.sunset.setProperty(hmUI.prop.TEXT, api.sunset.value)
                     e.condition.setProperty(
                         hmUI.prop.TEXT,
-                        condition_icon(condition),
+                        condition_icon(api.condition.value),
                     )
                     updateProgress(
                         api.phoneBattery.value,
@@ -1882,9 +1904,8 @@ try {
                                 return
                             }
                             requestTemp += value
-                            if (requestTemp.endsWith('§')) {
+                            if (requestTemp.endsWith('$')) {
                                 const finalData = requestTemp.slice(0, -1)
-                                requestTemp = ''
                                 updateApiValue(requesting, decode(finalData))
                                 phoneAction(`ack:${requesting}${finalData}`)
                                 updateThese = updateThese.filter(
@@ -1903,13 +1924,12 @@ try {
                             }
                         }
                         return
-                    } else if (data.startsWith('°')) {
+                    } else if (data.startsWith('#')) {
                         updateThese = data.slice(1).split('')
                     }
 
                     if (updateThese.length > 0) {
                         setRequesting(updateThese[0])
-                        chunk = 0
                         fastTimer()
                         requestData(requesting)
                     }
