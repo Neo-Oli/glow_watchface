@@ -27,18 +27,25 @@ try {
             const screenType = hmSetting.getScreenType()
             return screenType === hmSetting.screen_type.AOD
         }
+
+        const decode = (data) => {
+            return Buffer.from(String(data), 'base64').toString('utf-8')
+        }
+        const encode = (data) => Buffer.from(data, 'utf-8').toString('base64')
+
         const readJsonFile = (filename) => {
+            const def = {}
             const [stat, err] = hmFS.stat(filename)
             if (err !== 0) {
                 console.log('File does not exist')
-                return null
+                return def
             }
 
             const buf = new Uint8Array(stat.size)
             const fd = hmFS.open(filename, hmFS.O_RDONLY)
             if (fd < 0) {
                 console.log('Failed to open file')
-                return null
+                return def
             }
 
             hmFS.read(fd, buf.buffer, 0, buf.length)
@@ -53,7 +60,7 @@ try {
                 return JSON.parse(json)
             } catch (e) {
                 console.log('JSON parse error', e)
-                return null
+                return def
             }
         }
 
@@ -162,94 +169,73 @@ try {
             console.log(`DROIDDATA:${request}`)
         }
 
-        const api = {
+        const defaultApi = {
             fgColor: {
                 value: 0xff0000ff,
                 key: '0',
                 type: 'color',
-                store: true,
             },
             bgColor: {
                 value: 0xff777777,
                 key: '1',
                 type: 'color',
-                store: true,
             },
             eBgColor: {
                 value: 0xff333333,
                 key: '2',
                 type: 'color',
-                store: true,
             },
             accColor: {
                 value: 0xffff0000,
                 key: '3',
                 type: 'color',
-                store: true,
             },
             accBgColor: {
                 value: 0xff666666,
                 key: '4',
                 type: 'color',
-                store: true,
             },
             gradientEnd: {
                 value: 0xff000000,
                 key: '5',
                 type: 'color',
-                store: true,
             },
             gradientTop: {
                 value: 0xffffffff,
                 key: '6',
                 type: 'color',
-                store: true,
             },
             pow: {
                 value: 1,
                 key: '7',
                 type: 'number',
-                store: true,
             },
-            volume: { value: 50, key: '8', type: 'number', store: false },
-            phoneBattery: { value: 50, key: '9', type: 'number', store: false },
+            volume: { value: 50, key: '8', type: 'number' },
+            phoneBattery: { value: 50, key: '9', type: 'number' },
             infoText: {
                 value: 'No info text',
                 key: 'a',
                 type: 'string',
-                store: false,
             },
             media: {
                 value: 'Loading media',
                 key: 'b',
                 type: 'string',
-                store: false,
             },
             weather: {
                 value: `${errText}£`.repeat(20),
                 key: 'c',
                 type: 'string',
-                store: false,
             },
         }
+        const api = {}
         const filename = 'glow-settings.json'
 
         const initSettings = readJsonFile(filename)
 
-        if (initSettings) {
-            Object.entries(initSettings).forEach(([key, value]) => {
-                if (api[key]) {
-                    api[key].value = value
-                }
-            })
-        }
-        const saveApi = () => {
-            const obj = Object.fromEntries(
-                Object.entries(api)
-                    .filter(([_, item]) => item.store)
-                    .map(([key, item]) => [key, item.value]),
-            )
-            const json = JSON.stringify(obj)
+        const saveApi = (key, value) => {
+            initSettings[key] = encode(value)
+            const json = JSON.stringify(initSettings)
             console.log(`saving ${json}`)
             const bytes = new Uint8Array(json.length)
             for (let i = 0; i < json.length; i++) {
@@ -262,10 +248,10 @@ try {
             hmFS.write(fd, bytes.buffer, 0, bytes.length)
             hmFS.close(fd)
         }
-        const updateApiValue = (key, value) => {
+        const updateApiValue = (key, value, save = true) => {
             const apiKey = Object.keys(api).find((k) => api[k].key === key)
             if (!apiKey) {
-                console.warn(`No element found with key "${key}"`)
+                console.log(`No element found with key "${key}"`)
                 return
             }
 
@@ -280,10 +266,22 @@ try {
                 console.warn(`Unknown type: ${type}`)
             }
             console.log(`Set ${apiKey} to ${api[apiKey].value}`)
-            if (api[apiKey].store) {
-                saveApi()
+            if (save) {
+                saveApi(key, value)
             }
         }
+        const restore = () => {
+            Object.entries(defaultApi).forEach(([key, value]) => {
+                console.log(`restoring ${key} = ${value.value}`)
+                api[key] = { ...value }
+            })
+            if (initSettings) {
+                Object.entries(initSettings).forEach(([key, value]) => {
+                    updateApiValue(key, decode(value), false)
+                })
+            }
+        }
+        restore()
         const shorten = (str, n) => Array.from(str).slice(0, n).join('')
 
         const font = 'fonts/3270NerdFontMono-Regular.ttf'
@@ -1055,6 +1053,16 @@ try {
                                 setOverlay()
                             },
                         },
+                        {
+                            text: 'reset face',
+                            func: () => {
+                                Object.keys(initSettings).forEach(
+                                    (key) => delete initSettings[key],
+                                )
+                                restore()
+                                setOverlay()
+                            },
+                        },
                         /*
                          * {
                          * text: 'test function',
@@ -1733,6 +1741,9 @@ try {
                         hmUI.prop.TEXT,
                         shorten(api.media.value, cityLength),
                     )
+                    if (!requesting) {
+                        e.requestingBG.setProperty(hmUI.prop.VISIBLE, false)
+                    }
                     mediaPlaying = false
                     if (!api.media.value) {
                         e.mediaBG.setProperty(hmUI.prop.VISIBLE, false)
@@ -1873,12 +1884,8 @@ try {
                             if (requestTemp.endsWith('§')) {
                                 const finalData = requestTemp.slice(0, -1)
                                 requestTemp = ''
-                                const decoded = Buffer.from(
-                                    finalData,
-                                    'base64',
-                                ).toString('utf-8')
-                                updateApiValue(requesting, decoded)
-                                phoneAction(`ack:${requesting}`)
+                                updateApiValue(requesting, decode(finalData))
+                                phoneAction(`ack:${requesting}${finalData}`)
                                 updateThese = updateThese.filter(
                                     (item) => item !== requesting,
                                 )
