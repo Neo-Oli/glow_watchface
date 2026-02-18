@@ -1060,6 +1060,7 @@ try {
                                     (key) => delete initSettings[key],
                                 )
                                 restore()
+                                phoneAction('dataClear')
                                 setOverlay()
                             },
                         },
