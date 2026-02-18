@@ -313,13 +313,11 @@ try {
             }
         }
         restore()
-        const shorten = (str, n) => Array.from(str).slice(0, n).join('')
-
         const font = 'fonts/3270NerdFontMono-Regular.ttf'
 
         const iconSize = 50
         const circleButtonRadius = 47
-        const circleRadius = 32
+        const circleRadius = 33
         const circlex = 85
         const lineWidth = 5
         const buttonImage = 'empty.png'
@@ -1583,14 +1581,13 @@ try {
                         hmUI.widget.TEXT,
                         {
                             ...cityNameCoords,
-                            w: 1000,
                             text_size: big,
                             char_space: 0,
                             font: font,
                             color: api.fgColor.value,
                             line_space: 0,
                             align_v: hmUI.align.CENTER_V,
-                            text_style: hmUI.text_style.ELLIPSIS,
+                            text_style: hmUI.text_style.NONE,
                             align_h: hmUI.align.LEFT,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
@@ -1605,14 +1602,13 @@ try {
                         hmUI.widget.TEXT,
                         {
                             ...mediaCoords,
-                            w: 1000,
                             text_size: big,
                             char_space: 0,
                             font: font,
                             color: api.fgColor.value,
                             line_space: 0,
                             align_v: hmUI.align.CENTER_V,
-                            text_style: hmUI.text_style.ELLIPSIS,
+                            text_style: hmUI.text_style.NONE,
                             align_h: hmUI.align.LEFT,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
@@ -1630,14 +1626,13 @@ try {
                         hmUI.widget.TEXT,
                         {
                             ...requestingCoords,
-                            w: 1000,
                             text_size: small,
                             char_space: 0,
                             font: font,
                             color: api.accColor.value,
                             line_space: 0,
                             align_v: hmUI.align.CENTER_V,
-                            text_style: hmUI.text_style.ELLIPSIS,
+                            text_style: hmUI.text_style.NONE,
                             align_h: hmUI.align.LEFT,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
@@ -1785,19 +1780,13 @@ try {
                     console.log('scale_call')
                     const newBaseCache = []
                     const newOverlayCache = []
-                    e.cityName.setProperty(
-                        hmUI.prop.TEXT,
-                        shorten(api.infoText.value, cityLength),
-                    )
+                    e.cityName.setProperty(hmUI.prop.TEXT, api.infoText.value)
                     if (!api.infoText.value) {
                         e.cityBG.setProperty(hmUI.prop.VISIBLE, false)
                     } else {
                         e.cityBG.setProperty(hmUI.prop.VISIBLE, true)
                     }
-                    e.media.setProperty(
-                        hmUI.prop.TEXT,
-                        shorten(api.media.value, cityLength),
-                    )
+                    e.media.setProperty(hmUI.prop.TEXT, api.media.value)
                     if (!requesting) {
                         e.requestingBG.setProperty(hmUI.prop.VISIBLE, false)
                     }
