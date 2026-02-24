@@ -970,6 +970,59 @@ try {
                         }
                     }
                 }
+                const createTextOverlay = (name, text) => {
+                    if (overlay !== name) {
+                        return
+                    }
+                    addElement(over, widgetBg, hmUI.widget.CIRCLE, {
+                        center_x: center,
+                        center_y: center,
+                        radius: 220,
+                        color: api.bgColor.value,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
+                    const buttonSize = circleButtonRadius * 2
+                    const y =
+                        center -
+                        buttonSize / 2 -
+                        gap -
+                        buttonSize -
+                        gap -
+                        buttonSize / 2
+                    createButton(
+                        {
+                            text_size: big,
+                            text: icons.close,
+                            radius: buttonSize,
+                            x: center - buttonSize,
+                            y: y,
+                            w: buttonSize * 2,
+                            h: buttonSize / 2,
+                        },
+                        () => {
+                            setOverlay()
+                        },
+                    )
+                    const radius = 150
+                    const textCoords = {
+                        x: center - radius,
+                        y: y + buttonSize / 2 + gap,
+                        w: radius * 2,
+                        h: 300,
+                    }
+                    drawRect({ coords: textCoords, layer: over })
+                    addElement(over, widgetContent, hmUI.widget.TEXT, {
+                        ...textCoords,
+                        text_size: small,
+                        font: font,
+                        color: api.fgColor.value,
+                        align_v: hmUI.align.TOP,
+                        text_style: hmUI.text_style.ELLIPSIS,
+                        align_h: hmUI.align.LEFT,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                        text: `${text}`,
+                    })
+                }
 
                 const renderOver = () => {
                     prepareElements(over)
