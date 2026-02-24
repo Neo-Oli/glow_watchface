@@ -257,6 +257,11 @@ try {
                 key: 'h',
                 type: 'number',
             },
+            weatherWid: {
+                value: errText,
+                key: 'i',
+                type: 'string',
+            },
         }
         const api = {}
         const filename = 'glow-settings.json'
@@ -1030,6 +1035,7 @@ try {
                         phoneAction(`volume ${level}`)
                     })
 
+                    createTextOverlay('weather', api.weatherWid.value)
                     const controls = [
                         {
                             text: 'clear snoozed alarms',
@@ -1745,13 +1751,18 @@ try {
                         },
                         'temp',
                     )
-                    addElement(base, buttons, hmUI.widget.IMG_CLICK, {
+                    addElement(base, buttons, hmUI.widget.BUTTON, {
                         x: 90,
                         y: 90,
                         w: 194,
                         h: 50,
-                        src: buttonImage,
-                        type: hmUI.data_type.WEATHER_CURRENT,
+                        text: '',
+                        color: api.fgColor.value,
+                        click_func: (watchface) => {
+                            setOverlay('weather')
+                        },
+                        press_src: buttonImage,
+                        normal_src: buttonImage,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
                     renderElements(base)
