@@ -146,6 +146,8 @@ try {
         const apiGetData = () => {
             return hmSetting.getUserData().region
         }
+        const getApiKey = (key) =>
+            Object.keys(api).find((k) => api[k].key === key)
         let requesting = ''
         let updateThese = ''
         let requestTemp = ''
@@ -158,11 +160,11 @@ try {
             requestingTry = 0
             if (requesting) {
                 e.requestingBG.setProperty(hmUI.prop.VISIBLE, true)
-                const apiKey = Object.keys(api).find(
-                    (k) => api[k].key === requesting,
-                )
+                hmSetting.setBrightScreen(300)
+                const apiKey = getApiKey(requesting)
                 e.requesting.setProperty(hmUI.prop.TEXT, apiKey)
             } else {
+                hmSetting.setBrightScreen(1)
                 e.requestingBG.setProperty(hmUI.prop.VISIBLE, false)
                 e.requesting.setProperty(hmUI.prop.TEXT, '')
             }
@@ -277,7 +279,7 @@ try {
             hmFS.close(fd)
         }
         const updateApiValue = (key, value, save = true) => {
-            const apiKey = Object.keys(api).find((k) => api[k].key === key)
+            const apiKey = getApiKey(key)
             if (!apiKey) {
                 console.log(`No element found with key "${key}"`)
                 return
@@ -540,11 +542,15 @@ try {
                     time_update(true, true)
                 }
 
-                const drawRect = (coords, name, color = api.eBgColor.value) => {
-                    const { x, y, w, h } = coords
+                const drawRect = ({
+                    coords: { x, y, w, h },
+                    name,
+                    color = api.eBgColor.value,
+                    layer = base,
+                }) => {
                     const gap = 3
                     addElement(
-                        base,
+                        layer,
                         widgetBg,
                         hmUI.widget.FILL_RECT,
                         {
@@ -563,10 +569,12 @@ try {
                     const x = 280
                     const y = statsStart
                     drawRect({
-                        w: statsWidth,
-                        h: statsSize,
-                        x: x,
-                        y: y + statsSize * countStats,
+                        coords: {
+                            w: statsWidth,
+                            h: statsSize,
+                            x: x,
+                            y: y + statsSize * countStats,
+                        },
                     })
                     addElement(base, widgetContent, hmUI.widget.TEXT, {
                         x: x,
@@ -753,6 +761,9 @@ try {
                     })
                 }
                 const createArcControl = (name, initialLevel, func) => {
+                    if (overlay !== name) {
+                        return
+                    }
                     const arcWidth = 70
                     const radius = center
                     addElement(over, widgetBg, hmUI.widget.CIRCLE, {
@@ -962,15 +973,10 @@ try {
 
                 const renderOver = () => {
                     prepareElements(over)
-                    if (overlay === 'volume') {
-                        createArcControl(
-                            'volume',
-                            api.volume.value,
-                            (level) => {
-                                phoneAction(`volume ${level}`)
-                            },
-                        )
-                    }
+                    createArcControl('volume', api.volume.value, (level) => {
+                        phoneAction(`volume ${level}`)
+                    })
+
                     const controls = [
                         {
                             text: 'clear snoozed alarms',
@@ -1408,7 +1414,7 @@ try {
                     )
 
                     //date
-                    drawRect(dateCoords)
+                    drawRect({ coords: dateCoords })
                     addElement(
                         base,
                         widgetContent,
@@ -1471,7 +1477,7 @@ try {
                         'condition',
                     )
                     //time
-                    drawRect(timeCoords)
+                    drawRect({ coords: timeCoords })
                     addElement(
                         base,
                         widgetContent,
@@ -1574,7 +1580,7 @@ try {
                     )
 
                     //city name
-                    drawRect(cityNameCoords, 'cityBG')
+                    drawRect({ coords: cityNameCoords, name: 'cityBG' })
                     addElement(
                         base,
                         widgetContent,
@@ -1595,7 +1601,7 @@ try {
                     )
 
                     //media
-                    drawRect(mediaCoords, 'mediaBG')
+                    drawRect({ coords: mediaCoords, name: 'mediaBG' })
                     addElement(
                         base,
                         widgetContent,
@@ -1615,11 +1621,11 @@ try {
                         'media',
                     )
 
-                    drawRect(
-                        requestingCoords,
-                        'requestingBG',
-                        api.accBgColor.value,
-                    )
+                    drawRect({
+                        coords: requestingCoords,
+                        name: 'requestingBG',
+                        color: api.accBgColor.value,
+                    })
                     addElement(
                         base,
                         widgetContent,
@@ -1657,10 +1663,12 @@ try {
                     })
                     const weatherStart = timeCoords.x + weatherGap
                     drawRect({
-                        w: timeCoords.w - weatherGap * 2,
-                        h: weatherHeight,
-                        x: weatherStart,
-                        y: weatherPos,
+                        coords: {
+                            w: timeCoords.w - weatherGap * 2,
+                            h: weatherHeight,
+                            x: weatherStart,
+                            y: weatherPos,
+                        },
                     })
                     addElement(
                         base,
@@ -1915,6 +1923,12 @@ try {
                             console.log(`timeout. Data ${data}`)
                             return
                         }
+
+                        const apiKey = getApiKey(requesting)
+                        e.requesting.setProperty(
+                            hmUI.prop.TEXT,
+                            `${apiKey}/${chunk}`,
+                        )
                         if (data.includes(':')) {
                             const parts = data.split(':')
                             const head = parts[0].split('')
@@ -1934,6 +1948,7 @@ try {
                             if (thischunk !== chunk) {
                                 return
                             }
+                            requestingTry = 0
                             requestTemp += value
                             if (requestTemp.endsWith('$')) {
                                 const finalData = requestTemp.slice(0, -1)
