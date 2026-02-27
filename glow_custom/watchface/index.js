@@ -28,28 +28,13 @@ try {
             return screenType === hmSetting.screen_type.AOD
         }
 
-        const delimeter = '§'
-        const makeBased = (data) =>
-            Buffer.from(data, 'utf-8').toString('base64')
-        const unBase = (data) =>
-            Buffer.from(String(data), 'base64').toString('utf-8')
-        const decode = (str) => {
-            const parts = unBase(str).split(delimeter)
-            const obj = {}
-            for (let i = 0; i < parts.length; i += 2) {
-                obj[parts[i]] = parts[i + 1]
-            }
-            return obj
+        const decode = (data) => {
+            return Buffer.from(String(data), 'base64').toString('utf-8')
         }
+        const encode = (data) => Buffer.from(data, 'utf-8').toString('base64')
 
-        const encode = (data) =>
-            makeBased(
-                Object.entries(data)
-                    .map(([k, v]) => `${k}${delimeter}${v}`)
-                    .join(delimeter),
-            )
-        const readFile = (filename) => {
-            const def = null
+        const readJsonFile = (filename) => {
+            const def = {}
             const [stat, err] = hmFS.stat(filename)
             if (err !== 0) {
                 console.log('File does not exist')
@@ -66,11 +51,17 @@ try {
             hmFS.read(fd, buf.buffer, 0, buf.length)
             hmFS.close(fd)
 
-            let content = ''
+            let json = ''
             for (let i = 0; i < buf.length; i++) {
-                content += String.fromCharCode(buf[i])
+                json += String.fromCharCode(buf[i])
             }
-            return content
+
+            try {
+                return JSON.parse(json)
+            } catch (e) {
+                console.log('JSON parse error', e)
+                return def
+            }
         }
 
         const createGradient = (start, end, pow, length) => {
@@ -158,29 +149,29 @@ try {
         const getApiKey = (key) =>
             Object.keys(api).find((k) => api[k].key === key)
         let requesting = ''
+        let updateThese = ''
         let requestTemp = ''
         let requestingTry = 0
         let chunk = 0
-        const setRequesting = (on = false) => {
-            requesting = on
+        const setRequesting = (value) => {
+            requesting = value
             requestTemp = ''
             chunk = 0
             requestingTry = 0
             if (requesting) {
                 e.requestingBG.setProperty(hmUI.prop.VISIBLE, true)
                 hmSetting.setBrightScreen(300)
-                e.requesting.setProperty(hmUI.prop.TEXT, 'request')
+                const apiKey = getApiKey(requesting)
+                e.requesting.setProperty(hmUI.prop.TEXT, apiKey)
             } else {
                 hmSetting.setBrightScreen(1)
                 e.requestingBG.setProperty(hmUI.prop.VISIBLE, false)
                 e.requesting.setProperty(hmUI.prop.TEXT, '')
             }
         }
-        const requestData = () => {
-            console.log(`DROIDDATA:${apiString()}`)
-        }
-        const requestChunk = () => {
-            console.log(`DROIDCHUNK:${chunk}`)
+        const requestData = (action) => {
+            const request = `${action}/${chunk}`
+            console.log(`DROIDDATA:${request}`)
         }
 
         const defaultApi = {
@@ -224,8 +215,8 @@ try {
                 key: '7',
                 type: 'number',
             },
-            volume: { value: 0, key: '8', type: 'number' },
-            phoneBattery: { value: 0, key: '9', type: 'number' },
+            volume: { value: 50, key: '8', type: 'number' },
+            phoneBattery: { value: 50, key: '9', type: 'number' },
             infoText: {
                 value: 'No info text',
                 key: 'a',
@@ -262,7 +253,7 @@ try {
                 type: 'string',
             },
             headphones: {
-                value: 0,
+                value: '',
                 key: 'h',
                 type: 'number',
             },
@@ -273,32 +264,17 @@ try {
             },
         }
         const api = {}
-        const filename = 'glow-settings.txt'
+        const filename = 'glow-settings.json'
 
-        let initSettings = readFile(filename)
+        const initSettings = readJsonFile(filename)
 
-        const apiString = () => {
-            const saveData = {}
-            Object.values(api).forEach((data) => {
-                const key = data.key
-                let value = data.value
-                if (value === null) {
-                    value = ''
-                }
-                if (data.type === 'color') {
-                    saveData[key] = value.toString(16).slice(2)
-                } else {
-                    saveData[key] = value.toString()
-                }
-            })
-            return encode(saveData)
-        }
-        const saveApi = () => {
-            const data = apiString()
-            console.log(`saving ${data}`)
-            const bytes = new Uint8Array(data.length)
-            for (let i = 0; i < data.length; i++) {
-                bytes[i] = data.charCodeAt(i)
+        const saveApi = (key, value) => {
+            initSettings[key] = encode(value)
+            const json = JSON.stringify(initSettings)
+            console.log(`saving ${json}`)
+            const bytes = new Uint8Array(json.length)
+            for (let i = 0; i < json.length; i++) {
+                bytes[i] = json.charCodeAt(i)
             }
             const fd = hmFS.open(
                 filename,
@@ -307,76 +283,30 @@ try {
             hmFS.write(fd, bytes.buffer, 0, bytes.length)
             hmFS.close(fd)
         }
-        const applyDelta = (oldText, deltaString) => {
-            const warnAndNull = (message) => {
-                console.log(`[delta_apply] ${message}`)
-                return null
+        const updateApiValue = (key, value, save = true) => {
+            const apiKey = getApiKey(key)
+            if (!apiKey) {
+                console.log(`No element found with key "${key}"`)
+                return
             }
 
-            if (
-                typeof oldText !== 'string' ||
-                typeof deltaString !== 'string'
-            ) {
-                return warnAndNull(
-                    'Expected string inputs: oldText and deltaString.',
-                )
-            }
-
-            const fields =
-                deltaString.length === 0 ? [] : deltaString.split('§')
-            if (fields.length === 0) return oldText
-
-            if (fields.length % 3 !== 0) {
-                return warnAndNull(
-                    'Invalid delta format: expected triplets (index§delete_len§insert).',
-                )
-            }
-
-            let updated = oldText
-            let offset = 0
-
-            for (let i = 0; i < fields.length; i += 3) {
-                const index = Number.parseInt(fields[i], 10)
-                const deleteLen = Number.parseInt(fields[i + 1], 10)
-                const insert = fields[i + 2]
-
-                if (!Number.isInteger(index) || index < 0) {
-                    return warnAndNull(
-                        `Invalid delta index at position ${i}: '${fields[i]}'.`,
-                    )
+            const type = api[apiKey].type
+            if (type === 'number') {
+                if (value === '') {
+                    api[apiKey].value = null
+                } else {
+                    api[apiKey].value = Number(value)
                 }
-
-                if (!Number.isInteger(deleteLen) || deleteLen < 0) {
-                    return warnAndNull(
-                        `Invalid delete length at position ${i + 1}: '${fields[i + 1]}'.`,
-                    )
-                }
-
-                const start = index + offset
-                if (start < 0 || start > updated.length) {
-                    return warnAndNull(`Delta start out of bounds: ${start}.`)
-                }
-
-                const end = start + deleteLen
-                if (end < start || end > updated.length) {
-                    return warnAndNull(
-                        `Delta delete range out of bounds: ${start}-${end}.`,
-                    )
-                }
-
-                updated = updated.slice(0, start) + insert + updated.slice(end)
-                offset += insert.length - deleteLen
-            }
-
-            return updated
-        }
-        const updateApiValue = (value) => {
-            const newString = applyDelta(apiString(), value)
-            if (newString) {
-                initSettings = newString
-                restore()
+            } else if (type === 'color') {
+                api[apiKey].value = Number(`0xFF${value}`)
+            } else if (type === 'string') {
+                api[apiKey].value = value
             } else {
-                console.log('Error applying patch')
+                console.warn(`Unknown type: ${type}`)
+            }
+            console.log(`Set ${apiKey} to ${api[apiKey].value}`)
+            if (save) {
+                saveApi(key, value)
             }
         }
         const restore = () => {
@@ -384,27 +314,10 @@ try {
                 api[key] = { ...value }
             })
             if (initSettings) {
-                const decoded = decode(initSettings)
-                Object.entries(decoded).forEach(([key, value]) => {
-                    const apiKey = getApiKey(key)
-                    const type = api[apiKey].type
-                    if (type === 'number') {
-                        if (value === '') {
-                            api[apiKey].value = null
-                        } else {
-                            api[apiKey].value = Number(value)
-                        }
-                    } else if (type === 'color') {
-                        api[apiKey].value = Number(`0xFF${value}`)
-                    } else if (type === 'string') {
-                        api[apiKey].value = value
-                    } else {
-                        console.warn(`Unknown type: ${type}`)
-                    }
+                Object.entries(initSettings).forEach(([key, value]) => {
+                    updateApiValue(key, decode(value), false)
                 })
             }
-            saveApi()
-            console.log('Restoring complete')
         }
         restore()
         const font = 'fonts/font.ttf'
@@ -1331,7 +1244,9 @@ try {
                         {
                             text: 'reset face',
                             func: () => {
-                                initSettings = null
+                                Object.keys(initSettings).forEach(
+                                    (key) => delete initSettings[key],
+                                )
                                 hmFS.remove(filename)
                                 restore()
                                 phoneAction('dataClear')
@@ -2121,19 +2036,32 @@ try {
                         fastTimer()
                         requestingTry += 1
                         if (requestingTry >= 100) {
-                            setRequesting()
+                            setRequesting('')
                             console.log(`timeout. Data ${data}`)
                             return
                         }
 
+                        const apiKey = getApiKey(requesting)
                         e.requesting.setProperty(
                             hmUI.prop.TEXT,
-                            `loading:${chunk}`,
+                            `${apiKey}/${chunk}`,
                         )
                         if (data.includes(':')) {
                             const parts = data.split(':')
-                            const thischunk = Number(parts[0])
+                            const head = parts[0].split('')
+                            const key = head[0]
+                            const thischunk = parseInt(
+                                head.slice(1).join(''),
+                                10,
+                            )
                             const value = parts.slice(1).join(':')
+
+                            if (key !== requesting) {
+                                return
+                            }
+                            if (thischunk === chunk - 1) {
+                                return
+                            }
                             if (thischunk !== chunk) {
                                 return
                             }
@@ -2141,25 +2069,32 @@ try {
                             requestTemp += value
                             if (requestTemp.endsWith('$')) {
                                 const finalData = requestTemp.slice(0, -1)
-                                updateApiValue(unBase(finalData))
-                                setRequesting()
-                                requestData()
+                                updateApiValue(requesting, decode(finalData))
+                                phoneAction(`ack:${requesting}${finalData}`)
+                                updateThese = updateThese.filter(
+                                    (item) => item !== requesting,
+                                )
+                                setRequesting('')
                                 scale_call()
                             } else {
                                 if (!value) {
-                                    setRequesting()
+                                    setRequesting('')
                                     return
                                 }
                                 chunk += 1
-                                requestChunk()
+                                requestData(requesting)
                                 return
                             }
                         }
                         return
-                    } else if (data === 'update') {
-                        setRequesting(true)
+                    } else if (data.startsWith('#')) {
+                        updateThese = data.slice(1).split('')
+                    }
+
+                    if (updateThese.length > 0) {
+                        setRequesting(updateThese[0])
                         fastTimer()
-                        requestData()
+                        requestData(requesting)
                     }
                 }
                 const widgetDelegate = hmUI.createWidget(
@@ -2193,7 +2128,7 @@ try {
                             if (fast_timer) {
                                 console.log('Stopping fast timer')
                                 timer.stopTimer(fast_timer)
-                                setRequesting()
+                                setRequesting('')
                                 fast_timer = undefined
                             }
                             stopVibro()
