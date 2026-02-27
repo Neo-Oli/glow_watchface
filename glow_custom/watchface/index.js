@@ -545,11 +545,12 @@ try {
                     coords: { x, y, w, h },
                     name,
                     color = api.eBgColor.value,
-                    layer = base,
+                    group = base,
+                    smallGap = false,
                 }) => {
-                    const gap = 3
+                    const gap = smallGap ? 0 : 3
                     addElement(
-                        layer,
+                        group,
                         widgetBg,
                         hmUI.widget.FILL_RECT,
                         {
