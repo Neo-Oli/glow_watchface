@@ -320,7 +320,7 @@ try {
             }
         }
         restore()
-        const font = 'fonts/3270NerdFontMono-Regular.ttf'
+        const font = 'fonts/font.ttf'
 
         const iconSize = 50
         const circleButtonRadius = 47
