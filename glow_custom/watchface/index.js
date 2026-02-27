@@ -322,7 +322,6 @@ try {
         restore()
         const font = 'fonts/font.ttf'
 
-        const iconSize = 50
         const circleButtonRadius = 47
         const circleRadius = 33
         const circlex = 85
@@ -348,6 +347,8 @@ try {
         const statsSize = 24
         const big = 30
         const small = 18
+        const iconSize = 50
+        const flowTextSize = 21
         const timeSize = 90
         const weatherGap = 30
         const weatherHeight = big
@@ -679,7 +680,7 @@ try {
                         },
                         `${name}Circle`,
                     )
-                    const circleTextSize = small
+                    const circleTextSize = statsSize
                     addElement(
                         base,
                         widgetContent,
@@ -948,7 +949,9 @@ try {
                         if (button) {
                             createButton(
                                 {
-                                    text_size: button.icon ? iconSize : small,
+                                    text_size: button.icon
+                                        ? iconSize
+                                        : statsSize,
                                     text: button.text.replace(/ /g, '\n'),
                                     radius: buttonSize,
                                     x: x,
@@ -1031,7 +1034,7 @@ try {
                     createTextOverlay('weather', api.weatherWid.value)
                     const controls = [
                         {
-                            text: 'clear snoozed alarms',
+                            text: 'clear alarms',
                             func: () => {
                                 phoneAction('clearSnoozedAlarms')
                                 setOverlay()
@@ -1136,14 +1139,14 @@ try {
                             },
                         },
                         {
-                            text: 'find my device',
+                            text: 'find device',
                             func: () => {
                                 phoneAction('findMyDevice')
                                 setOverlay()
                             },
                         },
                         {
-                            text: 'preserve',
+                            text: 'pres erve',
                             func: () => {
                                 phoneAction('preserve')
                                 setOverlay()
