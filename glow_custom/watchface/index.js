@@ -341,12 +341,6 @@ try {
 
         let baseCache = ''
         let overlayCache = ''
-        const cacheText = [
-            "$|^0123456789 _-.,:;`'% ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzäöüÄÖÜéè°\\/",
-            Object.values(weather_icons).join(''),
-            clocks.join(''),
-            Object.values(icons).join(''),
-        ].join('')
 
         const phoneAction = (action) => {
             console.log(`DROIDDO: ${action}`)
@@ -398,7 +392,6 @@ try {
             h: small,
         }
 
-        const fontSizes = [iconSize, statsSize, timeSize, big, small]
         const statsWidth = 120
         let newTimer
         const resetTimer = () => {
@@ -1322,24 +1315,6 @@ try {
                     )
                     createStat('heart', icons.heart, hmUI.data_type.HEART, 2)
                     createStat('sleep', icons.sleep, hmUI.data_type.SLEEP, 3)
-                    for (const size of fontSizes) {
-                        addElement(base, bg, hmUI.widget.TEXT, {
-                            x: 464,
-                            y: 464,
-                            w: 10000,
-                            h: 22,
-                            text_size: size,
-                            char_space: 0,
-                            line_space: 0,
-                            font: font,
-                            color: api.fgColor.value,
-                            align_h: hmUI.align.LEFT,
-                            align_v: hmUI.align.TOP,
-                            text_style: hmUI.text_style.ELLIPSIS,
-                            text: cacheText,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        })
-                    }
                     addElement(base, bg, hmUI.widget.FILL_RECT, {
                         x: 0,
                         y: 0,
