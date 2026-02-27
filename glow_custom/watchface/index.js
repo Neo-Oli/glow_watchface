@@ -1005,24 +1005,98 @@ try {
                             setOverlay()
                         },
                     )
-                    const radius = 150
+                    const radius = 160
                     const textCoords = {
                         x: center - radius,
                         y: y + buttonSize / 2 + gap,
                         w: radius * 2,
-                        h: 300,
+                        h: flowTextSize * 13,
                     }
-                    drawRect({ coords: textCoords, layer: over })
-                    addElement(over, widgetContent, hmUI.widget.TEXT, {
-                        ...textCoords,
-                        text_size: small,
-                        font: font,
-                        color: api.fgColor.value,
-                        align_v: hmUI.align.TOP,
-                        text_style: hmUI.text_style.ELLIPSIS,
-                        align_h: hmUI.align.LEFT,
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                        text: `${text}`,
+                    createStyledText({
+                        coords: textCoords,
+                        group: over,
+                        text: text,
+                    })
+                }
+                const createStyledText = ({ group, coords, text }) => {
+                    const { x, y, w, h } = coords
+                    drawRect({
+                        coords: coords,
+                        group: over,
+                    })
+                    text.split('\n').forEach((line, index) => {
+                        const out = (offset, mode, text) => {
+                            const size = flowTextSize
+                            let textSize = size
+                            let iconOffset = 0
+                            let bgColor = api.eBgColor.value
+                            let fgColor = api.fgColor.value
+                            let width = text.length
+                            if (mode === 'bg') {
+                                bgColor = api.fgColor.value
+                                fgColor = api.eBgColor.value
+                            } else if (mode === 'icon') {
+                                textSize *= 1.5
+                                width = 2
+                                iconOffset = 7
+                                fgColor = api.accColor.value
+                            }
+                            const widthModifier = 1.905
+                            textCoords = {
+                                x: x + offset * (size / widthModifier),
+                                y: y + size * index,
+                                w: width * (size / widthModifier),
+                                h: size,
+                            }
+                            drawRect({
+                                coords: textCoords,
+                                group: over,
+                                color: bgColor,
+                                smallGap: true,
+                            })
+                            addElement(group, widgetContent, hmUI.widget.TEXT, {
+                                ...textCoords,
+                                y: textCoords.y - iconOffset,
+                                h: textSize,
+                                text_size: textSize,
+                                font: font,
+                                color: fgColor,
+                                align_v: hmUI.align.TOP,
+                                text_style: hmUI.text_style.ELLIPSIS,
+                                align_h: hmUI.align.LEFT,
+                                show_level: hmUI.show_level.ONLY_NORMAL,
+                                text: text,
+                            })
+                        }
+                        let str = line
+                        let offset = 0
+                        let cur = ''
+                        let mode = 'norm'
+                        while (str.length) {
+                            if (str.startsWith('#[')) {
+                                if (cur) {
+                                    out(offset, mode, cur)
+                                }
+                                if (mode === 'icon') {
+                                    offset += 2
+                                } else {
+                                    offset += cur.length
+                                }
+                                const end = str.indexOf(']')
+                                if (end === -1) {
+                                    return
+                                }
+                                mode = str.slice(2, end)
+                                str = str.slice(end + 1)
+                                cur = ''
+                            } else {
+                                cur += str.charAt(0)
+                                str = str.slice(1)
+                            }
+                        }
+                        if (cur) {
+                            out(offset, mode, cur)
+                        }
                     })
                 }
 
