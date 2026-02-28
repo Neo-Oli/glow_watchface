@@ -1368,8 +1368,9 @@ try {
                          * {
                          * text: 'test function',
                          * func: () => {
-                         * lastRareUpdate=0
-                         * setOverlay()
+                         * console.log(
+                         * JSON.stringify(hmSetting.getUserData()),
+                         * )
                          * },
                          * },
                          */
