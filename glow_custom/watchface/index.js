@@ -35,7 +35,6 @@ try {
             Buffer.from(String(data), 'base64').toString('utf-8')
         const decode = (str) => {
             const parts = str.split(delimeter)
-            console.log(JSON.stringify(parts))
             const obj = {}
             for (let i = 0; i < parts.length; i += 2) {
                 obj[parts[i]] = parts[i + 1]
@@ -131,6 +130,7 @@ try {
 
         const icons = {
             disconnect: '󰂲',
+            verbose: ' ',
             steps: '',
             heart: '󰋑',
             distance: '',
@@ -160,12 +160,15 @@ try {
         let requesting = ''
         let requestTemp = ''
         let requestingTry = 0
+        let verbose = false
+        let requestingTryStuck = 0
         let chunk = 0
         const setRequesting = (on = false) => {
             requesting = on
             requestTemp = ''
             chunk = 0
             requestingTry = 0
+            requestingTryStuck = 0
             if (requesting) {
                 e.requestingBG.setProperty(hmUI.prop.VISIBLE, true)
                 hmSetting.setBrightScreen(300)
@@ -244,7 +247,7 @@ try {
             temperature: {
                 value: -273,
                 key: 'c',
-                type: 'number',
+                type: 'string',
             },
             condition: {
                 value: errText,
@@ -254,7 +257,7 @@ try {
             humidity: {
                 value: -1,
                 key: 'e',
-                type: 'number',
+                type: 'string',
             },
             sunrise: {
                 value: '00:00',
@@ -403,8 +406,6 @@ try {
                     if (!apiKey) {
                         console.log(`invalid data in initSettings ${key}`)
                         return
-                    } else {
-                        console.log(`Setting ${apiKey} to ${value}`)
                     }
                     const type = api[apiKey].type
                     if (type === 'number') {
@@ -1356,6 +1357,13 @@ try {
                                 setOverlay()
                             },
                         },
+                        {
+                            text: 'debug',
+                            func: () => {
+                                verbose = !verbose
+                                setOverlay()
+                            },
+                        },
                         /*
                          * {
                          * text: 'test function',
@@ -1528,6 +1536,24 @@ try {
                         y: 10,
                         src: buttonImage,
                         type: hmUI.system_status.DISTURB,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                    })
+                    addElement(base, widgetContent, hmUI.widget.TEXT, {
+                        x: 220,
+                        y: 10,
+                        text: !verbose ? '' : icons.verbose,
+                        show_level: hmUI.show_level.ONLY_NORMAL,
+                        w: 200,
+                        h: 50,
+                        text_size: iconSize,
+                        char_space: 0,
+                        font: font,
+                        color: api.fgColor.value,
+                        line_space: 0,
+                        align_v: hmUI.align.CENTER_V,
+                        align_h: hmUI.align.LEFT,
+                        text_style: hmUI.text_style.NONE,
+                        unit_type: 0,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
                     addElement(base, widgetContent, hmUI.widget.TEXT, {
@@ -2095,6 +2121,7 @@ try {
                     newOverlayCache.push(overlay)
 
                     newBaseCache.push(hmBle.connectStatus().toString())
+                    newBaseCache.push(verbose.toString())
                     const finalBaseCache = newBaseCache.join('')
                     if (baseCache !== finalBaseCache) {
                         baseCache = finalBaseCache
@@ -2127,15 +2154,10 @@ try {
                         return
                     }
                     const data = apiGetData()
-                    //console.log(data, requesting)
-                    if (data === 'idle') {
-                        if (fast_timer) {
-                            console.log('Stopping fast timer')
-                            timer.stopTimer(fast_timer)
-                            fast_timer = undefined
-                        }
-                        setRequesting()
-                    } else if (requesting) {
+                    if (verbose) {
+                        console.log(data, requesting)
+                    }
+                    if (requesting) {
                         fastTimer()
                         requestingTry += 1
                         if (requestingTry >= 100) {
@@ -2148,15 +2170,34 @@ try {
                             hmUI.prop.TEXT,
                             `loading:${chunk}`,
                         )
-                        if (data.includes(':')) {
-                            const parts = data.split(':')
-                            const thischunk = Number(parts[0])
-                            const value = parts.slice(1).join(':')
-                            if (thischunk !== chunk) {
+                    }
+
+                    if (data === 'idle') {
+                        if (fast_timer) {
+                            console.log('Stopping fast timer')
+                            timer.stopTimer(fast_timer)
+                            fast_timer = undefined
+                        }
+                        setRequesting()
+                    } else if (data.includes(':')) {
+                        if (!requesting) {
+                            requestingTryStuck += 1
+                            if (requestingTryStuck >= 100) {
+                                console.log(`stuck, unlocking. Data ${data}`)
+                                setRequesting(true)
+                                requestData()
                                 return
                             }
-                            requestingTry = 0
-                            requestTemp += value
+                        }
+                        const parts = data.split(':')
+                        const thischunk = Number(parts[0])
+                        const value = parts.slice(1).join(':')
+                        if (thischunk !== chunk) {
+                            return
+                        }
+                        requestingTry = 0
+                        requestTemp += value
+                        if (requesting) {
                             if (requestTemp.endsWith('$')) {
                                 const finalData = requestTemp.slice(0, -1)
                                 updateApiValue(unBase(finalData))
@@ -2173,11 +2214,12 @@ try {
                                 return
                             }
                         }
-                        return
                     } else if (data === 'update') {
-                        setRequesting(true)
-                        fastTimer()
-                        requestData()
+                        if (!requesting) {
+                            setRequesting(true)
+                            fastTimer()
+                            requestData()
+                        }
                     }
                 }
                 const widgetDelegate = hmUI.createWidget(
