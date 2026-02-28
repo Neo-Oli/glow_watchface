@@ -28,13 +28,14 @@ try {
             return screenType === hmSetting.screen_type.AOD
         }
 
-        const delimeter = '§'
+        const delimeter = '‡'
         const makeBased = (data) =>
             Buffer.from(data, 'utf-8').toString('base64')
         const unBase = (data) =>
             Buffer.from(String(data), 'base64').toString('utf-8')
         const decode = (str) => {
-            const parts = unBase(str).split(delimeter)
+            const parts = str.split(delimeter)
+            console.log(JSON.stringify(parts))
             const obj = {}
             for (let i = 0; i < parts.length; i += 2) {
                 obj[parts[i]] = parts[i + 1]
@@ -43,11 +44,10 @@ try {
         }
 
         const encode = (data) =>
-            makeBased(
-                Object.entries(data)
-                    .map(([k, v]) => `${k}${delimeter}${v}`)
-                    .join(delimeter),
-            )
+            Object.entries(data)
+                .map(([k, v]) => `${k}${delimeter}${v}`)
+                .join(delimeter)
+
         const readFile = (filename) => {
             const def = null
             const [stat, err] = hmFS.stat(filename)
@@ -176,8 +176,13 @@ try {
                 e.requesting.setProperty(hmUI.prop.TEXT, '')
             }
         }
-        const requestData = () => {
-            console.log(`DROIDDATA:${apiString()}`)
+        const requestData = (ack = false) => {
+            const request = makeBased(apiString())
+            if (ack) {
+                console.log(`DROIDDATAACK:${request}`)
+            } else {
+                console.log(`DROIDDATA:${request}`)
+            }
         }
         const requestChunk = () => {
             console.log(`DROIDCHUNK:${chunk}`)
@@ -275,7 +280,7 @@ try {
         const api = {}
         const filename = 'glow-settings.txt'
 
-        let initSettings = readFile(filename)
+        let initSettings = unBase(readFile(filename))
 
         const apiString = () => {
             const saveData = {}
@@ -294,8 +299,7 @@ try {
             return encode(saveData)
         }
         const saveApi = () => {
-            const data = apiString()
-            console.log(`saving ${data}`)
+            const data = makeBased(apiString())
             const bytes = new Uint8Array(data.length)
             for (let i = 0; i < data.length; i++) {
                 bytes[i] = data.charCodeAt(i)
@@ -307,9 +311,10 @@ try {
             hmFS.write(fd, bytes.buffer, 0, bytes.length)
             hmFS.close(fd)
         }
+
         const applyDelta = (oldText, deltaString) => {
             const warnAndNull = (message) => {
-                console.log(`[delta_apply] ${message}`)
+                console.warn(`[delta_apply] ${message}`)
                 return null
             }
 
@@ -340,6 +345,9 @@ try {
                 const deleteLen = Number.parseInt(fields[i + 1], 10)
                 const insert = fields[i + 2]
 
+                const updatedChars = Array.from(updated)
+                const insertChars = Array.from(insert)
+
                 if (!Number.isInteger(index) || index < 0) {
                     return warnAndNull(
                         `Invalid delta index at position ${i}: '${fields[i]}'.`,
@@ -353,19 +361,24 @@ try {
                 }
 
                 const start = index + offset
-                if (start < 0 || start > updated.length) {
+                if (start < 0 || start > updatedChars.length) {
                     return warnAndNull(`Delta start out of bounds: ${start}.`)
                 }
 
                 const end = start + deleteLen
-                if (end < start || end > updated.length) {
+                if (end < start || end > updatedChars.length) {
                     return warnAndNull(
                         `Delta delete range out of bounds: ${start}-${end}.`,
                     )
                 }
 
-                updated = updated.slice(0, start) + insert + updated.slice(end)
-                offset += insert.length - deleteLen
+                const nextChars = [
+                    ...updatedChars.slice(0, start),
+                    ...insertChars,
+                    ...updatedChars.slice(end),
+                ]
+                updated = nextChars.join('')
+                offset += insertChars.length - deleteLen
             }
 
             return updated
@@ -387,6 +400,12 @@ try {
                 const decoded = decode(initSettings)
                 Object.entries(decoded).forEach(([key, value]) => {
                     const apiKey = getApiKey(key)
+                    if (!apiKey) {
+                        console.log(`invalid data in initSettings ${key}`)
+                        return
+                    } else {
+                        console.log(`Setting ${apiKey} to ${value}`)
+                    }
                     const type = api[apiKey].type
                     if (type === 'number') {
                         if (value === '') {
@@ -404,7 +423,6 @@ try {
                 })
             }
             saveApi()
-            console.log('Restoring complete')
         }
         restore()
         const font = 'fonts/font.ttf'
@@ -1987,7 +2005,6 @@ try {
 
                 //#endregion
                 function scale_call() {
-                    console.log('scale_call')
                     const newBaseCache = []
                     const newOverlayCache = []
                     e.cityName.setProperty(hmUI.prop.TEXT, api.infoText.value)
@@ -2110,13 +2127,14 @@ try {
                         return
                     }
                     const data = apiGetData()
+                    //console.log(data, requesting)
                     if (data === 'idle') {
                         if (fast_timer) {
                             console.log('Stopping fast timer')
                             timer.stopTimer(fast_timer)
                             fast_timer = undefined
                         }
-                        return
+                        setRequesting()
                     } else if (requesting) {
                         fastTimer()
                         requestingTry += 1
@@ -2143,7 +2161,7 @@ try {
                                 const finalData = requestTemp.slice(0, -1)
                                 updateApiValue(unBase(finalData))
                                 setRequesting()
-                                requestData()
+                                requestData(true)
                                 scale_call()
                             } else {
                                 if (!value) {
