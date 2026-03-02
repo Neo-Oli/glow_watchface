@@ -170,11 +170,15 @@ try {
             requestingTry = 0
             requestingTryStuck = 0
             if (requesting) {
+                if (!is_aod()) {
+                    hmSetting.setBrightScreen(300)
+                }
                 e.requestingBG.setProperty(hmUI.prop.VISIBLE, true)
-                hmSetting.setBrightScreen(300)
                 e.requesting.setProperty(hmUI.prop.TEXT, 'request')
             } else {
-                hmSetting.setBrightScreen(1)
+                if (!is_aod()) {
+                    hmSetting.setBrightScreen(1)
+                }
                 e.requestingBG.setProperty(hmUI.prop.VISIBLE, false)
                 e.requesting.setProperty(hmUI.prop.TEXT, '')
             }
@@ -283,7 +287,11 @@ try {
         const api = {}
         const filename = 'glow-settings.txt'
 
-        let initSettings = unBase(readFile(filename))
+        let initSettings
+        const reload = () => {
+            initSettings = unBase(readFile(filename))
+        }
+        reload()
 
         const apiString = () => {
             const saveData = {}
@@ -653,6 +661,7 @@ try {
                     color = api.eBgColor.value,
                     group = base,
                     smallGap = false,
+                    show_level = hmUI.show_level.ONLY_NORMAL,
                 }) => {
                     const gap = smallGap ? 0 : 3
                     addElement(
@@ -666,7 +675,7 @@ try {
                             h: h + gap * 2,
                             radius: 0,
                             color: color,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
+                            show_level,
                         },
                         name,
                     )
@@ -1867,6 +1876,9 @@ try {
                         coords: requestingCoords,
                         name: 'requestingBG',
                         color: api.accBgColor.value,
+                        show_level:
+                            hmUI.show_level.ONLY_NORMAL |
+                            hmUI.show_level.ONLY_AOD,
                     })
                     addElement(
                         base,
@@ -1882,7 +1894,9 @@ try {
                             align_v: hmUI.align.CENTER_V,
                             text_style: hmUI.text_style.NONE,
                             align_h: hmUI.align.LEFT,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
+                            show_level:
+                                hmUI.show_level.ONLY_NORMAL |
+                                hmUI.show_level.ONLY_AOD,
                         },
                         'requesting',
                     )
@@ -2151,9 +2165,6 @@ try {
                             )
                         }
                     }
-                    if (is_aod()) {
-                        return
-                    }
                     const data = apiGetData()
                     if (verbose) {
                         console.log(data, requesting)
@@ -2227,6 +2238,8 @@ try {
                     hmUI.widget.WIDGET_DELEGATE,
                     {
                         resume_call: function () {
+                            reload()
+                            restore()
                             scale_call()
                             time_update(true, true)
                             const animDelay = s.time.utc % 1000
