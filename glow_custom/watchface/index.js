@@ -163,24 +163,30 @@ try {
         let verbose = false
         let requestingTryStuck = 0
         let chunk = 0
-        const setRequesting = (on = false) => {
+        const setRequesting = (on = false, noscreen = false) => {
             requesting = on
             requestTemp = ''
             chunk = 0
             requestingTry = 0
             requestingTryStuck = 0
             if (requesting) {
-                if (!is_aod()) {
+                if (!is_aod() && !noscreen) {
                     hmSetting.setBrightScreen(300)
                 }
                 e.requestingBG.setProperty(hmUI.prop.VISIBLE, true)
                 e.requesting.setProperty(hmUI.prop.TEXT, 'request')
             } else {
-                if (!is_aod()) {
+                if (!is_aod() && !noscreen) {
                     hmSetting.setBrightScreen(1)
                 }
                 e.requestingBG.setProperty(hmUI.prop.VISIBLE, false)
                 e.requesting.setProperty(hmUI.prop.TEXT, '')
+            }
+        }
+        const dataAbort = () => {
+            if (requesting) {
+                phoneAction('dataAbort')
+                setRequesting(false, false)
             }
         }
         const requestData = (ack = false) => {
@@ -2267,9 +2273,9 @@ try {
                             if (fast_timer) {
                                 console.log('Stopping fast timer')
                                 timer.stopTimer(fast_timer)
-                                setRequesting()
                                 fast_timer = undefined
                             }
+                            dataAbort()
                             stopVibro()
                         },
                     },
