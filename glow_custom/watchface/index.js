@@ -163,30 +163,24 @@ try {
         let verbose = false
         let requestingTryStuck = 0
         let chunk = 0
-        const setRequesting = (on = false, noscreen = false) => {
+        const setRequesting = (on = false) => {
             requesting = on
             requestTemp = ''
             chunk = 0
             requestingTry = 0
             requestingTryStuck = 0
             if (requesting) {
-                if (!is_aod() && !noscreen) {
-                    hmSetting.setBrightScreen(300)
-                }
                 e.requestingBG.setProperty(hmUI.prop.VISIBLE, true)
                 e.requesting.setProperty(hmUI.prop.TEXT, 'request')
+                if (!is_aod()) {
+                    hmSetting.setBrightScreen(10)
+                }
             } else {
-                if (!is_aod() && !noscreen) {
-                    hmSetting.setBrightScreen(1)
+                if (!is_aod()) {
+                    hmSetting.setBrightScreenCancel()
                 }
                 e.requestingBG.setProperty(hmUI.prop.VISIBLE, false)
                 e.requesting.setProperty(hmUI.prop.TEXT, '')
-            }
-        }
-        const dataAbort = () => {
-            if (requesting) {
-                phoneAction('dataAbort')
-                setRequesting(false, false)
             }
         }
         const requestData = (ack = false) => {
@@ -2172,6 +2166,13 @@ try {
                         }
                     }
                     const data = apiGetData()
+                    if (is_aod()) {
+                        if (data.includes(':')) {
+                            console.log('force screen on')
+                            hmSetting.setBrightScreen(1)
+                        }
+                        return
+                    }
                     if (verbose) {
                         console.log(data, requesting)
                     }
@@ -2275,7 +2276,6 @@ try {
                                 timer.stopTimer(fast_timer)
                                 fast_timer = undefined
                             }
-                            dataAbort()
                             stopVibro()
                         },
                     },
