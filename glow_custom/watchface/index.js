@@ -167,11 +167,15 @@ try {
             }
         }
         const requestData = (ack = false) => {
-            const request = makeBased(apiString())
-            if (ack) {
-                console.log(`DROIDDATAACK:${request}`)
-            } else {
-                console.log(`DROIDDATA:${request}`)
+            const request = `${makeBased(apiString())}$`
+            const split = 900
+            for (let i = 0; i < request.length; i += split) {
+                const segment = request.slice(i, i + split)
+                if (ack) {
+                    console.log(`DROIDDATAACK:${segment}`)
+                } else {
+                    console.log(`DROIDDATA:${segment}`)
+                }
             }
         }
         const requestChunk = () => {
