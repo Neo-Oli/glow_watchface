@@ -270,6 +270,11 @@ try {
                 key: 'i',
                 type: 'string',
             },
+            mpd: {
+                value: '',
+                key: 'j',
+                type: 'string',
+            },
         }
         const api = {}
         const filename = 'glow-settings.txt'
@@ -974,6 +979,7 @@ try {
                     num,
                     prev = false,
                     next = false,
+                    style = 'round',
                 ) => {
                     if (overlay !== `${name}${num}`) {
                         return
@@ -1047,7 +1053,8 @@ try {
                     let x = startX
                     y += gap + buttonSize / 2
                     let count = 0
-                    const split = 3
+                    const square = style === 'square'
+                    const split = square ? 1 : 3
                     for (const button of buttons) {
                         if (button) {
                             createButton(
@@ -1055,8 +1062,15 @@ try {
                                     text_size: button.icon
                                         ? iconSize
                                         : statsSize,
-                                    text: button.text.replace(/ /g, '\n'),
-                                    radius: buttonSize,
+                                    text: square
+                                        ? button.text
+                                        : button.text.replace(/ /g, '\n'),
+                                    radius: square ? 0 : buttonSize,
+                                    ...(square && {
+                                        w: buttonSize * 3 + gap * 2,
+                                        h: buttonSize,
+                                        align_h: hmUI.align.LEFT,
+                                    }),
                                     x: x,
                                     y: y,
                                 },
@@ -1209,178 +1223,197 @@ try {
                     })
 
                     createTextOverlay('weather', api.weatherWid.value)
-                    const controls = [
-                        {
-                            text: 'clear alarms',
-                            func: () => {
-                                phoneAction('clearSnoozedAlarms')
-                                setOverlay()
+                    ;(() => {
+                        const controls = [
+                            {
+                                text: 'clear alarms',
+                                func: () => {
+                                    phoneAction('clearSnoozedAlarms')
+                                    setOverlay()
+                                },
                             },
-                        },
-                        {
-                            text: 'dnd',
-                            func: () => {
-                                phoneAction('dnd')
-                                setOverlay()
+                            {
+                                text: 'dnd',
+                                func: () => {
+                                    phoneAction('dnd')
+                                    setOverlay()
+                                },
                             },
-                        },
-                        {
-                            text: 'timer',
-                            func: () => {
-                                setOverlay('timer0')
+                            {
+                                text: 'timer',
+                                func: () => {
+                                    setOverlay('timer0')
+                                },
                             },
-                        },
-                        {
-                            text: icons.prev,
-                            icon: true,
-                            func: () => {
-                                phoneAction('prev')
+                            {
+                                text: icons.prev,
+                                icon: true,
+                                func: () => {
+                                    phoneAction('prev')
+                                },
                             },
-                        },
-                        {
-                            text: mediaPlaying ? icons.pause : icons.play,
-                            icon: true,
-                            func: () => {
-                                phoneAction('toggle')
+                            {
+                                text: mediaPlaying ? icons.pause : icons.play,
+                                icon: true,
+                                func: () => {
+                                    phoneAction('toggle')
+                                },
                             },
-                        },
-                        {
-                            text: icons.next,
-                            icon: true,
-                            func: () => {
-                                phoneAction('next')
+                            {
+                                text: icons.next,
+                                icon: true,
+                                func: () => {
+                                    phoneAction('next')
+                                },
                             },
-                        },
-                        {
-                            text: icons.shuffle,
-                            icon: true,
-                            func: () => {
-                                phoneAction('random')
+                            {
+                                text: icons.shuffle,
+                                icon: true,
+                                func: () => {
+                                    phoneAction('random')
+                                },
                             },
-                        },
-                        {
-                            text: icons.volume,
-                            icon: true,
-                            func: () => {
-                                setOverlay('volume')
+                            {
+                                text: icons.volume,
+                                icon: true,
+                                func: () => {
+                                    setOverlay('volume')
+                                },
                             },
-                        },
-                        {
-                            text: icons.playlist,
-                            icon: true,
-                            func: () => {
-                                phoneAction('playlist')
-                                setOverlay()
+                            {
+                                text: icons.playlist,
+                                icon: true,
+                                func: () => {
+                                    setOverlay('Nlist0')
+                                },
                             },
-                        },
-                        {
-                            text: 'fav',
-                            func: () => {
-                                phoneAction('fav')
-                                setOverlay()
+                            {
+                                text: 'fav',
+                                func: () => {
+                                    phoneAction('fav')
+                                    setOverlay()
+                                },
                             },
-                        },
-                        {
-                            text: 'search',
-                            func: () => {
-                                phoneAction('search')
-                                setOverlay()
+                            {
+                                text: 'player ctl',
+                                func: () => {
+                                    phoneAction('playerctl')
+                                    setOverlay()
+                                },
                             },
-                        },
-                        {
-                            text: 'player ctl',
-                            func: () => {
-                                phoneAction('playerctl')
-                                setOverlay()
+                            {
+                                text: 'screen share',
+                                func: () => {
+                                    phoneAction('screenshare')
+                                    setOverlay()
+                                },
                             },
-                        },
-                        {
-                            text: 'screen share',
-                            func: () => {
-                                phoneAction('screenshare')
-                                setOverlay()
+                            {
+                                text: 'restart bt',
+                                func: () => {
+                                    phoneAction('restartBT')
+                                    setOverlay()
+                                },
                             },
-                        },
-                        {
-                            text: 'restart bt',
-                            func: () => {
-                                phoneAction('restartBT')
-                                setOverlay()
+                            {
+                                text: 'exit mpv',
+                                func: () => {
+                                    phoneAction('mpvexit')
+                                    setOverlay()
+                                },
                             },
-                        },
-                        {
-                            text: 'exit mpv',
-                            func: () => {
-                                phoneAction('mpvexit')
-                                setOverlay()
+                            {
+                                text: 'find device',
+                                func: () => {
+                                    phoneAction('findMyDevice')
+                                    setOverlay()
+                                },
                             },
-                        },
-                        {
-                            text: 'find device',
-                            func: () => {
-                                phoneAction('findMyDevice')
-                                setOverlay()
+                            {
+                                text: 'pres erve',
+                                func: () => {
+                                    phoneAction('preserve')
+                                    setOverlay()
+                                },
                             },
-                        },
-                        {
-                            text: 'pres erve',
-                            func: () => {
-                                phoneAction('preserve')
-                                setOverlay()
+                            {
+                                text: 'light',
+                                func: () => {
+                                    phoneAction('light')
+                                    setOverlay()
+                                },
                             },
-                        },
-                        {
-                            text: 'light',
-                            func: () => {
-                                phoneAction('light')
-                                setOverlay()
+                            {
+                                text: 'aod',
+                                func: () => {
+                                    phoneAction('aod')
+                                    setOverlay()
+                                },
                             },
-                        },
-                        {
-                            text: 'aod',
-                            func: () => {
-                                phoneAction('aod')
-                                setOverlay()
+                            {
+                                text: 'reset face',
+                                func: () => {
+                                    initSettings = null
+                                    hmFS.remove(filename)
+                                    restore()
+                                    phoneAction('dataClear')
+                                    setOverlay()
+                                },
                             },
-                        },
-                        {
-                            text: 'reset face',
-                            func: () => {
-                                initSettings = null
-                                hmFS.remove(filename)
-                                restore()
-                                phoneAction('dataClear')
-                                setOverlay()
+                            {
+                                text: 'debug',
+                                func: () => {
+                                    verbose = !verbose
+                                    setOverlay()
+                                },
                             },
-                        },
-                        {
-                            text: 'debug',
-                            func: () => {
-                                verbose = !verbose
-                                setOverlay()
-                            },
-                        },
-                        /*
-                         * {
-                         * text: 'test function',
-                         * func: () => {
-                         * console.log(
-                         * JSON.stringify(hmSetting.getUserData()),
-                         * )
-                         * },
-                         * },
-                         */
-                    ]
-                    const perPage = 9
-                    for (let i = 0; i < controls.length; i += perPage) {
-                        createControls(
-                            controls.slice(i, i + perPage),
-                            'controls',
-                            Math.round(i / perPage),
-                            i !== 0,
-                            i + perPage < controls.length,
-                        )
-                    }
+                            /*
+                             * {
+                             * text: 'test function',
+                             * func: () => {
+                             * console.log(
+                             * JSON.stringify(hmSetting.getUserData()),
+                             * )
+                             * },
+                             * },
+                             */
+                        ]
+                        const perPage = 9
+                        for (let i = 0; i < controls.length; i += perPage) {
+                            createControls(
+                                controls.slice(i, i + perPage),
+                                'controls',
+                                Math.round(i / perPage),
+                                i !== 0,
+                                i + perPage < controls.length,
+                            )
+                        }
+                    })()
+                    ;(() => {
+                        const perPage = 3
+                        const controlString = api.mpd.value
+                        if (controlString) {
+                            const controls = controlString
+                                .split('£')
+                                .map((item) => ({
+                                    text: item,
+                                    func: () => {
+                                        phoneAction(`music ${item}`)
+                                        setOverlay()
+                                    },
+                                }))
+                            for (let i = 0; i < controls.length; i += perPage) {
+                                createControls(
+                                    controls.slice(i, i + perPage),
+                                    'Nlist',
+                                    Math.round(i / perPage),
+                                    i !== 0,
+                                    i + perPage < controls.length,
+                                    'square',
+                                )
+                            }
+                        }
+                    })()
 
                     createControls(
                         [
@@ -2074,6 +2107,7 @@ try {
                     newBaseCache.push(api.gradientTop.value)
                     newBaseCache.push(api.pow.value)
                     newOverlayCache.push(api.volume.value)
+                    newOverlayCache.push(api.mpd.value)
 
                     updateProgress(
                         s.battery.current,
