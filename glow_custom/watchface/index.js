@@ -95,23 +95,6 @@ try {
                 return ((r << 16) | (g << 8) | b) >>> 0
             })
         }
-        const weather_icons = {
-            thunderstorm: ' ',
-            light_rain: '󰖗 ',
-            rain: ' ',
-            snow: '󰖘 ',
-            heavy_snow: '󰼶 ',
-            rain_snow: '󰙿 ',
-            sleet: ' ',
-            fog: '󰖑 ',
-            sun: '󰖙 ',
-            cloud: ' ',
-            heavy_cloud: ' ',
-            cloud_sun: '󰖕 ',
-            cloud_moon: '󰼱 ',
-            clear_night: ' ',
-            wind: ' ',
-        }
 
         const clocks = [
             '󱑊',
@@ -2032,18 +2015,6 @@ try {
                     apiUpdate()
                 }
 
-                const condition_icon = (condition) => {
-                    if (
-                        Object.prototype.hasOwnProperty.call(
-                            weather_icons,
-                            condition,
-                        )
-                    ) {
-                        return weather_icons[condition]
-                    }
-                    return condition.toString()
-                }
-
                 //#endregion
                 function scale_call() {
                     const newBaseCache = []
@@ -2077,10 +2048,7 @@ try {
                     )
                     e.sunrise.setProperty(hmUI.prop.TEXT, api.sunrise.value)
                     e.sunset.setProperty(hmUI.prop.TEXT, api.sunset.value)
-                    e.condition.setProperty(
-                        hmUI.prop.TEXT,
-                        condition_icon(api.condition.value),
-                    )
+                    e.condition.setProperty(hmUI.prop.TEXT, api.condition.value)
                     updateProgress(
                         api.phoneBattery.value,
                         100,
