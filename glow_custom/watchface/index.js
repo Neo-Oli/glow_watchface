@@ -1330,6 +1330,13 @@ try {
                                 },
                             },
                             {
+                                text: 'no network',
+                                func: () => {
+                                    phoneAction('no_network')
+                                    setOverlay()
+                                },
+                            },
+                            {
                                 text: 'pres erve',
                                 func: () => {
                                     phoneAction('preserve')
