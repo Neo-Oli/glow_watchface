@@ -545,6 +545,7 @@ try {
             layers[group] = []
         }
         const renderGroup = (group) => {
+            if (verbose) console.log(`renderGroup(${group})`)
             for (const widget of allElements[group]) {
                 if (widget) {
                     hmUI.deleteWidget(widget)
@@ -1522,7 +1523,7 @@ try {
                     )
                     renderGroup(over)
                 }
-                renderDynamic = () => {
+                const renderDynamic = () => {
                     prepareElements(dynamic)
                     createStyledText({
                         coords: cityNameCoords,
@@ -2055,6 +2056,7 @@ try {
 
                 //#endregion
                 function scale_call() {
+                    if (verbose) console.log('scale_call')
                     const newBaseCache = []
                     const newOverlayCache = []
                     const newDynamicCache = []
@@ -2173,6 +2175,7 @@ try {
                     }
                     if (verbose) {
                         console.log(data, requesting)
+                        console.log(overlay)
                     }
                     if (requesting) {
                         fastTimer()
@@ -2245,6 +2248,9 @@ try {
                         resume_call: function () {
                             reload()
                             restore()
+                            if (!is_aod()) {
+                                requestData(true)
+                            }
                             scale_call()
                             time_update(true, true)
                             const animDelay = s.time.utc % 1000
@@ -2275,7 +2281,6 @@ try {
                                 fast_timer = undefined
                             }
                             stopVibro()
-                            setOverlay()
                         },
                     },
                 )
