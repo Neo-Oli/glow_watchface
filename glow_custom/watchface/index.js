@@ -479,9 +479,8 @@ try {
             x: timeCoords.x,
             y: timeCoords.y + timeCoords.h + gap,
             w: timeCoords.w,
-            h: 39,
+            h: 36,
         }
-        const cityLength = 24
         let mediaPlaying = false
         const mediaCoords = {
             x: cityNameCoords.x,
@@ -1865,6 +1864,7 @@ try {
                         hmUI.widget.TEXT,
                         {
                             ...cityNameCoords,
+                            w: 1000,
                             text_size: big,
                             char_space: 0,
                             font: font,
