@@ -446,6 +446,7 @@ try {
 
         let baseCache = ''
         let overlayCache = ''
+        let dynamicCache = ''
 
         const phoneAction = (action) => {
             console.log(`DROIDDO: ${action}`)
@@ -481,7 +482,6 @@ try {
             w: timeCoords.w,
             h: 36,
         }
-        let mediaPlaying = false
         const mediaCoords = {
             x: cityNameCoords.x,
             y: cityNameCoords.y + cityNameCoords.h + gap,
@@ -513,8 +513,9 @@ try {
 
         const base = 'base'
         const over = 'over'
-        const layers = { base: [], over: [] }
-        const allElements = { base: [], over: [] }
+        const dynamic = 'dynamic'
+        const layers = { base: [], dynamic: [], over: [] }
+        const allElements = { base: [], dynamic: [], over: [] }
         const bg = 0
         const widgetBg = 1
         const widgetContent = 2
@@ -543,17 +544,22 @@ try {
         const prepareElements = (group) => {
             layers[group] = []
         }
-        const renderElements = (group) => {
+        const renderGroup = (group) => {
             for (const widget of allElements[group]) {
-                hmUI.deleteWidget(widget)
+                if (widget) {
+                    hmUI.deleteWidget(widget)
+                }
             }
+            allElements[group] = []
             for (const layer in layers[group]) {
                 for (element of layers[group][layer]) {
-                    const { type, name, props } = element
-                    const widget = hmUI.createWidget(type, props)
-                    allElements[group].push(widget)
-                    if (name) {
-                        e[name] = widget
+                    if (element) {
+                        const { type, name, props } = element
+                        const widget = hmUI.createWidget(type, props)
+                        allElements[group].push(widget)
+                        if (name) {
+                            e[name] = widget
+                        }
                     }
                 }
             }
@@ -1131,52 +1137,58 @@ try {
                         coords: textCoords,
                         group: over,
                         text: text,
+                        size: flowTextSize,
                     })
                 }
-                const createStyledText = ({ group, coords, text }) => {
-                    const { x, y, w, h } = coords
+                const createStyledText = ({ group, coords, text, size }) => {
+                    if (!text) {
+                        return
+                    }
+                    const { x, y } = coords
                     drawRect({
                         coords: coords,
-                        group: over,
+                        group: group,
                     })
+                    const width = size / 2
                     text.split('\n').forEach((line, index) => {
                         const out = (offset, mode, text) => {
-                            const size = flowTextSize
                             let textSize = size
-                            let iconOffset = 0
+                            let iconOffset = size / 4
                             let bgColor = api.eBgColor.value
                             let fgColor = api.fgColor.value
-                            let width = text.length
+                            //count unicode correctly
+                            let textWidth = Array.from(text).length
                             if (mode === 'bg') {
                                 bgColor = api.fgColor.value
                                 fgColor = api.eBgColor.value
-                            } else if (mode === 'icon') {
+                            } else if (mode === 'i') {
                                 textSize *= 1.5
-                                width = 2
-                                iconOffset = 7
+                                textWidth = 2
+                                iconOffset -= size / 4
                                 fgColor = api.accColor.value
                             }
-                            const widthModifier = 1.905
+                            const width = size / 2
                             textCoords = {
-                                x: x + offset * (size / widthModifier),
+                                x: x + offset,
                                 y: y + size * index,
-                                w: width * (size / widthModifier),
+                                w: textWidth * width,
                                 h: size,
                             }
                             drawRect({
                                 coords: textCoords,
-                                group: over,
+                                group: group,
                                 color: bgColor,
                                 smallGap: true,
                             })
                             addElement(group, widgetContent, hmUI.widget.TEXT, {
                                 ...textCoords,
-                                y: textCoords.y - iconOffset,
+                                y: textCoords.y + iconOffset,
                                 h: textSize,
+                                w: textCoords.w * 2,
                                 text_size: textSize,
                                 font: font,
                                 color: fgColor,
-                                align_v: hmUI.align.TOP,
+                                align_v: hmUI.align.BOTTOM,
                                 text_style: hmUI.text_style.ELLIPSIS,
                                 align_h: hmUI.align.LEFT,
                                 show_level: hmUI.show_level.ONLY_NORMAL,
@@ -1186,16 +1198,19 @@ try {
                         let str = line
                         let offset = 0
                         let cur = ''
-                        let mode = 'norm'
+                        let mode = 'n'
+                        const offsetCompensator = 1
                         while (str.length) {
                             if (str.startsWith('#[')) {
                                 if (cur) {
                                     out(offset, mode, cur)
                                 }
-                                if (mode === 'icon') {
-                                    offset += 2
+                                if (mode === 'i') {
+                                    offset += width * 2 + offsetCompensator
                                 } else {
-                                    offset += cur.length
+                                    offset +=
+                                        Array.from(cur).length * width +
+                                        offsetCompensator
                                 }
                                 const end = str.indexOf(']')
                                 if (end === -1) {
@@ -1252,7 +1267,9 @@ try {
                                 },
                             },
                             {
-                                text: mediaPlaying ? icons.pause : icons.play,
+                                text: api.media.value.includes(icons.play)
+                                    ? icons.pause
+                                    : icons.play,
                                 icon: true,
                                 func: () => {
                                     phoneAction('toggle')
@@ -1503,7 +1520,26 @@ try {
                         false,
                         false,
                     )
-                    renderElements(over)
+                    renderGroup(over)
+                }
+                renderDynamic = () => {
+                    prepareElements(dynamic)
+                    createStyledText({
+                        coords: cityNameCoords,
+                        group: dynamic,
+                        text: api.infoText.value,
+                        size: big,
+                    })
+                    createStyledText({
+                        coords: mediaCoords,
+                        group: dynamic,
+                        text: api.media.value,
+                        size: big,
+                    })
+                    renderGroup(dynamic)
+                    if (overlay) {
+                        renderGroup(over)
+                    }
                 }
                 const renderBase = () => {
                     prepareElements(base)
@@ -1856,49 +1892,6 @@ try {
                         'outerCircle',
                     )
 
-                    //city name
-                    drawRect({ coords: cityNameCoords, name: 'cityBG' })
-                    addElement(
-                        base,
-                        widgetContent,
-                        hmUI.widget.TEXT,
-                        {
-                            ...cityNameCoords,
-                            w: 1000,
-                            text_size: big,
-                            char_space: 0,
-                            font: font,
-                            color: api.fgColor.value,
-                            line_space: 0,
-                            align_v: hmUI.align.CENTER_V,
-                            text_style: hmUI.text_style.NONE,
-                            align_h: hmUI.align.LEFT,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                        'cityName',
-                    )
-
-                    //media
-                    drawRect({ coords: mediaCoords, name: 'mediaBG' })
-                    addElement(
-                        base,
-                        widgetContent,
-                        hmUI.widget.TEXT,
-                        {
-                            ...mediaCoords,
-                            text_size: big,
-                            char_space: 0,
-                            font: font,
-                            color: api.fgColor.value,
-                            line_space: 0,
-                            align_v: hmUI.align.CENTER_V,
-                            text_style: hmUI.text_style.NONE,
-                            align_h: hmUI.align.LEFT,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        },
-                        'media',
-                    )
-
                     drawRect({
                         coords: requestingCoords,
                         name: 'requestingBG',
@@ -1989,10 +1982,11 @@ try {
                         normal_src: buttonImage,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
-                    renderElements(base)
+                    renderGroup(base)
                 }
 
                 renderBase()
+                renderDynamic()
                 //#region time_update
                 function time_update(updateHour = false, updateMinute = false) {
                     if (showSeparator === null) {
@@ -2063,24 +2057,9 @@ try {
                 function scale_call() {
                     const newBaseCache = []
                     const newOverlayCache = []
-                    e.cityName.setProperty(hmUI.prop.TEXT, api.infoText.value)
-                    if (!api.infoText.value) {
-                        e.cityBG.setProperty(hmUI.prop.VISIBLE, false)
-                    } else {
-                        e.cityBG.setProperty(hmUI.prop.VISIBLE, true)
-                    }
-                    e.media.setProperty(hmUI.prop.TEXT, api.media.value)
+                    const newDynamicCache = []
                     if (!requesting) {
                         e.requestingBG.setProperty(hmUI.prop.VISIBLE, false)
-                    }
-                    mediaPlaying = false
-                    if (!api.media.value) {
-                        e.mediaBG.setProperty(hmUI.prop.VISIBLE, false)
-                    } else {
-                        e.mediaBG.setProperty(hmUI.prop.VISIBLE, true)
-                        if (api.media.value.startsWith(icons.play)) {
-                            mediaPlaying = true
-                        }
                     }
                     e.temp.setProperty(
                         hmUI.prop.TEXT,
@@ -2147,7 +2126,8 @@ try {
                     )
 
                     newOverlayCache.push(overlay)
-
+                    newDynamicCache.push(api.infoText.value)
+                    newDynamicCache.push(api.media.value)
                     newBaseCache.push(hmBle.connectStatus().toString())
                     newBaseCache.push(verbose.toString())
                     const finalBaseCache = newBaseCache.join('')
@@ -2161,6 +2141,11 @@ try {
                     if (overlayCache !== finalOverlayCache) {
                         overlayCache = finalOverlayCache
                         renderOver()
+                    }
+                    const finalDynamicCache = newDynamicCache.join('')
+                    if (dynamicCache !== finalDynamicCache) {
+                        dynamicCache = finalDynamicCache
+                        renderDynamic()
                     }
                 }
                 const apiUpdate = () => {
