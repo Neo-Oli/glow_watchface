@@ -2275,6 +2275,7 @@ try {
                                 fast_timer = undefined
                             }
                             stopVibro()
+                            setOverlay()
                         },
                     },
                 )
