@@ -2248,7 +2248,7 @@ try {
                         resume_call: function () {
                             reload()
                             restore()
-                            if (!is_aod()) {
+                            if (!is_aod() && !requesting) {
                                 requestData(true)
                             }
                             scale_call()
