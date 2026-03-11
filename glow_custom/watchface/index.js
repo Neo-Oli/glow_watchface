@@ -275,6 +275,11 @@ try {
                 key: 'j',
                 type: 'string',
             },
+            calendar: {
+                value: errText,
+                key: 'k',
+                type: 'string',
+            },
         }
         const api = {}
         const filename = 'glow-settings.txt'
@@ -1095,50 +1100,98 @@ try {
                     }
                 }
                 const createTextOverlay = (name, text) => {
-                    if (overlay !== name) {
-                        return
+                    const maxlines = 13
+
+                    const segments = []
+                    const lines = text.split('\n')
+                    for (let i = 0; i < lines.length; i += maxlines) {
+                        segments.push(lines.slice(i, i + maxlines).join('\n'))
                     }
-                    addElement(over, widgetBg, hmUI.widget.CIRCLE, {
-                        center_x: center,
-                        center_y: center,
-                        radius: 220,
-                        color: api.bgColor.value,
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    })
-                    const buttonSize = circleButtonRadius * 2
-                    const y =
-                        center -
-                        buttonSize / 2 -
-                        gap -
-                        buttonSize -
-                        gap -
-                        buttonSize / 2
-                    createButton(
-                        {
-                            text_size: big,
-                            text: icons.close,
-                            radius: buttonSize,
-                            x: center - buttonSize,
-                            y: y,
-                            w: buttonSize * 2,
-                            h: buttonSize / 2,
-                        },
-                        () => {
-                            setOverlay()
-                        },
-                    )
-                    const radius = 160
-                    const textCoords = {
-                        x: center - radius,
-                        y: y + buttonSize / 2 + gap,
-                        w: radius * 2,
-                        h: flowTextSize * 13,
-                    }
-                    createStyledText({
-                        coords: textCoords,
-                        group: over,
-                        text: text,
-                        size: flowTextSize,
+
+                    segments.forEach((segment, index) => {
+                        const indexedName = `${name}${index}`
+                        if (overlay !== indexedName) {
+                            return
+                        }
+                        addElement(over, widgetBg, hmUI.widget.CIRCLE, {
+                            center_x: center,
+                            center_y: center,
+                            radius: 220,
+                            color: api.bgColor.value,
+                            show_level: hmUI.show_level.ONLY_NORMAL,
+                        })
+                        const buttonSize = circleButtonRadius * 2
+                        const y =
+                            center -
+                            buttonSize / 2 -
+                            gap -
+                            buttonSize -
+                            gap -
+                            buttonSize / 2
+                        createButton(
+                            {
+                                text_size: big,
+                                text: icons.close,
+                                radius: buttonSize,
+                                x: center - buttonSize,
+                                y: y,
+                                w: buttonSize * 2,
+                                h: buttonSize / 2,
+                            },
+                            () => {
+                                setOverlay()
+                            },
+                        )
+                        const radius = 160
+                        const textCoords = {
+                            x: center - radius,
+                            y: y + buttonSize / 2 + gap,
+                            w: radius * 2,
+                            h: flowTextSize * maxlines,
+                        }
+                        createStyledText({
+                            coords: textCoords,
+                            group: over,
+                            text: segment,
+                            size: flowTextSize,
+                        })
+
+                        if (index !== 0) {
+                            createButton(
+                                {
+                                    text_size: big,
+                                    text: icons.prevPage,
+                                    radius: buttonSize,
+                                    y: center - buttonSize,
+                                    h: buttonSize * 2,
+                                    w: buttonSize / 2,
+                                    x:
+                                        center -
+                                        (buttonSize * 1.5 +
+                                            gap * 2 +
+                                            buttonSize / 2),
+                                },
+                                () => {
+                                    setOverlay(`${name}${index - 1}`)
+                                },
+                            )
+                        }
+                        if (index !== segments.length - 1) {
+                            createButton(
+                                {
+                                    text_size: big,
+                                    text: icons.nextPage,
+                                    radius: buttonSize,
+                                    x: center + (buttonSize * 1.5 + gap * 2),
+                                    y: center - buttonSize,
+                                    h: buttonSize * 2,
+                                    w: buttonSize / 2,
+                                },
+                                () => {
+                                    setOverlay(`${name}${index + 1}`)
+                                },
+                            )
+                        }
                     })
                 }
                 const createStyledText = ({ group, coords, text, size }) => {
@@ -1154,12 +1207,12 @@ try {
                     text.split('\n').forEach((line, index) => {
                         const out = (offset, mode, text) => {
                             let textSize = size
-                            let iconOffset = size / 4
+                            let iconOffset = size / 6
                             let bgColor = api.eBgColor.value
                             let fgColor = api.fgColor.value
                             //count unicode correctly
                             let textWidth = Array.from(text).length
-                            if (mode === 'bg') {
+                            if (mode === 'b') {
                                 bgColor = api.fgColor.value
                                 fgColor = api.eBgColor.value
                             } else if (mode === 'i') {
@@ -1172,7 +1225,7 @@ try {
                             textCoords = {
                                 x: x + offset,
                                 y: y + size * index,
-                                w: textWidth * width,
+                                w: (textWidth + 1) * width,
                                 h: size,
                             }
                             drawRect({
@@ -1238,6 +1291,7 @@ try {
                     })
 
                     createTextOverlay('weather', api.weatherWid.value)
+                    createTextOverlay('calendar', api.calendar.value)
                     ;(() => {
                         const controls = [
                             {
@@ -1749,20 +1803,20 @@ try {
                         'date',
                     )
                     addElement(base, buttons, hmUI.widget.BUTTON, {
-                        x: 100,
-                        y: 40,
-                        w: 260,
-                        h: 50,
+                        ...dateCoords,
                         text: '',
                         color: api.fgColor.value,
                         text_size: big,
                         press_src: buttonImage,
                         normal_src: buttonImage,
                         click_func: (button_widget) => {
-                            hmApp.startApp({
-                                url: 'ScheduleCalScreen',
-                                native: true,
-                            })
+                            setOverlay('calendar0')
+                            /*
+                             * hmApp.startApp({
+                             * url: 'ScheduleCalScreen',
+                             * native: true,
+                             * })
+                             */
                         },
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
@@ -1977,7 +2031,7 @@ try {
                         text: '',
                         color: api.fgColor.value,
                         click_func: (watchface) => {
-                            setOverlay('weather')
+                            setOverlay('weather0')
                         },
                         press_src: buttonImage,
                         normal_src: buttonImage,
@@ -2096,6 +2150,8 @@ try {
                     newBaseCache.push(api.pow.value)
                     newOverlayCache.push(api.volume.value)
                     newOverlayCache.push(api.mpd.value)
+                    newOverlayCache.push(api.weatherWid.value)
+                    newOverlayCache.push(api.calendar.value)
 
                     updateProgress(
                         s.battery.current,
