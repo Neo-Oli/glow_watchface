@@ -280,6 +280,11 @@ try {
                 key: 'k',
                 type: 'string',
             },
+            toggles: {
+                value: '',
+                key: 'l',
+                type: 'string',
+            },
         }
         const api = {}
         const filename = 'glow-settings.txt'
@@ -1039,36 +1044,63 @@ try {
                     let count = 0
                     const square = style === 'square'
                     const split = square ? 1 : 3
+                    const localButtonSize = square
+                        ? (buttonSize * 3) / 5
+                        : buttonSize
                     for (const button of buttons) {
                         if (button) {
-                            createButton(
-                                {
-                                    text_size: button.icon
-                                        ? iconSize
-                                        : statsSize,
-                                    text: square
-                                        ? button.text
-                                        : button.text.replace(/ /g, '\n'),
-                                    radius: square ? 0 : buttonSize,
-                                    ...(square && {
-                                        w: buttonSize * 3 + gap * 2,
-                                        h: buttonSize,
-                                        align_h: hmUI.align.LEFT,
-                                    }),
+                            if (square) {
+                                const coords = {
+                                    w: buttonSize * 3 + gap * 2,
+                                    h: localButtonSize,
                                     x: x,
                                     y: y,
-                                },
-                                (b) => {
-                                    button.func(b)
-                                },
-                            )
+                                }
+                                createStyledText({
+                                    coords: coords,
+                                    group: over,
+                                    text: button.text,
+                                    size: statsSize,
+                                })
+                                createButton(
+                                    {
+                                        text_size: button.icon
+                                            ? iconSize
+                                            : statsSize,
+                                        radius: 0,
+                                        align_h: hmUI.align.LEFT,
+                                        ...coords,
+                                        normal_color: undefined,
+                                        press_src: buttonImage,
+                                        normal_src: buttonImage,
+                                    },
+                                    (b) => {
+                                        button.func(b)
+                                    },
+                                )
+                            } else {
+                                createButton(
+                                    {
+                                        text_size: button.icon
+                                            ? iconSize
+                                            : statsSize,
+                                        text: button.text.replace(/ /g, '\n'),
+                                        radius: localButtonSize,
+                                        x: x,
+                                        y: y,
+                                    },
+                                    (b) => {
+                                        button.func(b)
+                                    },
+                                )
+                            }
                         }
                         count += 1
                         if (count % split === 0) {
                             x = startX
-                            y += gap + buttonSize
+                            y += gap + localButtonSize
                         } else {
-                            x += gap + buttonSize
+                            x += gap + localButtonSize
                         }
                     }
                 }
@@ -1300,7 +1332,7 @@ try {
                                     : icons.play,
                                 icon: true,
                                 func: () => {
-                                    phoneAction('toggle')
+                                    phoneAction('mtoggle')
                                 },
                             },
                             {
@@ -2057,6 +2089,8 @@ try {
                     newOverlayCache.push(api.mpd.value)
                     newOverlayCache.push(api.weatherWid.value)
                     newOverlayCache.push(api.calendar.value)
+                    newOverlayCache.push(api.toggles.value)
+                    newOverlayCache.push(api.condition.value)
 
                     updateProgress(
                         s.battery.current,
