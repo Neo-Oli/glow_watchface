@@ -683,7 +683,7 @@ try {
                         name,
                     )
                 }
-                const createStat = (name, icon, button, countStats) => {
+                const createStat = (name, icon, countStats) => {
                     const x = 280
                     const y = statsStart
                     drawRect({
@@ -732,21 +732,10 @@ try {
                         },
                         name,
                     )
-                    if (button) {
-                        addElement(base, widgetContent, hmUI.widget.IMG_CLICK, {
-                            x: x,
-                            y: y + statsSize * countStats,
-                            w: 200,
-                            h: statsSize,
-                            src: buttonImage,
-                            type: button,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        })
-                    }
                     countStats += 1
                 }
 
-                const createCircle = (name, icon, button, circleCount) => {
+                const createCircle = (name, circleCount) => {
                     const center_y = statsStart + circleRadius
                     const circleGap = circleRadius * 2 + gap
                     const x = circlex + circleGap * circleCount
@@ -845,22 +834,6 @@ try {
                         },
                         `${name}Icon`,
                     )
-                    if (button) {
-                        const x = circlex - circleRadius
-                        const y = center_y - circleRadius
-                        addElement(base, buttons, hmUI.widget.BUTTON, {
-                            x: x + circleGap * circleCount,
-                            y: y,
-                            w: circleRadius * 2,
-                            h: circleRadius * 2,
-                            text: '',
-                            color: api.fgColor.value,
-                            click_func: button,
-                            press_src: buttonImage,
-                            normal_src: buttonImage,
-                            show_level: hmUI.show_level.ONLY_NORMAL,
-                        })
-                    }
                     circleCount += 1
                 }
 
@@ -1725,15 +1698,6 @@ try {
                         },
                         'sunrise',
                     )
-                    addElement(base, buttons, hmUI.widget.IMG_CLICK, {
-                        x: 285,
-                        y: 90,
-                        w: 60,
-                        h: 50,
-                        src: buttonImage,
-                        type: hmUI.data_type.SUN_CURRENT,
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    })
 
                     addElement(
                         base,
@@ -1802,24 +1766,6 @@ try {
                         },
                         'date',
                     )
-                    addElement(base, buttons, hmUI.widget.BUTTON, {
-                        ...dateCoords,
-                        text: '',
-                        color: api.fgColor.value,
-                        text_size: big,
-                        press_src: buttonImage,
-                        normal_src: buttonImage,
-                        click_func: (button_widget) => {
-                            setOverlay('calendar0')
-                            /*
-                             * hmApp.startApp({
-                             * url: 'ScheduleCalScreen',
-                             * native: true,
-                             * })
-                             */
-                        },
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    })
 
                     addElement(
                         base,
@@ -1887,18 +1833,6 @@ try {
                         },
                         'aodTime',
                     )
-                    addElement(base, buttons, hmUI.widget.BUTTON, {
-                        ...timeCoords,
-                        text: '',
-                        color: api.fgColor.value,
-                        click_func: (watchface) => {
-                            setOverlay('controls0')
-                        },
-                        press_src: buttonImage,
-                        normal_src: buttonImage,
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    })
-                    const secondRadius = 231
                     addElement(base, widgetBg, hmUI.widget.ARC, {
                         x: secondGap,
                         y: secondGap,
@@ -1976,22 +1910,6 @@ try {
                         'requesting',
                     )
 
-                    const mediaButtonHeight =
-                        cityNameCoords.h + gap + mediaCoords.h
-                    addElement(base, buttons, hmUI.widget.BUTTON, {
-                        x: mediaCoords.x,
-                        y: cityNameCoords.y,
-                        w: mediaCoords.w,
-                        h: mediaButtonHeight,
-                        text: '',
-                        color: api.fgColor.value,
-                        click_func: (watchface) => {
-                            setOverlay('controls0')
-                        },
-                        press_src: buttonImage,
-                        normal_src: buttonImage,
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    })
                     const weatherStart = timeCoords.x + weatherGap
                     drawRect({
                         coords: {
@@ -2023,20 +1941,7 @@ try {
                         },
                         'temp',
                     )
-                    addElement(base, buttons, hmUI.widget.BUTTON, {
-                        x: 90,
-                        y: 90,
-                        w: 194,
-                        h: 50,
-                        text: '',
-                        color: api.fgColor.value,
-                        click_func: (watchface) => {
-                            setOverlay('weather0')
-                        },
-                        press_src: buttonImage,
-                        normal_src: buttonImage,
-                        show_level: hmUI.show_level.ONLY_NORMAL,
-                    })
+
                     renderGroup(base)
                 }
 
