@@ -1462,14 +1462,14 @@ try {
                                 text: api.condition.value,
                                 icon: true,
                                 func: () => {
-                                    overlay('weather0')
+                                    setOverlay('weather0')
                                 },
                             },
                             {
                                 text: icons.calendar,
                                 icon: true,
                                 func: () => {
-                                    overlay('calendar')
+                                    setOverlay('calendar0')
                                 },
                             },
                             {
@@ -1532,7 +1532,14 @@ try {
                         if (arr.length) {
                             const fixLength = 18
                             const controls = arr.map((item) => ({
-                                text: `${item.enabled ? icons.checkbox_checked : icons.checkbox} ${item.name.slice(0, fixLength).padEnd(fixLength, ' ')}  #[i]${item.icon}`,
+                                text: `${item?.enabled ? icons.checkbox_checked : icons.checkbox} ${String(
+                                    item?.name || '',
+                                )
+                                    .slice(0, fixLength)
+                                    .padEnd(
+                                        fixLength,
+                                        ' ',
+                                    )}  #[i]${item?.icon || ''}`,
                                 func: () => {
                                     phoneAction(`toggle ${item.name}`)
                                 },
