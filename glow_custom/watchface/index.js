@@ -132,6 +132,9 @@ try {
             nextPage: '󰅂',
             playlist: '󰲸',
             error: '',
+            checkbox: '󰄱',
+            checkbox_checked: '󰡖',
+            calendar: '',
         }
         const errText = icons.error
 
@@ -524,8 +527,9 @@ try {
         const base = 'base'
         const over = 'over'
         const dynamic = 'dynamic'
-        const layers = { base: [], dynamic: [], over: [] }
-        const allElements = { base: [], dynamic: [], over: [] }
+        const buttonGrid = 'buttonGrid'
+        const layers = { base: [], dynamic: [], buttonGrid: [], over: [] }
+        const allElements = { base: [], dynamic: [], buttonGrid: [], over: [] }
         const bg = 0
         const widgetBg = 1
         const widgetContent = 2
@@ -1309,16 +1313,72 @@ try {
                             {
                                 text: 'dnd',
                                 func: () => {
-                                    phoneAction('dnd')
+                                    phoneAction('toggle dnd')
                                     setOverlay()
                                 },
                             },
                             {
-                                text: 'timer',
+                                text: 'screen share',
                                 func: () => {
-                                    setOverlay('timer0')
+                                    phoneAction('screenshare')
+                                    setOverlay()
                                 },
                             },
+                            {
+                                text: 'restart bt',
+                                func: () => {
+                                    phoneAction('restartBT')
+                                    setOverlay()
+                                },
+                            },
+                            {
+                                text: 'find device',
+                                func: () => {
+                                    phoneAction('findMyDevice')
+                                    setOverlay()
+                                },
+                            },
+                            {
+                                text: 'reset face',
+                                func: () => {
+                                    initSettings = null
+                                    hmFS.remove(filename)
+                                    restore()
+                                    phoneAction('dataClear')
+                                    setOverlay()
+                                },
+                            },
+                            {
+                                text: 'debug',
+                                func: () => {
+                                    verbose = !verbose
+                                    setOverlay()
+                                },
+                            },
+                            /*
+                             * {
+                             * text: 'test function',
+                             * func: () => {
+                             * console.log(
+                             * JSON.stringify(hmSetting.getUserData()),
+                             * )
+                             * },
+                             * },
+                             */
+                        ]
+                        const perPage = 9
+                        for (let i = 0; i < controls.length; i += perPage) {
+                            createControls(
+                                controls.slice(i, i + perPage),
+                                'controls',
+                                Math.round(i / perPage),
+                                i !== 0,
+                                i + perPage < controls.length,
+                            )
+                        }
+                    })()
+                    ;(() => {
+                        const controls = [
                             {
                                 text: icons.prev,
                                 icon: true,
@@ -1378,94 +1438,52 @@ try {
                                 },
                             },
                             {
-                                text: 'screen share',
-                                func: () => {
-                                    phoneAction('screenshare')
-                                    setOverlay()
-                                },
-                            },
-                            {
-                                text: 'restart bt',
-                                func: () => {
-                                    phoneAction('restartBT')
-                                    setOverlay()
-                                },
-                            },
-                            {
                                 text: 'exit mpv',
                                 func: () => {
                                     phoneAction('mpvexit')
                                     setOverlay()
                                 },
                             },
-                            {
-                                text: 'find device',
-                                func: () => {
-                                    phoneAction('findMyDevice')
-                                    setOverlay()
-                                },
-                            },
-                            {
-                                text: 'no network',
-                                func: () => {
-                                    phoneAction('no_network')
-                                    setOverlay()
-                                },
-                            },
-                            {
-                                text: 'pres erve',
-                                func: () => {
-                                    phoneAction('preserve')
-                                    setOverlay()
-                                },
-                            },
-                            {
-                                text: 'light',
-                                func: () => {
-                                    phoneAction('light')
-                                    setOverlay()
-                                },
-                            },
-                            {
-                                text: 'aod',
-                                func: () => {
-                                    phoneAction('aod')
-                                    setOverlay()
-                                },
-                            },
-                            {
-                                text: 'reset face',
-                                func: () => {
-                                    initSettings = null
-                                    hmFS.remove(filename)
-                                    restore()
-                                    phoneAction('dataClear')
-                                    setOverlay()
-                                },
-                            },
-                            {
-                                text: 'debug',
-                                func: () => {
-                                    verbose = !verbose
-                                    setOverlay()
-                                },
-                            },
-                            /*
-                             * {
-                             * text: 'test function',
-                             * func: () => {
-                             * console.log(
-                             * JSON.stringify(hmSetting.getUserData()),
-                             * )
-                             * },
-                             * },
-                             */
                         ]
                         const perPage = 9
                         for (let i = 0; i < controls.length; i += perPage) {
                             createControls(
                                 controls.slice(i, i + perPage),
-                                'controls',
+                                'media',
+                                Math.round(i / perPage),
+                                i !== 0,
+                                i + perPage < controls.length,
+                            )
+                        }
+                    })()
+                    ;(() => {
+                        const controls = [
+                            {
+                                text: api.condition.value,
+                                icon: true,
+                                func: () => {
+                                    overlay('weather0')
+                                },
+                            },
+                            {
+                                text: icons.calendar,
+                                icon: true,
+                                func: () => {
+                                    overlay('calendar')
+                                },
+                            },
+                            {
+                                text: 'timer',
+                                func: () => {
+                                    setOverlay('timer0')
+                                },
+                            },
+                        ]
+                        const perPage = 9
+                        for (let i = 0; i < controls.length; i += perPage) {
+                            createControls(
+                                controls.slice(i, i + perPage),
+                                'apps',
                                 Math.round(i / perPage),
                                 i !== 0,
                                 i + perPage < controls.length,
@@ -1497,7 +1515,40 @@ try {
                             }
                         }
                     })()
-
+                    ;(() => {
+                        const perPage = 5
+                        const line = api.toggles.value
+                        const items = line.split(',')
+                        const arr = []
+                        for (let i = 0; i < items.length; i += 3) {
+                            arr.push({
+                                enabled: items[i] === '1',
+                                name: items[i + 1],
+                                icon: items[i + 2],
+                            })
+                        }
+                        // Sort enabled first
+                        arr.sort((a, b) => b.enabled - a.enabled)
+                        if (arr.length) {
+                            const fixLength = 18
+                            const controls = arr.map((item) => ({
+                                text: `${item.enabled ? icons.checkbox_checked : icons.checkbox} ${item.name.slice(0, fixLength).padEnd(fixLength, ' ')}  #[i]${item.icon}`,
+                                func: () => {
+                                    phoneAction(`toggle ${item.name}`)
+                                },
+                            }))
+                            for (let i = 0; i < controls.length; i += perPage) {
+                                createControls(
+                                    controls.slice(i, i + perPage),
+                                    'toggles',
+                                    Math.round(i / perPage),
+                                    i !== 0,
+                                    i + perPage < controls.length,
+                                    'square',
+                                )
+                            }
+                        }
+                    })()
                     createControls(
                         [
                             {
@@ -1597,45 +1648,53 @@ try {
                         size: big,
                     })
                     renderGroup(dynamic)
+                    renderGroup(buttonGrid)
+                    if (overlay) {
+                        renderGroup(over)
+                    }
+                }
+                const renderButtonGrid = () => {
+                    prepareElements(buttonGrid)
+                    const split = 2
+                    const size = screensize / 2
+                    ;['apps0', 'media0', 'toggles0', 'controls0'].forEach(
+                        (overlay, index) => {
+                            const row = Math.floor(index / split)
+                            const col = index % split
+                            addElement(
+                                buttonGrid,
+                                buttons,
+                                hmUI.widget.BUTTON,
+                                {
+                                    x: size * col,
+                                    y: size * row,
+                                    w: size,
+                                    h: size,
+                                    text: '',
+                                    click_func: (watchface) => {
+                                        setOverlay(overlay)
+                                    },
+                                    press_src: buttonImage,
+                                    normal_src: buttonImage,
+                                    show_level: hmUI.show_level.ONLY_NORMAL,
+                                },
+                            )
+                        },
+                    )
+                    renderGroup(buttonGrid)
                     if (overlay) {
                         renderGroup(over)
                     }
                 }
                 const renderBase = () => {
                     prepareElements(base)
-                    createCircle(
-                        'battery',
-                        errText,
-                        () => {
-                            setOverlay('controls0')
-                        },
-                        0,
-                    )
-                    createCircle(
-                        'phoneBattery',
-                        icons.phone,
-                        () => {
-                            setOverlay('volume')
-                        },
-                        1,
-                    )
-                    createCircle(
-                        'headphonesBattery',
-                        errText,
-                        () => {
-                            setOverlay('volume')
-                        },
-                        2,
-                    )
-                    createStat('steps', icons.steps, hmUI.data_type.STEP, 0)
-                    createStat(
-                        'distance',
-                        icons.distance,
-                        hmUI.data_type.STEP,
-                        1,
-                    )
-                    createStat('heart', icons.heart, hmUI.data_type.HEART, 2)
-                    createStat('sleep', icons.sleep, hmUI.data_type.SLEEP, 3)
+                    createCircle('battery', 0)
+                    createCircle('phoneBattery', 1)
+                    createCircle('headphonesBattery', 2)
+                    createStat('steps', icons.steps, 0)
+                    createStat('distance', icons.distance, 1)
+                    createStat('heart', icons.heart, 2)
+                    createStat('sleep', icons.sleep, 3)
                     addElement(base, bg, hmUI.widget.FILL_RECT, {
                         x: 0,
                         y: 0,
@@ -1975,10 +2034,11 @@ try {
                     )
 
                     renderGroup(base)
+                    renderDynamic()
+                    renderButtonGrid()
                 }
 
                 renderBase()
-                renderDynamic()
                 //#region time_update
                 function time_update(updateHour = false, updateMinute = false) {
                     if (showSeparator === null) {
