@@ -150,6 +150,7 @@ try {
         let verbose = false
         let requestingTryStuck = 0
         let chunk = 0
+        let screenOffTime = 0
         const setRequesting = (on = false) => {
             requesting = on
             requestTemp = ''
@@ -662,6 +663,7 @@ try {
                     vibrate.stop()
                     if (timer_StopVibrate) timer.stopTimer(timer_StopVibrate)
                 }
+                const overlayTimeout = 15 * 1000
                 const setOverlay = (newOverlay = '') => {
                     overlay = newOverlay
                     scale_call()
@@ -2352,8 +2354,17 @@ try {
                             if (!is_aod() && !requesting) {
                                 requestData(true)
                             }
-                            scale_call()
-                            time_update(true, true)
+                            if (screenOffTime <= s.time.utc - overlayTimeout) {
+                                if (verbose) {
+                                    console.log(
+                                        `overlay timeout ${screenOffTime} ${s.time.utc}`,
+                                    )
+                                }
+                                setOverlay()
+                            } else {
+                                scale_call()
+                                time_update(true, true)
+                            }
                             const animDelay = s.time.utc % 1000
                             const animRepeat = 1000
                             if (!normal_timer) {
@@ -2375,6 +2386,7 @@ try {
                                 timer.stopTimer(normal_timer)
                                 normal_timer = undefined
                             }
+                            screenOffTime = s.time.utc
 
                             if (fast_timer) {
                                 console.log('Stopping fast timer')
