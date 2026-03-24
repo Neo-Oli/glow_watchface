@@ -139,7 +139,8 @@ try {
         const errText = icons.error
 
         const apiGetData = () => {
-            return hmSetting.getUserData().region
+            //return hmSetting.getUserData().region
+            return hmSetting.getUserData().nickName
         }
         const getApiKey = (key) =>
             Object.keys(api).find((k) => api[k].key === key)
