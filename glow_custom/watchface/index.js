@@ -847,6 +847,16 @@ try {
                     circleCount += 1
                 }
 
+                const customPressAnimation = (element) => {
+                    const el = e[element]
+                    if (!el) return
+                    el.setProperty(hmUI.prop.MORE, { color: api.fgColor.value })
+                    setTimeout(() => {
+                        el.setProperty(hmUI.prop.MORE, {
+                            color: api.eBgColor.value,
+                        })
+                    }, 300)
+                }
                 const createButton = (c, func) => {
                     addElement(over, buttons, hmUI.widget.BUTTON, {
                         h: c.radius,
@@ -1061,11 +1071,13 @@ try {
                                     x: x,
                                     y: y,
                                 }
+                                const buttonId = button.name
                                 createStyledText({
                                     coords: coords,
                                     group: over,
                                     text: button.text,
                                     size: statsSize,
+                                    bgName: buttonId,
                                 })
                                 createButton(
                                     {
@@ -1080,6 +1092,7 @@ try {
                                         normal_src: buttonImage,
                                     },
                                     (b) => {
+                                        customPressAnimation(buttonId)
                                         button.func(b)
                                     },
                                 )
@@ -1204,7 +1217,13 @@ try {
                         }
                     })
                 }
-                const createStyledText = ({ group, coords, text, size }) => {
+                const createStyledText = ({
+                    group,
+                    coords,
+                    text,
+                    size,
+                    bgName,
+                }) => {
                     if (!text) {
                         return
                     }
@@ -1212,6 +1231,7 @@ try {
                     drawRect({
                         coords: coords,
                         group: group,
+                        name: bgName,
                     })
                     const width = size / 2
                     text.split('\n').forEach((line, index) => {
@@ -1306,6 +1326,7 @@ try {
                         const controls = [
                             {
                                 text: 'clear alarms',
+                                name: 'control_clear_alarms',
                                 func: () => {
                                     phoneAction('clearSnoozedAlarms')
                                     setOverlay()
@@ -1313,6 +1334,7 @@ try {
                             },
                             {
                                 text: 'dnd',
+                                name: 'control_dnd',
                                 func: () => {
                                     phoneAction('toggle dnd')
                                     setOverlay()
@@ -1320,6 +1342,7 @@ try {
                             },
                             {
                                 text: 'screen share',
+                                name: 'control_screen_share',
                                 func: () => {
                                     phoneAction('screenshare')
                                     setOverlay()
@@ -1327,6 +1350,7 @@ try {
                             },
                             {
                                 text: 'restart bt',
+                                name: 'control_restart_bt',
                                 func: () => {
                                     phoneAction('restartBT')
                                     setOverlay()
@@ -1334,6 +1358,7 @@ try {
                             },
                             {
                                 text: 'find device',
+                                name: 'control_find_device',
                                 func: () => {
                                     phoneAction('findMyDevice')
                                     setOverlay()
@@ -1341,6 +1366,7 @@ try {
                             },
                             {
                                 text: 'reset face',
+                                name: 'control_reset_face',
                                 func: () => {
                                     initSettings = null
                                     hmFS.remove(filename)
@@ -1351,21 +1377,12 @@ try {
                             },
                             {
                                 text: 'debug',
+                                name: 'control_debug',
                                 func: () => {
                                     verbose = !verbose
                                     setOverlay()
                                 },
                             },
-                            /*
-                             * {
-                             * text: 'test function',
-                             * func: () => {
-                             * console.log(
-                             * JSON.stringify(hmSetting.getUserData()),
-                             * )
-                             * },
-                             * },
-                             */
                         ]
                         const perPage = 9
                         for (let i = 0; i < controls.length; i += perPage) {
@@ -1382,6 +1399,7 @@ try {
                         const controls = [
                             {
                                 text: icons.prev,
+                                name: 'media_prev',
                                 icon: true,
                                 func: () => {
                                     phoneAction('prev')
@@ -1391,6 +1409,7 @@ try {
                                 text: api.media.value.includes(icons.play)
                                     ? icons.pause
                                     : icons.play,
+                                name: 'media_play_pause',
                                 icon: true,
                                 func: () => {
                                     phoneAction('mtoggle')
@@ -1398,6 +1417,7 @@ try {
                             },
                             {
                                 text: icons.next,
+                                name: 'media_next',
                                 icon: true,
                                 func: () => {
                                     phoneAction('next')
@@ -1405,6 +1425,7 @@ try {
                             },
                             {
                                 text: icons.shuffle,
+                                name: 'media_shuffle',
                                 icon: true,
                                 func: () => {
                                     phoneAction('random')
@@ -1412,6 +1433,7 @@ try {
                             },
                             {
                                 text: icons.volume,
+                                name: 'media_volume',
                                 icon: true,
                                 func: () => {
                                     setOverlay('volume')
@@ -1419,6 +1441,7 @@ try {
                             },
                             {
                                 text: icons.playlist,
+                                name: 'media_playlist',
                                 icon: true,
                                 func: () => {
                                     setOverlay('Nlist0')
@@ -1426,6 +1449,7 @@ try {
                             },
                             {
                                 text: 'fav',
+                                name: 'media_fav',
                                 func: () => {
                                     phoneAction('fav')
                                     setOverlay()
@@ -1433,6 +1457,7 @@ try {
                             },
                             {
                                 text: 'player ctl',
+                                name: 'media_player_ctl',
                                 func: () => {
                                     phoneAction('playerctl')
                                     setOverlay()
@@ -1440,6 +1465,7 @@ try {
                             },
                             {
                                 text: 'exit mpv',
+                                name: 'media_exit_mpv',
                                 func: () => {
                                     phoneAction('mpvexit')
                                     setOverlay()
@@ -1460,6 +1486,7 @@ try {
                     ;(() => {
                         const controls = [
                             {
+                                name: 'app_button_weather',
                                 text: api.condition.value,
                                 icon: true,
                                 func: () => {
@@ -1467,6 +1494,7 @@ try {
                                 },
                             },
                             {
+                                name: 'app_button_calendar',
                                 text: icons.calendar,
                                 icon: true,
                                 func: () => {
@@ -1474,6 +1502,7 @@ try {
                                 },
                             },
                             {
+                                name: 'app_button_timer',
                                 text: 'timer',
                                 func: () => {
                                     setOverlay('timer0')
@@ -1492,13 +1521,14 @@ try {
                         }
                     })()
                     ;(() => {
-                        const perPage = 3
+                        const perPage = 5
                         const controlString = api.mpd.value
                         if (controlString) {
                             const controls = controlString
                                 .split('£')
                                 .map((item) => ({
                                     text: item,
+                                    name: `music_button_${item}`,
                                     func: () => {
                                         phoneAction(`music ${item}`)
                                         setOverlay()
@@ -1533,6 +1563,7 @@ try {
                         if (arr.length) {
                             const fixLength = 18
                             const controls = arr.map((item) => ({
+                                name: item?.name || '',
                                 text: `${item?.enabled ? icons.checkbox_checked : icons.checkbox} ${String(
                                     item?.name || '',
                                 )
@@ -1561,6 +1592,7 @@ try {
                         [
                             {
                                 text: newTimer.hour.toString().padStart(2, '0'),
+                                name: 'timerHour',
                                 icon: true,
                                 func: (b) => {
                                     newTimer.hour += 1
@@ -1577,6 +1609,7 @@ try {
                                     .toString()
                                     .padStart(2, '0'),
                                 icon: true,
+                                name: 'timerMinute',
                                 func: (b) => {
                                     newTimer.minute += 1
                                     b.setProperty(
@@ -1591,6 +1624,7 @@ try {
                                 text: newTimer.second
                                     .toString()
                                     .padStart(2, '0'),
+                                name: 'timerSecond',
                                 icon: true,
                                 func: (b) => {
                                     newTimer.second += 1
@@ -1603,6 +1637,7 @@ try {
                                 },
                             },
                             {
+                                name: 'timerSet',
                                 text: 'set',
                                 func: () => {
                                     phoneAction(
@@ -1612,6 +1647,7 @@ try {
                                 },
                             },
                             {
+                                name: 'timerSetSilent',
                                 text: 'set silent',
                                 func: () => {
                                     phoneAction(
@@ -1621,6 +1657,7 @@ try {
                                 },
                             },
                             {
+                                name: 'timerReset',
                                 text: 'reset',
                                 func: () => {
                                     resetTimer()
@@ -1628,6 +1665,7 @@ try {
                                 },
                             },
                             {
+                                name: 'timerCancel',
                                 text: 'cancel current',
                                 func: () => {
                                     phoneAction('cancelTimer')
