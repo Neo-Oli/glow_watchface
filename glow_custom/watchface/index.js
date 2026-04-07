@@ -795,7 +795,7 @@ try {
                             end_angle: 360,
                             line_width: lineWidth,
                             corner_flag: 3,
-                            color: api.fgColor.value,
+                            color: api.accColor.value,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         },
                         `${name}Circle`,
