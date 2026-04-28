@@ -20,7 +20,7 @@ export default {
     },
     rules: {
         eqeqeq: 'error',
-        indent: ['error', 4],
+        indent: 'off',
         'linebreak-style': ['error', 'unix'],
         'multiline-comment-style': ['error', 'starred-block'],
         'no-var': 1,

@@ -290,6 +290,11 @@ try {
                 key: 'l',
                 type: 'string',
             },
+            additionalToggles: {
+                value: '',
+                key: 'm',
+                type: 'string',
+            },
         }
         const api = {}
         const filename = 'glow-settings.txt'
@@ -1324,6 +1329,19 @@ try {
 
                     createTextOverlay('weather', api.weatherWid.value)
                     createTextOverlay('calendar', api.calendar.value)
+
+                    const additionalControlsFromToggles = api.additionalToggles
+                        .value
+                        ? api.additionalToggles.value
+                              .split(',')
+                              .map((value) => ({
+                                  text: value.replace(/_/g, ' '),
+                                  name: `control_${value}`,
+                                  func: () => {
+                                      phoneAction(`toggle ${value}`)
+                                  },
+                              }))
+                        : []
                     ;(() => {
                         const controls = [
                             {
@@ -1334,14 +1352,7 @@ try {
                                     setOverlay()
                                 },
                             },
-                            {
-                                text: 'dnd',
-                                name: 'control_dnd',
-                                func: () => {
-                                    phoneAction('toggle dnd')
-                                    setOverlay()
-                                },
-                            },
+                            ...additionalControlsFromToggles,
                             {
                                 text: 'screen share',
                                 name: 'control_screen_share',
@@ -2198,6 +2209,7 @@ try {
                     newOverlayCache.push(api.weatherWid.value)
                     newOverlayCache.push(api.calendar.value)
                     newOverlayCache.push(api.toggles.value)
+                    newOverlayCache.push(api.additionalToggles.value)
                     newOverlayCache.push(api.condition.value)
 
                     updateProgress(
