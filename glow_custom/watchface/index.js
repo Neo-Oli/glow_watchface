@@ -993,7 +993,7 @@ try {
                     addElement(over, widgetBg, hmUI.widget.CIRCLE, {
                         center_x: center,
                         center_y: center,
-                        radius: 220,
+                        radius: screensize / 2,
                         color: api.bgColor.value,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
