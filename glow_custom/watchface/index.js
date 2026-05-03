@@ -1540,7 +1540,10 @@ try {
                             const controls = controlString
                                 .split('£')
                                 .map((item) => ({
-                                    text: item,
+                                    text: item
+                                        .split('//')
+                                        .map((line) => line.slice(0, 24))
+                                        .join('\n'),
                                     name: `music_button_${item}`,
                                     func: () => {
                                         phoneAction(`music ${item}`)
