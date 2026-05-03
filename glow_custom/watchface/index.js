@@ -1542,7 +1542,7 @@ try {
                                 .map((item) => ({
                                     text: item
                                         .split('//')
-                                        .map((line) => line.slice(0, 24))
+                                        .map((line) => line.slice(0, 23))
                                         .join('\n'),
                                     name: `music_button_${item}`,
                                     func: () => {
