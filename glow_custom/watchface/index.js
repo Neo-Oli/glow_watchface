@@ -719,7 +719,7 @@ try {
                         text_size: statsSize,
                         char_space: 0,
                         font: font,
-                        color: api.fgColor.value,
+                        color: api.accColor.value,
                         line_space: 0,
                         align_v: hmUI.align.TOP,
                         text_style: hmUI.text_style.ELLIPSIS,
@@ -1146,7 +1146,7 @@ try {
                         addElement(over, widgetBg, hmUI.widget.CIRCLE, {
                             center_x: center,
                             center_y: center,
-                            radius: 220,
+                            radius: screensize / 2,
                             color: api.bgColor.value,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         })
@@ -1231,43 +1231,39 @@ try {
                     size,
                     bgName,
                 }) => {
-                    if (!text) {
-                        return
-                    }
+                    if (!text) return
                     const { x, y } = coords
-                    drawRect({
-                        coords: coords,
-                        group: group,
-                        name: bgName,
-                    })
-                    const width = size / 2
+                    drawRect({ coords, group, name: bgName })
+
+                    const width = Math.round(size / 2.2)
+
                     text.split('\n').forEach((line, index) => {
-                        const out = (offset, mode, text) => {
+                        const out = (offset, mode, intext) => {
                             let textSize = size
-                            let iconOffset = size / 6
+                            const iconOffset = size / 6
                             let bgColor = api.eBgColor.value
                             let fgColor = api.fgColor.value
-                            //count unicode correctly
-                            let textWidth = Array.from(text).length
+                            let textWidth = Array.from(intext).length
+
                             if (mode === 'b') {
                                 bgColor = api.fgColor.value
                                 fgColor = api.eBgColor.value
                             } else if (mode === 'i') {
-                                textSize *= 1.5
+                                textSize *= 1
                                 textWidth = 2
-                                iconOffset -= size / 4
+                                // iconOffset -= size / 12
                                 fgColor = api.accColor.value
                             }
-                            const width = size / 2
-                            textCoords = {
+
+                            const textCoords = {
                                 x: x + offset,
                                 y: y + size * index,
-                                w: (textWidth + 1) * width,
+                                w: textWidth * width,
                                 h: size,
                             }
                             drawRect({
                                 coords: textCoords,
-                                group: group,
+                                group,
                                 color: bgColor,
                                 smallGap: true,
                             })
@@ -1283,34 +1279,32 @@ try {
                                 text_style: hmUI.text_style.ELLIPSIS,
                                 align_h: hmUI.align.LEFT,
                                 show_level: hmUI.show_level.ONLY_NORMAL,
-                                text: text,
+                                text: intext,
                             })
                         }
+
                         let str = line
                         let offset = 0
+                        let nextOffset = 0
                         let cur = ''
                         let mode = 'n'
-                        const offsetCompensator = 1
+
                         while (str.length) {
                             if (str.startsWith('#[')) {
+                                const end = str.indexOf(']')
+                                if (end === -1) return
                                 if (cur) {
                                     out(offset, mode, cur)
-                                }
-                                if (mode === 'i') {
-                                    offset += width * 2 + offsetCompensator
-                                } else {
-                                    offset +=
-                                        Array.from(cur).length * width +
-                                        offsetCompensator
-                                }
-                                const end = str.indexOf(']')
-                                if (end === -1) {
-                                    return
+                                    offset = nextOffset
+                                    cur = ''
                                 }
                                 mode = str.slice(2, end)
                                 str = str.slice(end + 1)
-                                cur = ''
+                                if (mode === 'i') {
+                                    nextOffset += width
+                                }
                             } else {
+                                nextOffset += width
                                 cur += str.charAt(0)
                                 str = str.slice(1)
                             }
@@ -1911,7 +1905,7 @@ try {
                             font: font,
                             color: api.fgColor.value,
                             line_space: 0,
-                            align_v: hmUI.align.TOP,
+                            align_v: hmUI.align.CENTER_V,
                             text_style: hmUI.text_style.ELLIPSIS,
                             align_h: hmUI.align.CENTER_H,
                             // padding: true,
@@ -1929,7 +1923,7 @@ try {
                             y: weatherPos - 10,
                             w: 200,
                             h: iconSize,
-                            text_size: iconSize,
+                            text_size: big,
                             char_space: 0,
                             font: font,
                             color: api.accColor.value,
