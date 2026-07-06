@@ -475,8 +475,8 @@ try {
         const big = 30
         const small = 18
         const iconSize = 50
-        const flowTextSize = 22
-        const timeSize = 110
+        const flowTextSize = 21
+        const timeSize = 90
         const weatherGap = 30
         const weatherHeight = big
 
@@ -1239,7 +1239,7 @@ try {
 
                     text.split('\n').forEach((line, index) => {
                         const out = (offset, mode, intext) => {
-                            const textSize = size
+                            let textSize = size
                             const iconOffset = size / 6
                             let bgColor = api.eBgColor.value
                             let fgColor = api.fgColor.value
@@ -1249,7 +1249,9 @@ try {
                                 bgColor = api.fgColor.value
                                 fgColor = api.eBgColor.value
                             } else if (mode === 'i') {
+                                textSize *= 1
                                 textWidth = 2
+                                // iconOffset -= size / 12
                                 fgColor = api.accColor.value
                             }
 
