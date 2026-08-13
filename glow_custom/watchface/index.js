@@ -112,29 +112,30 @@ try {
         ]
 
         const icons = {
-            disconnect: '󰂲',
-            verbose: ' ',
+            disconnect: '󱘖',
+            verbose: '',
             steps: '',
-            heart: '󰋑',
+            heart: '',
             distance: '',
-            sleep: '󰒲',
+            sleep: '󱋑',
             mail: '󰇮',
-            phone: '󰄜',
-            headphones: '󰋋',
-            play: '󰐊',
-            prev: '󰒮',
-            next: '󰒭',
+            phone: '',
+            headphones: '',
+            play: '',
+            prev: '',
+            next: '',
             pause: '󰏤',
             close: '×',
-            shuffle: '󰒟',
-            volume: '󰕾',
-            prevPage: '󰅁',
-            nextPage: '󰅂',
-            playlist: '󰲸',
+            shuffle: '',
+            volume: '󱄠',
+            prevPage: '',
+            nextPage: '',
+            playlist: '󱉯',
             error: '',
-            checkbox: '󰄱',
-            checkbox_checked: '󰡖',
+            checkbox: '[ ]',
+            checkbox_checked: '[x]',
             calendar: '',
+            timer: '󱦟',
         }
         const errText = icons.error
 
@@ -474,7 +475,7 @@ try {
         const statsSize = 24
         const big = 30
         const small = 18
-        const iconSize = 50
+        const iconSize = 80
         const flowTextSize = 21
         const timeSize = 90
         const weatherGap = 30
@@ -711,12 +712,13 @@ try {
                             y: y + statsSize * countStats,
                         },
                     })
+                    const statsIconSize = statsSize * 1.5
                     addElement(base, widgetContent, hmUI.widget.TEXT, {
                         x: x,
-                        y: y + statsSize * countStats,
+                        y: y + statsSize * countStats - statsIconSize / 4,
                         w: statsWidth,
-                        h: statsSize,
-                        text_size: statsSize,
+                        h: statsIconSize,
+                        text_size: statsIconSize,
                         char_space: 0,
                         font: font,
                         color: api.accColor.value,
@@ -828,7 +830,7 @@ try {
                         },
                         name,
                     )
-                    const circleIconSize = small
+                    const circleIconSize = 25
                     addElement(
                         base,
                         widgetContent,
@@ -1240,23 +1242,25 @@ try {
                     text.split('\n').forEach((line, index) => {
                         const out = (offset, mode, intext) => {
                             let textSize = size
-                            const iconOffset = size / 6
+                            let iconOffset = size / 6
                             let bgColor = api.eBgColor.value
                             let fgColor = api.fgColor.value
                             let textWidth = Array.from(intext).length
+                            let xiconOffset = 0
 
                             if (mode === 'b') {
                                 bgColor = api.fgColor.value
                                 fgColor = api.eBgColor.value
                             } else if (mode === 'i') {
-                                textSize *= 1
+                                textSize *= 1.5
                                 textWidth = 2
-                                // iconOffset -= size / 12
+                                iconOffset = 0 - size / 8
+                                xiconOffset = size / 3
                                 fgColor = api.accColor.value
                             }
 
                             const textCoords = {
-                                x: x + offset,
+                                x: x + offset + xiconOffset,
                                 y: y + size * index,
                                 w: textWidth * width,
                                 h: size,
@@ -1510,7 +1514,8 @@ try {
                             },
                             {
                                 name: 'app_button_timer',
-                                text: 'timer',
+                                text: icons.timer,
+                                icon: true,
                                 func: () => {
                                     setOverlay('timer0')
                                 },
@@ -1922,8 +1927,8 @@ try {
                             x: 170,
                             y: weatherPos - 10,
                             w: 200,
-                            h: iconSize,
-                            text_size: big,
+                            h: big * 1.5,
+                            text_size: big * 1.5,
                             char_space: 0,
                             font: font,
                             color: api.accColor.value,
