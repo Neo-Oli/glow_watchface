@@ -119,7 +119,7 @@ try {
             distance: '',
             sleep: '󱋑',
             mail: '󰇮',
-            phone: '',
+            phone: '',
             headphones: '',
             play: '',
             prev: '',
