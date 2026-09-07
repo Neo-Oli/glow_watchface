@@ -124,7 +124,7 @@ try {
             play: '',
             prev: '',
             next: '',
-            pause: '󰏤',
+            pause: '',
             close: '×',
             shuffle: '',
             volume: '󱄠',
