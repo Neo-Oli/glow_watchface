@@ -450,6 +450,8 @@ try {
         const font = 'fonts/font.ttf'
 
         const circleButtonRadius = 47
+        const sideButtonSize = circleButtonRadius * 4
+        const sideButtonSmallSize = circleButtonRadius * 2 * 0.6666666
         const circleRadius = 33
         const circlex = 85
         const lineWidth = 5
@@ -1004,23 +1006,15 @@ try {
                         color: api.bgColor.value,
                         show_level: hmUI.show_level.ONLY_NORMAL,
                     })
-                    const buttonSize = circleButtonRadius * 2
-                    let y =
-                        center -
-                        buttonSize / 2 -
-                        gap -
-                        buttonSize -
-                        gap -
-                        buttonSize / 2
                     createButton(
                         {
                             text_size: big,
                             text: icons.close,
-                            radius: buttonSize,
-                            x: center - buttonSize,
-                            y: y,
-                            w: buttonSize * 2,
-                            h: buttonSize / 2,
+                            radius: sideButtonSize,
+                            x: center - sideButtonSize / 2,
+                            y: 0,
+                            w: sideButtonSize,
+                            h: sideButtonSmallSize,
                         },
                         () => {
                             setOverlay()
@@ -1031,15 +1025,11 @@ try {
                             {
                                 text_size: big,
                                 text: icons.prevPage,
-                                radius: buttonSize,
-                                y: center - buttonSize,
-                                h: buttonSize * 2,
-                                w: buttonSize / 2,
-                                x:
-                                    center -
-                                    (buttonSize * 1.5 +
-                                        gap * 2 +
-                                        buttonSize / 2),
+                                radius: sideButtonSize,
+                                y: center - sideButtonSize / 2,
+                                h: sideButtonSize,
+                                w: sideButtonSmallSize,
+                                x: 0,
                             },
                             () => {
                                 setOverlay(`${name}${num - 1}`)
@@ -1051,20 +1041,21 @@ try {
                             {
                                 text_size: big,
                                 text: icons.nextPage,
-                                radius: buttonSize,
-                                x: center + (buttonSize * 1.5 + gap * 2),
-                                y: center - buttonSize,
-                                h: buttonSize * 2,
-                                w: buttonSize / 2,
+                                radius: sideButtonSize,
+                                x: screensize - sideButtonSmallSize,
+                                y: center - sideButtonSize / 2,
+                                h: sideButtonSize,
+                                w: sideButtonSmallSize,
                             },
                             () => {
                                 setOverlay(`${name}${num + 1}`)
                             },
                         )
                     }
+                    const buttonSize = circleButtonRadius * 2
                     const startX = center - buttonSize * 1.5 - gap
                     let x = startX
-                    y += gap + buttonSize / 2
+                    let y = gap + sideButtonSmallSize
                     let count = 0
                     const square = style === 'square'
                     const split = square ? 1 : 3
@@ -1152,33 +1143,24 @@ try {
                             color: api.bgColor.value,
                             show_level: hmUI.show_level.ONLY_NORMAL,
                         })
-                        const buttonSize = circleButtonRadius * 2
-                        const y =
-                            center -
-                            buttonSize / 2 -
-                            gap -
-                            buttonSize -
-                            gap -
-                            buttonSize / 2
                         createButton(
                             {
                                 text_size: big,
                                 text: icons.close,
-                                radius: buttonSize,
-                                x: center - buttonSize,
-                                y: y,
-                                w: buttonSize * 2,
-                                h: buttonSize / 2,
+                                radius: sideButtonSize,
+                                x: center - sideButtonSize / 2,
+                                y: 0,
+                                w: sideButtonSize,
+                                h: sideButtonSmallSize,
                             },
                             () => {
                                 setOverlay()
                             },
                         )
-                        const radius = 160
                         const textCoords = {
-                            x: center - radius,
-                            y: y + buttonSize / 2 + gap,
-                            w: radius * 2,
+                            x: sideButtonSmallSize + gap,
+                            y: sideButtonSmallSize + gap,
+                            w: screensize - (sideButtonSmallSize * 2 + gap * 2),
                             h: flowTextSize * maxlines,
                         }
                         createStyledText({
@@ -1193,15 +1175,11 @@ try {
                                 {
                                     text_size: big,
                                     text: icons.prevPage,
-                                    radius: buttonSize,
-                                    y: center - buttonSize,
-                                    h: buttonSize * 2,
-                                    w: buttonSize / 2,
-                                    x:
-                                        center -
-                                        (buttonSize * 1.5 +
-                                            gap * 2 +
-                                            buttonSize / 2),
+                                    radius: sideButtonSize,
+                                    y: center - sideButtonSize / 2,
+                                    h: sideButtonSize,
+                                    w: sideButtonSmallSize,
+                                    x: 0,
                                 },
                                 () => {
                                     setOverlay(`${name}${index - 1}`)
@@ -1213,11 +1191,11 @@ try {
                                 {
                                     text_size: big,
                                     text: icons.nextPage,
-                                    radius: buttonSize,
-                                    x: center + (buttonSize * 1.5 + gap * 2),
-                                    y: center - buttonSize,
-                                    h: buttonSize * 2,
-                                    w: buttonSize / 2,
+                                    radius: sideButtonSize,
+                                    x: screensize - sideButtonSmallSize,
+                                    y: center - sideButtonSize / 2,
+                                    h: sideButtonSize,
+                                    w: sideButtonSmallSize,
                                 },
                                 () => {
                                     setOverlay(`${name}${index + 1}`)
