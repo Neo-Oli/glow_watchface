@@ -135,6 +135,7 @@ try {
             checkbox: '[ ]',
             checkbox_checked: '[x]',
             calendar: '',
+            critter: '',
             timer: '󱦟',
         }
         const errText = icons.error
@@ -294,6 +295,11 @@ try {
             additionalToggles: {
                 value: '',
                 key: 'm',
+                type: 'string',
+            },
+            critter: {
+                value: errText,
+                key: 'n',
                 type: 'string',
             },
         }
@@ -1122,7 +1128,11 @@ try {
                         }
                     }
                 }
-                const createTextOverlay = (name, text) => {
+                const createTextOverlay = (
+                    name,
+                    text,
+                    bottomControl = null,
+                ) => {
                     const maxlines = 13
 
                     const segments = []
@@ -1199,6 +1209,22 @@ try {
                                 },
                                 () => {
                                     setOverlay(`${name}${index + 1}`)
+                                },
+                            )
+                        }
+                        if (bottomControl) {
+                            createButton(
+                                {
+                                    text_size: big,
+                                    text: bottomControl['text'],
+                                    radius: sideButtonSize,
+                                    x: center - sideButtonSize / 2,
+                                    y: screensize - sideButtonSmallSize,
+                                    w: sideButtonSize,
+                                    h: sideButtonSmallSize,
+                                },
+                                () => {
+                                    bottomControl['func']()
                                 },
                             )
                         }
@@ -1302,9 +1328,41 @@ try {
                     createArcControl('volume', api.volume.value, (level) => {
                         phoneAction(`volume ${level}`)
                     })
-
+                    ;(() => {
+                        const controls = [
+                            'feed',
+                            'clean',
+                            'heal',
+                            'play',
+                            'sleep',
+                            'stop',
+                        ].map((action) => ({
+                            text: action,
+                            name: `control_critter_${action}`,
+                            func: () => {
+                                phoneAction(`critter ${action}`)
+                                setOverlay('critter0')
+                            },
+                        }))
+                        const perPage = 9
+                        for (let i = 0; i < controls.length; i += perPage) {
+                            createControls(
+                                controls.slice(i, i + perPage),
+                                'critter_care',
+                                Math.round(i / perPage),
+                                i !== 0,
+                                i + perPage < controls.length,
+                            )
+                        }
+                    })()
                     createTextOverlay('weather', api.weatherWid.value)
                     createTextOverlay('calendar', api.calendar.value)
+                    createTextOverlay('critter', api.critter.value, {
+                        text: 'Care',
+                        func: () => {
+                            setOverlay('critter_care0')
+                        },
+                    })
 
                     const additionalControlsFromToggles = api.additionalToggles
                         .value
@@ -1496,6 +1554,14 @@ try {
                                 icon: true,
                                 func: () => {
                                     setOverlay('timer0')
+                                },
+                            },
+                            {
+                                name: 'app_button_critter',
+                                text: icons.critter,
+                                icon: true,
+                                func: () => {
+                                    setOverlay('critter0')
                                 },
                             },
                         ]
@@ -2188,6 +2254,7 @@ try {
                     newOverlayCache.push(api.mpd.value)
                     newOverlayCache.push(api.weatherWid.value)
                     newOverlayCache.push(api.calendar.value)
+                    newOverlayCache.push(api.critter.value)
                     newOverlayCache.push(api.toggles.value)
                     newOverlayCache.push(api.additionalToggles.value)
                     newOverlayCache.push(api.condition.value)
