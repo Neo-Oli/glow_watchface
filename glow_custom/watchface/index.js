@@ -137,6 +137,7 @@ try {
             calendar: '',
             critter: '',
             timer: '󱦟',
+            aranet: '',
         }
         const errText = icons.error
 
@@ -300,6 +301,11 @@ try {
             critter: {
                 value: errText,
                 key: 'n',
+                type: 'string',
+            },
+            aranet: {
+                value: errText,
+                key: 'o',
                 type: 'string',
             },
         }
@@ -1356,6 +1362,7 @@ try {
                         }
                     })()
                     createTextOverlay('weather', api.weatherWid.value)
+                    createTextOverlay('aranet', api.aranet.value)
                     createTextOverlay('calendar', api.calendar.value)
                     createTextOverlay('critter', api.critter.value, {
                         text: 'Care',
@@ -1562,6 +1569,14 @@ try {
                                 icon: true,
                                 func: () => {
                                     setOverlay('critter0')
+                                },
+                            },
+                            {
+                                name: 'app_button_aranet',
+                                text: icons.aranet,
+                                icon: true,
+                                func: () => {
+                                    setOverlay('aranet0')
                                 },
                             },
                         ]
