@@ -1,0 +1,433 @@
+#!/usr/bin/env bash
+. ~/.environment.sh
+chunklength=127
+sent=null
+last_sent_time=0
+
+sent=null
+tempData=""
+last_sent_time=0
+
+sendData() {
+    data=$1
+    length=$2
+    data="${data:0:chunklength}"
+
+    if [ "$sent" != "$data" ] || { [ "$data" != "idle" ] && [ $((SECONDS - last_sent_time)) -ge 15 ]; }; then
+        am broadcast \
+            -a "nodomain.freeyourgadget.gadgetbridge.action.SET_GLOBAL_SETTING" \
+            -e "device" "$GADGETBRIDGE_WATCH_MAC" \
+            -e "key" "mi_user_alias" \
+            -e "value" "$data" \
+            "$GADGETBRIDGE_NAME" > /dev/null 2>&1
+        echo sending data "$data / $length"
+        sent=$data
+        last_sent_time=$SECONDS
+    fi
+}
+setAod=""
+same_count=0
+FORCE_WRITE_COUNT=20
+
+aod() {
+    if [ "$1" = true ]; then
+        set=always
+    else
+        set=off
+    fi
+
+    if ! flag watch_aod; then
+        if [ "$setAod" = "$set" ]; then
+            same_count=$((same_count + 1))
+        else
+            setAod=$set
+            same_count=1
+        fi
+
+        if [ "$same_count" -eq 1 ] || [ "$same_count" -ge "$FORCE_WRITE_COUNT" ]; then
+            echo "Setting aod $set"
+            am broadcast \
+                -a "nodomain.freeyourgadget.gadgetbridge.action.SET_DEVICE_SETTING" \
+                -e "device" "$GADGETBRIDGE_WATCH_MAC" \
+                -e "key" "always_on_display_mode" \
+                -e "value" "$set" \
+                "$GADGETBRIDGE_NAME" > /dev/null 2>&1 &
+
+            [ "$same_count" -ge "$FORCE_WRITE_COUNT" ] && same_count=0
+        else
+            echo "already set aod to $set"
+        fi
+    else
+        echo "Not setting aod $set"
+    fi
+}
+declare -A statusbar_file_cache
+declare -A statusbar_file_time
+readonly statusbar_cache_list=("battery" "weather")
+
+statusbarblock() {
+    local name=$1
+    local showIcon=${2:-true}
+    local file_path="$HOME/.local/share/statusbar/blocks/$name"
+    local content=""
+
+    # Only cache for whitelisted blocks
+    local should_cache=false
+    for n in "${statusbar_cache_list[@]}"; do
+        [[ $n == "$name" ]] && should_cache=true && break
+    done
+
+    if [[ -f $file_path ]]; then
+        if $should_cache; then
+            local cached_time=${statusbar_file_time["$file_path"]}
+            if [[ -z $cached_time || $((SECONDS - cached_time)) -ge 60 ]]; then
+                statusbar_file_cache["$file_path"]="$(< "$file_path")"
+                statusbar_file_time["$file_path"]=$SECONDS
+            fi
+            content="${statusbar_file_cache["$file_path"]}"
+        else
+            content="$(< "$file_path")"
+        fi
+    fi
+
+    local watch="" text="" icon=""
+    while IFS='=' read -r key value; do
+        case "$key" in
+            watch)
+                watch="$value"
+                setwatch=true
+                ;;
+            text) text="$value" ;;
+            icon) icon="$value" ;;
+        esac
+    done <<< "$content"
+
+    if [[ -n $watch || $setwatch == true ]]; then
+        content=$watch
+    else
+        content=$text
+    fi
+
+    if $showIcon && [ -n "$icon" ] && [ -n "$content" ]; then
+        icon=$(icon "$icon")
+        content="#[i]${icon// /}#[n]$content"
+    fi
+
+    echo "$content"
+}
+join_array() {
+    local sep="$1"
+    shift
+    local filter_empty="$1"
+    shift
+    local out=""
+    for x in "$@"; do
+        [[ $filter_empty == "true" && -z $x ]] && continue
+        [[ -n $out ]] && out="${out}${sep}"
+        out="${out}${x}"
+    done
+    printf '%s' "$out"
+}
+cd "$HOME"/.local/share/statusbar || exit
+PIPE="$RUNDIR/statusbar-watch.fifo"
+
+# Create the named pipe if it doesn't exist
+[[ -e $PIPE && ! -p $PIPE ]] && rm -f "$PIPE"
+[[ -p $PIPE ]] || mkfifo "$PIPE"
+
+# Cleanup on exit
+cleanup() {
+    [[ -p $PIPE ]] && rm -f "$PIPE"
+}
+trap cleanup EXIT
+
+shortenRichText() {
+    local input="$1"
+    local max="$2"
+    local result=""
+    local count=0
+    local double=0
+
+    while [[ -n $input ]]; do
+        if [[ $input =~ ^(#\[[^]]*\]) ]]; then
+            token="${BASH_REMATCH[1]}"
+            result+="$token"
+            input="${input:${#token}}"
+
+            # toggle double-count mode
+            if [[ $token == "#[i]" ]]; then
+                double=1
+            elif [[ $token == "#[n]" ]]; then
+                double=0
+            fi
+        else
+            if ((count < max)); then
+                result+="${input:0:1}"
+                input="${input:1}"
+                ((count += double ? 2 : 1))
+            else
+                break
+            fi
+        fi
+    done
+
+    echo "$result"
+}
+infotext_length=24
+mediaText() {
+    media=(
+        "$(statusbarblock mpd)"
+        "$(statusbarblock mpv)"
+    )
+    output=$(join_array "|" true "${media[@]}")
+    output=$(shortenRichText "$output" "$infotext_length")
+    echo "$output"
+}
+
+infoText() {
+    info=(
+        "$(statusbarblock note false)"
+        "$(statusbarblock flags false)"
+        "$(statusbarblock at)"
+        "$(statusbarblock mail)"
+    )
+    output=$(join_array "|" true "${info[@]}")
+    output=$(shortenRichText "$output" "$infotext_length")
+    echo "$output"
+}
+weather() {
+    local key="$1"
+    local data
+    data="$(statusbarblock weather false)"
+    IFS='£' read -r temperature condition humidity sunrise sunset widget <<< "$data"
+
+    widget=${widget//%%%NEWLINE%%%/$'\n'}
+    case "$key" in
+        temperature) echo "$temperature" ;;
+        condition) echo "$condition" ;;
+        humidity) echo "$humidity" ;;
+        sunrise) echo "$sunrise" ;;
+        sunset) echo "$sunset" ;;
+        widget) echo "$widget" ;;
+        *) return 1 ;;
+    esac
+}
+calendar() {
+    data="$(statusbarblock calendar false)"
+    widget=${data//%%%NEWLINE%%%/$'\n'}
+    echo "$widget"
+
+}
+critter() {
+    data="$(statusbarblock critter false)"
+    widget=${data//%%%NEWLINE%%%/$'\n'}
+    echo "$widget"
+
+}
+
+aranet() {
+    data="$(statusbarblock aranet false)"
+    widget=${data//%%%NEWLINE%%%/$'\n'}
+    echo "$widget"
+
+}
+battery() {
+    local key="$1"
+    local data
+    data="$(statusbarblock battery false)"
+    IFS=',' read -r termux headphones <<< "$data"
+
+    case "$key" in
+        termux) echo "$termux" ;;
+        headphones) echo "$headphones" ;;
+        *) return 1 ;;
+    esac
+}
+
+getN() {
+    tac "$HOME/.local/share/N/lastSearch" | paste -sd '£'
+}
+
+toggles() {
+    local line=""
+    local state name icon
+
+    while read -r l; do
+        [[ -z $l ]] && continue
+
+        if [[ $l =~ \[(x| )\]\ ([^[:space:]]+)[[:space:]]+(.*) ]]; then
+            state=0
+            [[ ${BASH_REMATCH[1]} == "x" ]] && state=1
+            name="${BASH_REMATCH[2]}"
+            icon="${BASH_REMATCH[3]}"
+            if [[ $name == app_enabled* || $name == app_disabled* ]]; then
+                icon=""
+                if [[ $state -eq 0 ]]; then
+                    continue
+                fi
+            fi
+            [[ "$line" ]] && line+=","
+            line+="$state,$name,$icon"
+        fi
+    done < <(toggle list)
+
+    echo "$line"
+}
+additionalToggles() {
+    t=(
+        dnd
+        prof
+        anc
+        "trans parent"
+        off
+        no_mail
+        no_network
+        "pres erve"
+        fast_battery_charge
+        light
+        no_pctl
+    )
+    echo "$(
+        IFS=,
+        echo "${t[*]}"
+    )"
+}
+declare -A api=(
+    ["0"]="echo $ON_COLOR_NEUTRAL_HEX"               # fgColor
+    ["1"]="echo $COLOR_BG_HEX"                       # bgColor
+    ["2"]="echo $COLOR_NEUTRAL_HEX"                  # elementBgColor
+    ["3"]="echo $COLOR_ACTIVE_HEX"                   # accentColor
+    ["4"]="echo $ON_COLOR_ACTIVE_HEX"                # accentBgColor
+    ["5"]="echo $COLOR_WALLPAPER_HEX"                # colorWallpaper
+    ["6"]="echo $COLOR_WALLPAPER_GRADIENT_START_HEX" # colorWallpaperGradientStart
+    ["7"]="echo $WALLPAPER_GRADIENT_POW"             # colorWallpaperGradientPow
+    ["8"]="statusbarblock volume false"              # volume
+    ["9"]="battery termux"                           # phoneBattery
+    ["a"]="infoText"                                 # infoText
+    ["b"]="mediaText"                                # media
+    ["c"]="weather temperature"
+    ["d"]="weather condition"
+    ["e"]="weather humidity"
+    ["f"]="weather sunrise"
+    ["g"]="weather sunset"
+    ["h"]="battery headphones"
+    ["i"]="weather widget"
+    ["j"]="getN"
+    ["k"]="calendar"
+    ["l"]="toggles"
+    ["m"]="additionalToggles"
+    ["n"]="critter"
+    ["o"]="aranet"
+)
+keys=(0 1 2 3 4 5 6 7 8 9 a b c d e f g h i j k l m n o)
+old=""
+new=""
+diff=""
+getDiff() {
+    echo "$new"
+    if [ "$new" != "$old" ]; then
+        update=$(statusbar-watch-delta "$old" "$new")
+        diff=$(echo -n "$update" | base64 -w0)
+    else
+        diff=""
+    fi
+}
+delimeter="‡"
+apiString() {
+    data=()
+    for k in "${keys[@]}"; do
+        output=$(eval "${api["$k"]}")
+        data+=("$k$delimeter$output")
+    done
+    IFS=$delimeter
+    joined="${data[*]}"
+    new=$(printf "%s" "$joined")
+}
+
+sendUpdate() {
+    aod false
+    if [ "$new" != "$old" ]; then
+        #echo "Old:    /$old/"
+        #echo "New:    /$new/"
+        sendData "update"
+    else
+        sendData "idle"
+    fi
+}
+loop() {
+    local command=$1
+    if [ "$command" == "clear" ]; then
+        old=""
+        sendUpdate
+    elif [ "$command" == "abort" ]; then
+        echo "aborting"
+        sent="null"
+        sendUpdate
+    elif [ "$command" == "update" ]; then
+        apiString
+        if [ "$sent" = idle ]; then
+            sendUpdate
+        fi
+    elif [[ $command == "ack:"* ]]; then
+        cmd="${command##*ack:}"
+        tempData+="${cmd%"${cmd##*[![:space:]]}"}"
+        if [[ $tempData == *\$ ]]; then
+            old="${tempData%?}"
+            tempData=""
+            old=$(echo -n "$old" | base64 -d)
+            sendUpdate
+        fi
+    elif [[ $command == "data:"* ]]; then
+        cmd="${command##*data:}"
+        tempData+="${cmd%"${cmd##*[![:space:]]}"}"
+        if [[ $tempData == *\$ ]]; then
+            old="${tempData%?}"
+            tempData=""
+            old=$(echo -n "$old" | base64 -d)
+            #echo "Request /$(tr -d '\n' <<< "$old")/"
+            #echo "Current /$(tr -d '\n' <<< "$new")/"
+            getDiff
+            if [ -n "$diff" ]; then
+                echo "delta   /$(echo -n "$diff" | base64 -d)/"
+                aod true
+                loop chunk:0
+            else
+                sendUpdate
+            fi
+        fi
+    elif [[ $command == "chunk:"* ]]; then
+        chunk="${command##*chunk:}"
+        datatoSend=$diff
+        datatoSend="${datatoSend}$"
+        chunks=()
+        local c=0
+        while [ ${#datatoSend} -gt 0 ]; do
+            header=$key$c:
+            headerlength=${#header}
+            datalength=$((chunklength - headerlength))
+            chunks+=("$header${datatoSend:0:datalength}")
+            datatoSend="${datatoSend:datalength}"
+            c=$((c + 1))
+        done
+        if [[ -v chunks[$chunk] ]]; then
+            sendData "${chunks[$chunk]}" "$((c - 1))"
+        else
+            echo "invalid request"
+        fi
+    else
+        echo "invalid command /$command/"
+        exit 1
+    fi
+}
+loop update
+sendUpdate
+exec 3<> "$PIPE"
+
+while [[ -p $PIPE ]]; do
+    if read -r -t 15 -u 3 line; then
+        command=$line
+        loop "$command"
+    else
+        sendUpdate
+    fi
+done

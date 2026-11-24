@@ -1,0 +1,127 @@
+#!/usr/bin/env python3
+
+import argparse
+import difflib
+import sys
+
+Delta = tuple[int, int, str]
+
+
+def compute_deltas(old: str, new: str, min_match: int) -> list[Delta]:
+    deltas: list[Delta] = []
+    start_old: int | None = None
+    start_new: int | None = None
+    old_parts: list[str] = []
+    new_parts: list[str] = []
+
+    for tag, i1, i2, j1, j2 in difflib.SequenceMatcher(
+        a=old, b=new, autojunk=False
+    ).get_opcodes():
+        if tag == "equal":
+            if i2 - i1 >= min_match:
+                if start_old is not None and start_new is not None:
+                    deltas.append(
+                        (start_old, len("".join(old_parts)), "".join(new_parts))
+                    )
+                    start_old = None
+                    start_new = None
+                    old_parts = []
+                    new_parts = []
+            elif start_old is not None:
+                old_parts.append(old[i1:i2])
+                new_parts.append(new[j1:j2])
+            continue
+
+        if start_old is None:
+            start_old, start_new = i1, j1
+        old_parts.append(old[i1:i2])
+        new_parts.append(new[j1:j2])
+
+    if start_old is not None and start_new is not None:
+        deltas.append((start_old, len("".join(old_parts)), "".join(new_parts)))
+
+    return deltas
+
+
+def get_threshold_candidates(old: str, new: str) -> list[int]:
+    candidates = {0}
+
+    for tag, i1, i2, _, _ in difflib.SequenceMatcher(
+        a=old, b=new, autojunk=False
+    ).get_opcodes():
+        if tag != "equal":
+            continue
+        equal_len = i2 - i1
+        candidates.add(equal_len)
+        candidates.add(equal_len + 1)
+
+    return sorted(candidates)
+
+
+def apply_deltas(old: str, deltas: list[Delta]) -> str | None:
+    updated = old
+    offset = 0
+
+    for index, delete_len, insert_text in deltas:
+        start = index + offset
+        if start < 0 or start > len(updated):
+            return None
+
+        end = start + delete_len
+        if end < start or end > len(updated):
+            return None
+
+        updated = updated[:start] + insert_text + updated[end:]
+        offset += len(insert_text) - delete_len
+
+    return updated
+
+
+def get_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Compute the shortest compact delta by scanning all meaningful min_match thresholds."
+    )
+    parser.add_argument("old", nargs="?", default="Hello Zeppos! How are you?")
+    parser.add_argument("new", nargs="?", default="Hello XZeppos! How r u today?")
+    return parser.parse_args()
+
+
+def main() -> int:
+    args = get_args()
+
+    best_delta = ""
+    best_len: int | None = None
+    best_min_match = 0
+    best_found = False
+
+    for min_match in get_threshold_candidates(args.old, args.new):
+        deltas = compute_deltas(args.old, args.new, min_match)
+
+        reconstructed = apply_deltas(args.old, deltas)
+        if reconstructed != args.new:
+            continue
+
+        fields: list[str] = []
+        for index, delete_len, insert_text in deltas:
+            fields.extend([str(index), str(delete_len), insert_text])
+        candidate = "§".join(fields)
+
+        candidate_len = len(candidate)
+        if best_len is None or candidate_len < best_len:
+            best_len = candidate_len
+            best_delta = candidate
+            best_min_match = min_match
+            best_found = True
+
+    if not best_found:
+        print("best_min_match=none", file=sys.stderr)
+        print()
+        return 1
+
+    print(f"best_min_match={best_min_match}", file=sys.stderr)
+    print(best_delta)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
