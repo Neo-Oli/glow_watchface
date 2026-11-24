@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+filter=(
+    n.f.gadgetbridge.service.devices.huami.zeppos.services.ZeppOsLogsService
+    n.f.gadgetbridge.service.devices.huami.zeppos.services.ZeppOsNotificationService
+    nodomain.freeyourgadget.gadgetbridge.service.devices.huami.zeppos.ZeppOsSupport
+    nodomain.freeyourgadget.gadgetbridge.deviceevents.GBDeviceEventFindPhone
+    nodomain.freeyourgadget.gadgetbridge.service.devices.nothing.Ear1Support
+    MediaSessionService
+    keystore2
+    ActivityTaskManager
+    RotationButtonController
+    MR2ServiceImpl
+    EventHub
+    QAWalletSClient
+    bluetooth-a2dp
+)
+fpid=$1
+
+logcat -c
+logcat -s "${filter[@]}" 2>&1 &
+pid=$!
+"$PREFIX"/bin/tail -f --pid "$fpid" /dev/null
+kill -9 "$pid"

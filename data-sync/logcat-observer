@@ -1,0 +1,337 @@
+#!/usr/bin/env bash
+exec 2>&1
+. ~/.environment.sh
+
+echo "starting logcat observer"
+gadgetbridge-connect
+
+declare -A onceList
+
+once() {
+    local timeout=$1
+    shift
+    local currentTime
+    currentTime=$(date +%s)
+    name="$*"
+    if [[ -n ${onceList[$name]} ]]; then
+        local lastRunTime=${onceList[$name]}
+        if ((currentTime - lastRunTime < timeout)); then
+            echo "Skipping api call because of timeout"
+            return
+        fi
+    fi
+    "$@" &
+    onceList[$name]=$currentTime
+}
+
+watchfile=$TMPDIR/watch-key-press
+watchKeyPress() {
+    repeat-action --name menu --timeout 500 \
+        --action "$HOME/bin/clear-snoozed-alarms || $HOME/bin/ephemeralalert -f -T logcat-observer '1: clear snoozed alarms or help.
+2: quickcheck.
+3: dnd.
+4: find-my-device.
+6: restart bluetooth.
+7: wol.
+>10: shutdown'" \
+        --action "$HOME/bin/ephemeralalert -f -T logcat-observer \"\$(quickcheck)\"" \
+        --action "$HOME/bin/dnd" \
+        --action "$HOME/bin/alarm -1 -t -i" \
+        --action "\
+            $HOME/bin/ephemeralalert -f -T logcat-observer 'restart bluetooth'; \
+            $HOME/bin/no_bluetooth restart && \
+            $HOME/bin/ephemeralalert -f -T logcat-observer 'bluetooth restarted'" \
+        --action "ssh kuehlschrank -S none wol-rainbow"
+}
+
+bluetoothInteraction() {
+    local force=${1:-false}
+    local filePath="$HOME/.local/share/audio_devices/connected"
+
+    if [[ ! -e $filePath || $force == true ]]; then
+        crontroll now_wait bluetooth_info
+    fi
+}
+
+laststart=0
+lastend=0
+start() {
+    laststart=$((laststart + 1))
+    echo "$1"
+}
+end() {
+    if [ $laststart -gt $lastend ]; then
+        lastend=$laststart
+        echo "-----------------------------"
+    fi
+}
+unknown() {
+    start "Unknown: $1"
+}
+
+su -c "$PREFIX/bin/bash" "$HOME"/bin/logcat-observe-helper $$ \
+    | while IFS= read -r line; do
+        # shellcheck disable=SC2086
+        set -- $line
+        tag="${6%?}"
+        content="${*:7}"
+        log="Received: $content ($tag)"
+        if [ "$tag" = MediaSessionService ] && [[ $content == *"action=ACTION_UP"* ]]; then
+            keyCode=$(echo "$line" | awk -F'keyCode=' '{print $2}' | awk '{print $1}')
+            case $keyCode in
+                KEYCODE_MEDIA_PLAY,)
+                    start "$log"
+                    m-toggle
+                    ;;
+                KEYCODE_MEDIA_PLAY_PAUSE,)
+                    start "$log"
+                    m-toggle
+                    ;;
+                KEYCODE_MEDIA_PAUSE,)
+                    start "$log"
+                    m-pause
+                    ;;
+                KEYCODE_MEDIA_NEXT,)
+                    start "$log"
+                    m-next
+                    ;;
+                KEYCODE_MEDIA_PREVIOUS,)
+                    start "$log"
+                    m-prev
+                    ;;
+                KEYCODE_VOLUME_DOWN,)
+                    start "$log"
+                    statusbar-run volume
+                    ;;
+                KEYCODE_VOLUME_UP,)
+                    start "$log"
+                    statusbar-run volume
+                    ;;
+                *)
+                    unknown "$log"
+                    ;;
+            esac
+            end
+        elif [ "$tag" = ActivityTaskManager ] && [[ $content == *START*android.intent.action.VOICE_COMMAND* ]]; then
+            start "$log"
+            m-pass
+            bluetoothInteraction
+            end
+        elif [ "$tag" = nodomain.freeyourgadget.gadgetbridge.deviceevents.GBDeviceEventFindPhone ]; then
+            if [[ $content == *"START_VIBRATE" ]]; then
+                start "$log"
+                if [ -d "$watchfile" ]; then
+                    watchKeyPress
+                else
+                    mkdir "$watchfile"
+                fi
+                echo vibrate
+            elif [[ $content == *"START" ]]; then
+                start "$log"
+                if [ -d "$watchfile" ]; then
+                    watchKeyPress
+                else
+                    mkdir "$watchfile"
+                fi
+                echo no vibrate
+            elif [[ $content == *"STOP" ]]; then
+                start "$log"
+                gadgetbridge-connect
+                rmdir "$watchfile"
+                echo stop
+            else
+                unknown "$log"
+            fi
+            end
+        elif [ "$tag" == "n.f.gadgetbridge.service.devices.huami.zeppos.services.ZeppOsNotificationService" ]; then
+            if [ "$content" = "Reject call" ] || [ "$content" = "Mute call" ]; then
+                start "$log"
+                echo running snooze-alarm
+                snooze-alarm
+            else
+                unknown "$log"
+                echo "Unknown content: $content ($tag)"
+            fi
+            end
+        elif [ "$tag" == "nodomain.freeyourgadget.gadgetbridge.service.devices.nothing.Ear1Support" ]; then
+            if [[ $content == *"Audio mode"* ]]; then
+                start "$log"
+                echo changed audio mode
+                gadgetbridge-connect --headphones
+            else
+                unknown "$log"
+            fi
+            end
+        elif [ "$tag" == "nodomain.freeyourgadget.gadgetbridge.service.devices.huami.zeppos.ZeppOsSupport" ]; then
+            if [[ $content == *"ZeppOS phase 2 initialize..."* ]]; then
+                start "$log"
+                echo watch possibly connected
+                (
+                    sleep 10
+                    watch_logs
+                ) &
+            elif [[ $content == *"Got chunked ack"* ]]; then
+                :
+            else
+                unknown "$log"
+            fi
+            end
+        elif [ "$tag" == "n.f.gadgetbridge.service.devices.huami.zeppos.services.ZeppOsLogsService" ]; then
+            if [[ $content == *"DROIDDO"* ]]; then
+                start "$log"
+                cmd="${content##*DROIDDO: }"
+                echo "CMD IS '$cmd'"
+                cmd="${cmd#"${cmd%%[![:space:]]*}"}" # trim leading spaces
+                cmd="${cmd%"${cmd##*[![:space:]]}"}" # trim trailing spaces
+                case "$cmd" in
+                    prev) m-prev & ;;
+                    next) m-next & ;;
+                    mtoggle) m-toggle & ;;
+                    clearSnoozedAlarms) clear-snoozed-alarms & ;;
+                    restartBT) no_bluetooth restart & ;;
+                    findMyDevice) alarm -1 -t -i > /dev/null 2>&1 & ;;
+                    volume*)
+                        num="${cmd##volume }"
+                        vol "$num" &
+                        ;;
+                    timerSilent*)
+                        seconds="${cmd##timerSilent }"
+                        ephemeralalert "$(at --prefix watchtimer "$seconds seconds" "alarm -1 -T -s -i -v" | awk '{$2=""; sub("  "," "); print}')"
+                        ;;
+                    timer*)
+                        seconds="${cmd##timer }"
+                        ephemeralalert "$(at --prefix watchtimer "$seconds seconds" "alarm -1 -T" | awk '{$2=""; sub("  "," "); print}')"
+                        ;;
+                    music*)
+                        track="${cmd##music }"
+                        title="${track%%//*}"
+                        artist="${track##*//}"
+                        N N title "$title" artist "$artist"
+                        ;;
+                    toggle*)
+                        name="${cmd##toggle }"
+                        name="${name// /}"
+                        if [ "$name" = off ]; then
+                            # off is a special command in gadgetbridge that is not a real toggle, but changes only toggles
+                            $name
+                        else
+                            toggle "$name"
+                        fi
+                        ;;
+                    critter*)
+                        action="${cmd##critter }"
+                        action="${action// /}"
+                        critter -s "$action"
+                        statusbar-run critter
+                        ;;
+                    cancelTimer)
+                        rm -v "$HOME"/.at/at_watchtimer_*
+                        at-reload
+                        ;;
+                    screenshare) ssh -n rainbow -S none screenshare-toggle 2>&1 & ;;
+                    random) m-random & ;;
+                    search) m-search & ;;
+                    fav) fav-track --yes & ;;
+                    mpvexit) exit-all-termux-mpv & ;;
+                    dataAbort) echo "abort" >> "$RUNDIR"/statusbar-watch.fifo ;;
+                    dataClear) echo "clear" >> "$RUNDIR"/statusbar-watch.fifo ;;
+                    *) echo "invalid command" ;;
+                esac
+            elif [[ $content == *"DROIDDATAACK"* ]]; then
+                start "$log"
+                cmd="${content##*DROIDDATAACK:}"
+                echo "ack:$cmd" >> "$RUNDIR"/statusbar-watch.fifo
+            elif [[ $content == *"DROIDDATA"* ]]; then
+                start "$log"
+                cmd="${content##*DROIDDATA:}"
+                echo "data:$cmd" >> "$RUNDIR"/statusbar-watch.fifo
+            elif [[ $content == *"DROIDCHUNK"* ]]; then
+                start "$log"
+                cmd="${content##*DROIDCHUNK:}"
+                echo "chunk:$cmd" >> "$RUNDIR"/statusbar-watch.fifo
+            elif [[ $content == *"Got log data for"* ]] || [[ $content == *"Got unknown"* ]]; then
+                :
+            else
+                unknown "$log"
+            fi
+            end
+        elif [ "$tag" = "MR2ServiceImpl" ]; then
+            if [[ $content == *"removeProviderRoutes"* ]]; then
+                start "$log"
+                once 5 bluetoothInteraction
+                echo audio_device removed
+            elif [[ $content == *"addProviderRoutes"* ]]; then
+                start "$log"
+                once 5 bluetoothInteraction
+                echo audio_device added
+            else
+                unknown "$log"
+            fi
+            end
+        elif [ "$tag" = "EventHub" ]; then
+            if [[ $content == *"Removed device: "* ]]; then
+                start "$log"
+                once 5 bluetoothInteraction
+                echo device removed
+            elif [[ $content == *"New device:"* ]]; then
+                start "$log"
+                once 5 bluetoothInteraction
+                echo device added
+            else
+                unknown "$log"
+            fi
+            end
+        elif [ "$tag" = "keystore2" ]; then
+            if [[ $content == *"Successfully unlocked"* ]]; then
+                start "$log"
+                echo "phone unlocked. Running snooze-alarm"
+                rotate --reset &
+                snooze-alarm
+                (
+                    sleep 1
+                    showkeyboard
+                ) &
+            elif [[ $content == *"on_device_locked(user_id=0"* ]]; then
+                start "$log"
+                echo "phone locked."
+            else
+                unknown "$log"
+            fi
+            end
+        elif [ "$tag" = "RotationButtonController" ]; then
+            if [[ $content == *"onRotateSuggestionClick"* ]]; then
+                start "$log"
+                echo Rotation button clicked
+                if [[ $content == *"mLastRotationSuggestion=0"* ]]; then
+                    (
+                        sleep 1
+                        echo setting rotation to off
+                        rotate --set off
+                    ) &
+                elif [[ $content == *"mLastRotationSuggestion=1"* ]]; then
+                    (
+                        sleep 1
+                        echo setting rotation to on
+                        rotate --set on
+                    ) &
+                fi
+            else
+                unknown "$log"
+            fi
+            end
+        elif [ "$tag" = QAWalletSClient ]; then
+            if [[ $content == *"Wallet service unavailable"* ]]; then
+                start "$log"
+                light
+            else
+                unknown "$log"
+            fi
+            end
+        elif [ "$tag" = bluetooth-a2dp ]; then
+            if [[ $content == *"AVDT_CONNECT_IND_EVT"* ]]; then
+                start "$log"
+                gadgetbridge-connect --headphones
+            fi
+            end
+        fi
+    done
